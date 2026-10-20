@@ -1,0 +1,144 @@
+Documentos en el mapa: 115 (2574 líneas). Candidatos: 2379 (nuevos con días o no aplica: 2353; condicionados: 26). Cobertura si se aplican: 2409/2743 = 87.8% (hoy 56).
+== fa6b5056 ACTARA 25 WG: 106/198 líneas resueltas
+   sin regla: Ají (3), Alcachofa (3), Alfalfa (1), Alstroemeria (1), Apio (3), Berenjena (3), Brócoli (2), Clavel (2), Col forrajera (2), Coliflor (2), Control de Plagas en Predios Agrícolas (1), Crisantemo (4), Cucurbitáceas (7), Empastadas (1), Gerbera (1), Gladiolo (4), Lechuga (2), Lilium (3), Melón (7), Papa (1), Pepino (7), Pimiento (3), Repollito de Bruselas (2), Repollo (2), Rosal (2), Sandía (7), Tabaco (3), Tomate (5), Zapallo (7), Álamo (1)
+== c2e63901 TOUCHDOWN IQ 500 SL: 188/197 líneas resueltas
+   sin regla: Desmanches (1), Mango Vides Forestales (4), Maule (4)
+== b3731587 KARATE CON TECNOLOGIA ZEON: 113/120 líneas resueltas
+   sin regla: Achicoria (1), Aplicar 2 días después de observar el 5% de estilos. Repetir 4 días después de la primera aplicación y 7 días después de la segunda aplicación. Utilizar la dosis mayor en situaciones de alta presión de la plaga. (1), Aplicar al observar los primeros insectos. Repetir cada 8 días con un máximo de 3 veces en la temporada. (1), Aplicar cuando se detecten los primeros vuelos de adultos. Aplicar 1 vez por temporada. Usar un volumen de agua que permita el adecuado mojamiento de las plantas evitando un escurrimiento del producto al suelo con un mínimo de 300 L/ha. Para volúmenes mayores respetar la dosis por concentración (1), Aplicar cuando se detecten los primeros vuelos de adultos. Aplicar hasta 3 veces por temporada a intervalos de entre 7 y 21 días. Usar un volumen de agua que permita el adecuado mojamiento de las plantas evitando un escurrimiento del producto al suelo con un mínimo de 300 L/ha. Para volúmenes mayores respetar la dosis por concentración. (1), Aplicar en post-emergencia del cultivo, con ataque declarado, preferentemente al atardecer y en lo posible dirigido a la hilera. Utilizar un mínimo de 200 L de agua/ha. Utilizar la dosis mayor en situaciones de alta presión de plagas. Aplicar hasta 3 veces por temporada a intervalos de entre 3 y 7 días. (1), Kale (1)
+== 147e9dec ENGEO 247 ZC: 82/82 líneas resueltas
+== 1da3de20 VERTIMEC 018 EC: 67/67 líneas resueltas
+== 6225266d Winspray Miscible Coa: 29/57 líneas resueltas
+   sin regla: Apliacación aérea (1), Aplicar (1), Aplicar WINSPRAY® MISCIBLE COA (1), COADYUVANTE SURFACTANTE (1), Con riesgo (1), Con un intervalo mínimo (1), Diluyéndolo (1), En condiciones (1), Huevos (3), Instrucciones de uso (1), Mojamientos recomendados: Carozos: 1000-2500 (1), POMELO Conchuela (1), Para remolacha (1), Planta (1), Remolacha 300 L (1), SALIDA INVIERNO (1), Sobredosis (1), TRATAMIENTO (1), TRATAMIENTO PRIMAVERA VERANO: Huevos (1), USO COMO (1), aplicar en plantas sometidas a estrés hídrico o (1), de problemas originados por una agitación (1), dosis menor con bajas presiones de la plaga y (1), recomendado para aplicación aérea 20 (1), siempre el agitador funcionando durante (1), un máximo de 10 aplicaciones por temporada (1)
+== a95fff1e AGRIMEK: 55/55 líneas resueltas
+== f50d45a7 DUAL GOLD 960 EC: 51/51 líneas resueltas
+== 06d27282 AMISTAR TOP: 33/45 líneas resueltas
+   sin regla: Alstroemeria (1), Clavel (1), Crisantemo (1), Gerbera (1), Leucadendron (1), Lilium (1), Lisianthus (1), Milindros (1), Peonía (1), Protea (1), Reina Luisa (1), Rosal (1)
+== fe0fc3eb SELECRON 720 EC: 44/45 líneas resueltas
+   sin regla: NOCIVO (1)
+== 6182e8cf TECTO 500 SC: 31/45 líneas resueltas
+   sin regla: Bulbos ornamentales (1), Clavel (2), Crisantemo (2), Césped (1), Gladiolo (3), Iris (1), Lilium (2), Narciso (1), Tulipán (1)
+== 83a84168 LAUDENTO 200 SC: 44/44 líneas resueltas
+== 9e052fae SCORE 250 EC: 42/42 líneas resueltas
+== 82413cff Borneo 11 SC: 39/40 líneas resueltas
+   sin regla: NOCIVO (1)
+== d045516c REGLONE: 61/64 líneas resueltas
+   sin regla: Césped (1), Semilleros de Leguminosas: Alfalfa (1), Semilleros de Leguminosas: Trébol (1)
+== 8d111bf0 TOPAS 200 EW: 21/34 líneas resueltas
+   sin regla: Ampelopsis (1), Aplicar en forma preventiva o con la presencia de los primeros síntomas de Oidio y repetir de acuerdo a programas de control, con un máximo de 3 aplicaciones por temporada con intervalos de 10-14 días. Usar la dosis mayor e intervalo menor en condiciones de alta presión de Oidio. (1), Aplicar en forma preventiva o con la presencia de los primeros síntomas y continuar luego cada 10 - 15 días, con un máximo de 3 aplicaciones por temporada. Utilizar un volumen máximo de 1000 L/ha asegurando una óptima cobertura de los árboles. (1), Aplicar en forma preventiva o con la presencia de los primeros síntomas y continuar luego cada 10 - 15 días, repitiendo hasta dos veces más en la temporada. Utilizar un volumen máximo de 1000 L/ha asegurando una óptima cobertura de los árboles. Usar la dosis mayor e intervalo menor, en condiciones de alta presión de Oidio. (1), Aplicar en forma preventiva o con la presencia de los primeros síntomas y continuar luego cada 10 - 15 días. Aplicar un máximo de 3 veces en la temporada, de acuerdo a las condiciones climáticas predisponentes. Utilizar un volumen máximo de 1.000 L/ha asegurando una óptima cobertura de los árboles. Usar la dosis mayor e intervalo menor en condiciones de alta presión de Oidio. (1), Cedrón (1), Crataegus (1), Crisantemo (1), Iniciar las aplicaciones con brotes de 5 cm de largo, repitiendo las aplicaciones con intervalos de 10-14 días, con un máximo de 2 aplicaciones por temporada. Intercalar las aplicaciones con fungicidas de distinto grupo químico y modo de acción. Usar la dosis mayor e intervalo menor, en condiciones de alta presión de Oidio. Utilizar un volumen máximo de 1.000 L/ha asegurando una óptima cobertura de los árboles. (1), Iniciar las aplicaciones en plena flor y repetir a caída de pétalos y en fruto cuajado o bien aplicar cada 10-14 días. Usar la dosis mayor e intervalo menor, en condiciones de alta presión de Oidio. Utilizar un volumen máximo de 1.500 L/ha asegurando una óptima cobertura de los árboles. Aplicar un máximo de 4 aplicaciones por temporada de TOPAS® 200 EW o productos pertenecientes al mismo grupo químico, alternando siempre con productos de diferente modo de acción. (1), Mango Vides Forestales (1), Ornamental (1), Rosal (1)
+== 5746c539 MIRAVIS PRIME: 33/33 líneas resueltas
+== 6400975a MINECTO PRO: 33/33 líneas resueltas
+== d2537ac8 SCHOLAR 230 SC: 32/32 líneas resueltas
+== a97fa117 Turbine: 30/30 líneas resueltas
+== d0f7d426 Ultraspray: 30/30 líneas resueltas
+== 00b600d8 Cuproso Flo: 28/28 líneas resueltas
+== 88c31014 SWITCH 62.5 WG: 26/27 líneas resueltas
+   sin regla: Ornamental (1)
+== 458efae7 CHESS: 27/27 líneas resueltas
+== 6205f49e Cobre Premium: 25/26 líneas resueltas
+   sin regla: CUIDADO (1)
+== 8c462f0c PROCLAIM FORTE: 25/25 líneas resueltas
+== 92bb8fe4 20241202 Botristop: 25/25 líneas resueltas
+== 97df8511 Comet: 22/24 líneas resueltas
+   regla 3: cultivo «Almendro» no está en las líneas de este documento
+   sin regla: Aplicaciones aéreas y/o (1), Frutales de carozo (Almendros (1)
+== 52cee0b1 VOLIAM FLEXI 300 SC: 24/24 líneas resueltas
+== 764e5410 PROCLAIM 05 SG: 23/24 líneas resueltas
+   sin regla: Hortalizas de Hoja (1)
+== b210a1e3 GOLD 48 (Ridomil Gold 480 SL): 22/23 líneas resueltas
+   regla 2: cultivo «Nogal» no está en las líneas de este documento
+   sin regla: Pino (1)
+== c9d4f9e3 AMISTAR OPTI: 22/23 líneas resueltas
+   sin regla: NOCIVO (1)
+== 6f7e22c3 AMPLIGO 150 ZC: 21/22 líneas resueltas
+   sin regla: Cerezo (1)
+== 72866182 Cercobin M: 21/21 líneas resueltas
+   regla 0: cultivo «Duraznero» no está en las líneas de este documento
+== 20efe56b PRIORI: 21/21 líneas resueltas
+== 1e48f47b GESATOP 90 WG: 20/20 líneas resueltas
+== 3be9b74f CENTRIC 75 SG: 19/20 líneas resueltas
+   sin regla: Olivo (1)
+== 83eca4be WINSPRAY: 20/20 líneas resueltas
+== fb508e34 PRIORI XTRA: 20/20 líneas resueltas
+== be491b80 LOGRAN 75 WG: 18/18 líneas resueltas
+== 744bbc97 TILT 250 EC: 18/18 líneas resueltas
+== 26937cc8 Basta 14 SL: 17/18 líneas resueltas
+   regla 0: cultivo «Cerezo» no está en las líneas de este documento
+   sin regla: para pisco). (1)
+== d41fd82f QUADRIS: 16/17 líneas resueltas
+   sin regla: CUIDADO (1)
+== 4ad1ca50 RIDOMIL GOLD MZ 68 WG: 17/17 líneas resueltas
+== b3469f2a Elmus: 16/17 líneas resueltas
+   regla 11: cultivo «Duraznero» no está en las líneas de este documento
+   sin regla: invernadero (1)
+== e93e4022 CUPRODUL 75 SUPER: 17/17 líneas resueltas
+== ddbb8af8 Dormex: 16/16 líneas resueltas
+== db1a21a7 FORCE 20 CS SEMILLERO: 16/16 líneas resueltas
+== cc34485d EXCELTO: 16/16 líneas resueltas
+== 482d2f65 CRUISER 600 FS: 15/15 líneas resueltas
+== 04bf101f Agrocopper Sp: 66/66 líneas resueltas
+== fb48027e MIRAVIS DUO: 14/14 líneas resueltas
+== 397513af KONAN 240 SC: 14/14 líneas resueltas
+== 28051591 GRADUATE A+: 14/14 líneas resueltas
+== 8428b843 Polisulfuro De Calcio: 14/14 líneas resueltas
+== 0e06407a CRUISER 350 FS: 13/13 líneas resueltas
+== a119aaeb Cantus: 13/13 líneas resueltas
+== 9099ebc7 SORBA 050 EC: 12/12 líneas resueltas
+== 1ea81d77 Comet WG: 12/12 líneas resueltas
+== f7986888 SHIRLAN 500 SC: 11/11 líneas resueltas
+== 8b03bbe4 Katana Syngenta: 11/11 líneas resueltas
+== 09dccdd6 REVUS 250 SC: 10/10 líneas resueltas
+== b340997e REFLECT XTRA: 10/10 líneas resueltas
+== 8315f2bc Bellis: 8/10 líneas resueltas
+   sin regla: Carozos: (1), erro (1)
+== cafcdfd1 Acronis: 10/10 líneas resueltas
+== 445188d8 DIVIDEND 150 FS: 10/10 líneas resueltas
+== b1747b74 Vaniva 450 SC: 10/10 líneas resueltas
+== 974111ad Forum SC: 9/9 líneas resueltas
+== c7510836 MODDUS 250 EC: 8/8 líneas resueltas
+== 92a09e44 CULTAR: 8/8 líneas resueltas
+== ff96d081 BION 50 WG: 7/7 líneas resueltas
+== ff49a59d REFLECT TOP: 7/7 líneas resueltas
+== 81fae4bb CAIMAN 70 WG: 7/7 líneas resueltas
+== 8586e287 CALLISTO 480 SC: 6/6 líneas resueltas
+== 11123e0b Kocide 2000: 6/6 líneas resueltas
+== 0ed7d1e7 SWITCH ONE: 6/6 líneas resueltas
+== 9654c070 MIRAVIS AEON: 6/6 líneas resueltas
+== 0428c731 SCHOLAR RTU: 6/6 líneas resueltas
+== fedb22f4 KEEP: 6/6 líneas resueltas
+== 377b5ca9 VIBRANCE GOLD: 5/5 líneas resueltas
+== 1b5760b2 CELEST: 5/5 líneas resueltas
+== a89e7dab FOLIO GOLD 440 SC: 5/5 líneas resueltas
+== c36fa908 ARTEA 330 EC: 5/5 líneas resueltas
+== 07f61bfe AXIAL 050 EC: 4/4 líneas resueltas
+== 5f48ba32 MODDUS EVO: 4/4 líneas resueltas
+== 14258f30 Eurolightning (Imazapir): 4/4 líneas resueltas
+== 3ee9dadf Frontier P: 3/4 líneas resueltas
+   sin regla: Mojamiento: (1)
+== 63948e5c ELATUS: 4/4 líneas resueltas
+== 3299db3c Dash HC: 4/4 líneas resueltas
+== 25509f7b GESAPRIM 90 WG: 4/4 líneas resueltas
+== 65c3842a MINECTO STAR: 3/3 líneas resueltas
+== cae9ced7 VIBRANCE: 3/3 líneas resueltas
+== fef19b8a SCORE BETA 475 EC: 3/3 líneas resueltas
+== 9baa93f8 FORTENZA SEMILLERO: 3/3 líneas resueltas
+== 7a7634a7 FLEX: 3/3 líneas resueltas
+== 1957e1b9 Break: 3/3 líneas resueltas
+== 7f2c6756 DYNASTY 10 FS: 2/2 líneas resueltas
+== b235dd94 Caramba 90 SL: 2/2 líneas resueltas
+== 6b47d5c8 TRAXOS 050 EC: 2/2 líneas resueltas
+== e84ae296 ORONDIS ULTRA: 2/2 líneas resueltas
+== 37cea1cd TOPIK 240 EC: 2/2 líneas resueltas
+== 930b542c FALCON GOLD: 2/2 líneas resueltas
+== 13429cf5 ELIBRA: 1/1 líneas resueltas
+== cbc87a0e CELEST QUATTRO SEMILLERO: 1/1 líneas resueltas
+== 7e1cddf1 SWITCH DRY: 1/1 líneas resueltas
+== 42f0c737 CARIAL PLUS: 1/1 líneas resueltas
+== 7f0b0bce TASPA 500 EC: 1/1 líneas resueltas
+== 647d7f67 Convey: 1/1 líneas resueltas
+== c8c84818 AM GOLD 6: 1/1 líneas resueltas
+== e73f6fd6 GRANDEVO WG: 57/57 líneas resueltas
+== 544733e7 Fast Plus: 54/54 líneas resueltas
+== 7bd96a72 Strepto Plus: 14/14 líneas resueltas
+== b1103b4a Consul 65 WP: 12/12 líneas resueltas
+== 563df7aa SPIRIT 500 SC: 8/8 líneas resueltas
+== a6a39d9e CUPROFORTE: 59/59 líneas resueltas

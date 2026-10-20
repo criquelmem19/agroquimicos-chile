@@ -118,20 +118,40 @@ export function dosis(u) {
     estadoRevision(u));
 }
 
-function conCita(texto, cita) {
+// Cita guardada en field_citations (Fase 2): texto literal de la etiqueta y su página.
+export function citaDe(u, campo, url) {
+  const c = u.field_citations && u.field_citations[campo];
+  if (!c || !limpio(c.cita)) return null;
+  const pagina = c.pagina ? (url
+    ? h('a', { href: `${url}#page=${c.pagina}`, target: '_blank', rel: 'noopener' }, `pág. ${c.pagina}`)
+    : `pág. ${c.pagina}`) : null;
+  return h('span', { class: 'cita' }, `Etiqueta: «${recortar(c.cita, 200)}»`, pagina ? [' (', pagina, ')'] : null);
+}
+
+function citaCruda(texto, cita) {
   const c = limpio(cita);
-  const mostrarCita = c && c.toLowerCase() !== texto.toLowerCase();
-  return h('div', { class: 'valor' },
-    h('span', { class: 'valor-texto' }, texto),
-    mostrarCita ? h('span', { class: 'cita' }, `Etiqueta: «${recortar(c, 160)}»`) : null);
+  return c && c.toLowerCase() !== texto.toLowerCase() ? h('span', { class: 'cita' }, `Etiqueta: «${recortar(c, 160)}»`) : null;
+}
+
+function valorConCita(texto, cita) {
+  return h('div', { class: 'valor' }, h('span', { class: 'valor-texto' }, texto), cita);
 }
 
 // Regla 2: la carencia nunca queda en blanco.
+// Hay tres casos: días o «no aplica» (con cita); «depende» (la etiqueta pone una condición que la
+// línea no permite resolver, ej. uva de mesa vs vinífera: se muestra la cita sin número); y sin dato.
 export function carencia(u, url) {
-  if (u.withholding_period_days != null) {
-    return conCita(plural(u.withholding_period_days, 'día', 'días'), u.withholding_period_raw);
+  if (u.withholding_period_days != null || u.withholding_not_applicable) {
+    const texto = u.withholding_period_days != null ? plural(u.withholding_period_days, 'día', 'días') : 'No aplica';
+    return valorConCita(texto, citaDe(u, 'carencia', url) || citaCruda(texto, u.withholding_period_raw));
   }
-  if (u.withholding_not_applicable) return conCita('No aplica', u.withholding_period_raw);
+  const c = u.field_citations && u.field_citations.carencia;
+  if ((c && c.condicional) || limpio(u.withholding_period_raw)) {
+    return h('div', { class: 'valor' },
+      h('span', { class: 'sin-dato' }, 'Depende: ver condición en la etiqueta'),
+      citaDe(u, 'carencia', url) || citaCruda('', u.withholding_period_raw),
+      linkPdf(url, (c && c.pagina) || u.source_page, 'Ver etiqueta'));
+  }
   return h('div', { class: 'valor' },
     h('span', { class: 'sin-dato' }, 'Sin dato, verificar etiqueta'),
     linkPdf(url, u.source_page, 'Ver etiqueta'));
@@ -142,24 +162,29 @@ export function reingreso(horas, url) {
   return h('div', { class: 'valor' }, h('span', { class: 'sin-dato' }, 'Sin dato, ver etiqueta'), url ? linkPdf(url, null, 'Ver etiqueta') : null);
 }
 
-export function mojamiento(u) {
+export function mojamiento(u, url) {
   const a = u.water_volume_min_l_ha;
   const b = u.water_volume_max_l_ha;
   let t = null;
-  if (a != null && b != null) t = a === b ? `${num(a)} L/ha` : `${num(a)} a ${num(b)} L/ha`;
+  if (a != null && b != null) t = Number(a) === Number(b) ? `${num(a)} L/ha` : `${num(a)} a ${num(b)} L/ha`;
   else if (a != null) t = `mínimo ${num(a)} L/ha`;
   else if (b != null) t = `hasta ${num(b)} L/ha`;
-  return t ? h('span', { class: 'valor-texto' }, t) : h('span', { class: 'sin-dato' }, 'Sin dato');
+  return t ? valorConCita(t, citaDe(u, 'mojamiento', url)) : h('span', { class: 'sin-dato' }, 'Sin dato');
 }
 
-export function intervalo(u) {
+export function intervalo(u, url) {
   const a = u.interval_min_days;
   const b = u.interval_max_days;
   let t = null;
-  if (a != null && b != null) t = a === b ? `cada ${plural(a, 'día', 'días')}` : `cada ${num(a)} a ${plural(b, 'día', 'días')}`;
+  if (a != null && b != null) t = Number(a) === Number(b) ? `cada ${plural(a, 'día', 'días')}` : `cada ${num(a)} a ${plural(b, 'día', 'días')}`;
   else if (a != null) t = `cada ${plural(a, 'día', 'días')} o más`;
   else if (b != null) t = `cada ${plural(b, 'día', 'días')} como máximo`;
-  return t ? h('span', { class: 'valor-texto' }, t) : h('span', { class: 'sin-dato' }, 'Sin dato');
+  return t ? valorConCita(t, citaDe(u, 'intervalo', url)) : h('span', { class: 'sin-dato' }, 'Sin dato');
+}
+
+export function metodo(u, url, max = 200) {
+  const t = limpio(u.application_method);
+  return t ? valorConCita(recortar(t, max), citaDe(u, 'metodo', url)) : h('span', { class: 'sin-dato' }, 'Sin dato');
 }
 
 export function maxAplicaciones(u) {

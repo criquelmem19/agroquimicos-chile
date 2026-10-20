@@ -4,7 +4,7 @@ import { usosPorProducto, detalleProducto } from '../db.js';
 import { palabras, puntaje } from '../buscador.js';
 import {
   h, agregar, icono, ruta, plural, fecha, limpio, recortar, vaciar, cargando, retrasar, mensajeError,
-  dosis, carencia, mojamiento, intervalo, maxAplicaciones, textoOSinDato, linkPdf, urlDeLinea,
+  dosis, carencia, mojamiento, intervalo, metodo, maxAplicaciones, textoOSinDato, linkPdf, urlDeLinea,
   chipsMoa, etiquetasCategoria, reingreso,
 } from '../ui.js';
 
@@ -33,11 +33,11 @@ function lineaUso(cat, u) {
     h('dl', { class: 'datos-uso' },
       par('Dosis', dosis(u)),
       par('Carencia', carencia(u, url)),
-      par('Mojamiento', mojamiento(u)),
-      par('Intervalo', intervalo(u)),
+      par('Mojamiento', mojamiento(u, url)),
+      par('Intervalo', intervalo(u, url)),
       par('Máx. aplicaciones', maxAplicaciones(u)),
       par('Momento de aplicación', textoOSinDato(u.application_timing, 220)),
-      par('Método', textoOSinDato(u.application_method, 160)),
+      par('Método', metodo(u, url, 160)),
       par('Fuente', linkPdf(url, u.source_page))),
     textoLargo('Observaciones', u.observations),
     textoLargo('Texto leído de la etiqueta', u.source_text));

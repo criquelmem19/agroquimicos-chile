@@ -189,7 +189,7 @@ const CAMPOS_USO = [
   'water_volume_min_l_ha', 'water_volume_max_l_ha', 'application_method', 'application_timing', 'observations',
   'withholding_period_days', 'withholding_not_applicable', 'withholding_period_raw',
   'maximum_applications_per_season', 'interval_min_days', 'interval_max_days', 'season_restriction',
-  'source_document_id', 'source_page', 'source_text', 'confidence_score', 'review_status',
+  'source_document_id', 'source_page', 'source_text', 'confidence_score', 'review_status', 'field_citations',
 ].join(',');
 
 const memoria = new Map();

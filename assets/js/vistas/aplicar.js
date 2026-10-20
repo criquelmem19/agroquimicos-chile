@@ -5,7 +5,7 @@ import { usosPorCultivo, usosPorObjetivos, compararMoa } from '../db.js';
 import { filtrar, palabras, puntaje, normalizar } from '../buscador.js';
 import {
   h, ruta, plural, recortar, limpio, vaciar, cargando, retrasar,
-  dosis, carencia, reingreso, mojamiento, intervalo, maxAplicaciones, textoOSinDato, linkPdf, urlDeLinea,
+  dosis, carencia, reingreso, mojamiento, intervalo, metodo, maxAplicaciones, textoOSinDato, linkPdf, urlDeLinea,
   chipsMoa, ingredientesTexto, porcentaje,
 } from '../ui.js';
 
@@ -128,11 +128,11 @@ function filaDetalle(cat, u, columnas) {
   return h('tr', { class: 'fila-detalle', hidden: true },
     h('td', { colspan: String(columnas) },
       h('dl', { class: 'detalle-grid' },
-        par('Mojamiento', mojamiento(u)),
-        par('Intervalo entre aplicaciones', intervalo(u)),
+        par('Mojamiento', mojamiento(u, url)),
+        par('Intervalo entre aplicaciones', intervalo(u, url)),
         par('Máximo de aplicaciones', maxAplicaciones(u)),
         par('Momento de aplicación', textoOSinDato(u.application_timing)),
-        par('Método de aplicación', textoOSinDato(u.application_method)),
+        par('Método de aplicación', metodo(u, url)),
         par('Observaciones', textoOSinDato(u.observations)),
         par('Texto leído de la etiqueta', textoOSinDato(u.source_text)),
         par('Fuente', linkPdf(url, u.source_page)))));
