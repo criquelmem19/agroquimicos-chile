@@ -8,8 +8,9 @@ fichas de producto y una página con el estado de los datos.
 **Sitio:** https://criquelmem19.github.io/agroquimicos-chile/
 
 > ⚠️ Los datos se extrajeron automáticamente de etiquetas en PDF y pueden tener errores.
-> La carencia todavía falta en casi todas las líneas de uso. Antes de aplicar, lee siempre
-> la etiqueta oficial del producto. Este sitio informa; no prescribe.
+> La carencia está en el 88 % de las líneas de uso, cada una con su cita de la etiqueta, pero
+> nadie la ha revisado todavía. Antes de aplicar, lee siempre la etiqueta oficial del producto.
+> Este sitio informa; no prescribe.
 
 ## Cómo funciona
 
@@ -30,7 +31,8 @@ assets/css/app.css         Estilos (modo claro y oscuro)
 assets/js/                 Código: app.js (navegación), db.js (datos), buscador.js, ui.js
 assets/js/vistas/          Una vista por sección
 supabase/migrations/       Cambios a la base hechos desde este repositorio
-scripts/                   Herramientas locales (servidor de prueba, extracción)
+scripts/                   Herramientas locales (servidor de prueba; fase2/: lectura de las etiquetas)
+datos/fase2/               Lo que se leyó de las etiquetas (con cita y página), tal como se cargó
 CLAUDE.md                  Contexto, reglas y decisiones del proyecto
 ```
 
