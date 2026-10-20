@@ -113,7 +113,7 @@ function accesos(cat) {
       h('a', { class: 'acceso', href: '#/estado' },
         h('span', { class: 'acceso-ico' }, icono('grafico')),
         h('span', null, h('strong', null, 'Estado de los datos'),
-          h('span', null, 'Cuánto está completo y revisado. Importante: la carencia todavía falta en casi todas las líneas.')))),
+          h('span', null, 'Cuánto está completo y cuánto revisó una persona, calculado en vivo. Revísalo antes de confiar en una carencia.')))),
     h('h2', { class: 'titulo-seccion' }, 'Cultivos con más registros'),
     h('div', { class: 'chips' }, cultivosTop.map((c) =>
       h('a', { class: 'chip', href: ruta('aplicar', { cultivo: c.id }) }, c.nombre, h('small', null, String(c.nProductos))))),

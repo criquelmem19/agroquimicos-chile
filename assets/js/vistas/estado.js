@@ -32,12 +32,18 @@ export async function render(main, ctx) {
   }
 
   const L = e.lineas;
+  const pctCarencia = porcentaje(e.con_carencia, L);
+  const avisoCarencia = pctCarencia < 80
+    ? h('div', { class: 'nota nota-peligro' },
+      h('p', null, h('strong', null, pctCarencia < 50 ? 'Lo más importante: la carencia está muy incompleta. ' : 'Ojo: la carencia todavía está incompleta. '),
+        `Solo ${num(e.con_carencia)} de ${num(L)} líneas de uso (${num(pctCarencia)}%) tienen la carencia en los datos. `,
+        'Suele estar fuera del cuadro de dosis de la etiqueta y se está completando a partir de los mismos PDF.'),
+      h('p', null, 'Toda línea sin carencia dice «Sin dato, verificar etiqueta» y trae el link al PDF. En fruta de exportación, un error de carencia puede significar rechazo en destino.'))
+    : h('div', { class: 'nota nota-alerta' },
+      h('p', null, h('strong', null, `La carencia está en ${num(pctCarencia)}% de las líneas. `),
+        'Fue extraída automáticamente con su cita de la etiqueta: revísala en el PDF antes de decidir. Las que faltan dicen «Sin dato, verificar etiqueta».'));
   zona.append(
-    h('div', { class: 'nota nota-peligro' },
-      h('p', null, h('strong', null, 'Lo más importante: la carencia está casi vacía. '),
-        `Solo ${num(e.con_carencia)} de ${num(L)} líneas de uso (${num(porcentaje(e.con_carencia, L))}%) tienen la carencia en los datos. `,
-        'El programa que leyó las etiquetas no la buscó fuera del cuadro de dosis, que es donde suele estar. Se está completando a partir de los mismos PDF.'),
-      h('p', null, 'Mientras tanto, toda línea sin carencia dice «Sin dato, verificar etiqueta» y trae el link al PDF. En fruta de exportación, un error de carencia puede significar rechazo en destino.')),
+    avisoCarencia,
 
     h('h2', { class: 'titulo-seccion' }, 'Completitud por dato', h('span', { class: 'contador' }, `(sobre ${num(L)} líneas de uso)`)),
     h('div', { class: 'indicadores' },

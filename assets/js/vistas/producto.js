@@ -3,7 +3,7 @@
 import { usosPorProducto, detalleProducto } from '../db.js';
 import { palabras, puntaje } from '../buscador.js';
 import {
-  h, icono, ruta, plural, fecha, limpio, recortar, vaciar, cargando, retrasar, mensajeError,
+  h, agregar, icono, ruta, plural, fecha, limpio, recortar, vaciar, cargando, retrasar, mensajeError,
   dosis, carencia, mojamiento, intervalo, maxAplicaciones, textoOSinDato, linkPdf, urlDeLinea,
   chipsMoa, etiquetasCategoria, reingreso,
 } from '../ui.js';
@@ -105,7 +105,8 @@ function seccionSeguridad(p, detalle, contenedor) {
   if (prod.is_explosive) banderas.push(h('span', { class: 'etiqueta etq-peligro' }, 'Explosivo'));
 
   if (!perfil) {
-    contenedor.append(h('div', { class: 'nota nota-info' }, 'No hay perfil de seguridad extraído para este producto. Revisa la etiqueta PDF.'), banderas.length ? h('div', { class: 'chips' }, banderas) : null);
+    agregar(contenedor, [h('div', { class: 'nota nota-info' }, 'No hay perfil de seguridad extraído para este producto. Revisa la etiqueta PDF.'),
+      banderas.length ? h('div', { class: 'chips' }, banderas) : null]);
     return;
   }
   const items = [];
@@ -121,11 +122,18 @@ function seccionSeguridad(p, detalle, contenedor) {
   agregarTexto('Síntomas de intoxicación', perfil.poisoning_symptoms);
   agregarTexto('Antídoto', perfil.antidote);
   agregarTexto('Tratamiento médico de emergencia', perfil.emergency_medical_treatment);
-  const contactos = Array.isArray(perfil.emergency_contacts) ? perfil.emergency_contacts : [];
-  if (contactos.length) {
-    items.push(par('Teléfonos de emergencia (según la etiqueta)',
-      contactos.map((c) => [c.name, c.phone].filter(Boolean).join(': ')).join('\n')));
-  }
+  // Vienen en dos formatos: {name, type, phone} o {tipo, telefono}.
+  const contactos = (Array.isArray(perfil.emergency_contacts) ? perfil.emergency_contacts : [])
+    .map((c) => {
+      const nombre = limpio(c.name || c.nombre);
+      const tipo = limpio(c.type || c.tipo);
+      const fono = limpio(c.phone || c.telefono);
+      const tipoMayus = tipo ? tipo.charAt(0).toUpperCase() + tipo.slice(1) : '';
+      const quien = nombre ? (tipo && tipo.toLowerCase() !== nombre.toLowerCase() ? `${nombre} (${tipo})` : nombre) : tipoMayus;
+      return fono ? `${quien ? `${quien}: ` : ''}${fono}` : '';
+    })
+    .filter(Boolean);
+  if (contactos.length) items.push(par('Teléfonos de emergencia (según la etiqueta)', contactos.join('\n')));
   agregarTexto('Almacenamiento', perfil.storage);
   agregarTexto('Preparación de la mezcla', perfil.mix_preparation);
   agregarTexto('Compatibilidad', perfil.compatibility);
@@ -136,10 +144,10 @@ function seccionSeguridad(p, detalle, contenedor) {
   const avisos = Array.isArray(perfil.warnings) ? perfil.warnings.filter((w) => limpio(w)) : [];
   if (avisos.length) items.push(par('Advertencias del proceso de extracción', avisos.join('\n')));
 
-  contenedor.append(
+  agregar(contenedor, [
     h('div', { class: 'nota nota-info' }, 'Extraído automáticamente de la etiqueta y sin revisión. Puede venir incompleto o con errores de lectura: compáralo con el PDF.'),
     banderas.length ? h('div', { class: 'chips' }, banderas) : null,
-    h('div', { class: 'tarjeta seguridad' }, h('dl', null, items)));
+    h('div', { class: 'tarjeta seguridad' }, h('dl', null, items))]);
 }
 
 export async function render(main, ctx) {

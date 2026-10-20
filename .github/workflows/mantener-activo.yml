@@ -14,6 +14,11 @@ on:
     - cron: "17 11 * * *"   # ~08:17 en Chile
     - cron: "43 23 * * *"   # ~20:43 en Chile
   workflow_dispatch:
+    inputs:
+      forzar_latido:
+        description: "Hacer el commit de latido aunque no hayan pasado 30 días (para probar)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -47,13 +52,14 @@ jobs:
       - name: Latido para que GitHub no desactive este flujo
         env:
           GH_TOKEN: ${{ github.token }}
+          FORZAR: ${{ inputs.forzar_latido && 'si' || 'no' }}
         run: |
           set -euo pipefail
           rama="${GITHUB_REF_NAME:-main}"
           ultimo=$(gh api "repos/$GITHUB_REPOSITORY/commits/$rama" --jq '.commit.committer.date')
           dias=$(( ( $(date +%s) - $(date -d "$ultimo" +%s) ) / 86400 ))
-          echo "Último commit en $rama: $ultimo (hace $dias días)"
-          if [ "$dias" -ge 30 ]; then
+          echo "Último commit en $rama: $ultimo (hace $dias días). Forzar: $FORZAR"
+          if [ "$dias" -ge 30 ] || [ "$FORZAR" = "si" ]; then
             ruta="registro/latido.txt"
             sha=$(gh api "repos/$GITHUB_REPOSITORY/contents/$ruta?ref=$rama" --jq '.sha' 2>/dev/null || true)
             contenido=$(printf 'Último latido automático: %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" | base64 -w0)

@@ -202,7 +202,7 @@ body { padding-bottom: calc(var(--alto-nav-inf) + env(safe-area-inset-bottom)); 
 @media (prefers-reduced-motion: reduce) { .ruedita { animation: none; } }
 
 .titulo-seccion {
-  display: flex; align-items: center; gap: .55rem;
+  display: flex; flex-wrap: wrap; align-items: center; gap: .2rem .55rem;
   font-size: .82rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
   color: var(--tinta-2); margin: 1.6rem 0 .7rem;
 }
@@ -416,8 +416,8 @@ body { padding-bottom: calc(var(--alto-nav-inf) + env(safe-area-inset-bottom)); 
 }
 
 /* ---------- Productos ---------- */
-.filtros { display: grid; gap: .7rem; background: var(--superficie); border: 1.5px solid var(--linea); border-radius: var(--radio); padding: .9rem 1rem; margin: 1rem 0; }
-@media (min-width: 760px) { .filtros { grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: end; } }
+.filtros { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; align-items: end; background: var(--superficie); border: 1.5px solid var(--linea); border-radius: var(--radio); padding: .9rem 1rem; margin: 1rem 0; }
+@media (min-width: 760px) { .filtros { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .filtros label { display: flex; flex-direction: column; gap: .3rem; font-size: .82rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--tinta-2); }
 .filtros .selector, .filtros .entrada { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 1rem; color: var(--tinta); width: 100%; }
 .filtros-activos { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; margin: -.3rem 0 .8rem; }
