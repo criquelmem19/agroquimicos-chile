@@ -1,12 +1,14 @@
-node_modules/
-.next/
-out/
-build/
+# Archivos locales que no van al repositorio público
+pdfs/
+trabajo/
+*.pdf
 .env
-.env.local
-.env*.local
+.env.*
+__pycache__/
+*.pyc
 .DS_Store
-*.log
-.vercel
-next-env.d.ts
-supabase/.temp/
+Thumbs.db
+desktop.ini
+
+# Configuración local de Claude Code (rutas de este computador)
+.claude/

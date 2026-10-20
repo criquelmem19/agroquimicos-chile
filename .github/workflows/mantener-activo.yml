@@ -1,0 +1,65 @@
+name: Mantener Supabase activo
+
+# Supabase (plan gratis) pausa el proyecto si no recibe consultas durante una semana.
+# Este flujo hace tres consultas livianas de solo lectura, dos veces al día.
+#
+# Además, GitHub desactiva los flujos programados de los repositorios públicos
+# tras 60 días sin actividad en el repositorio. Por eso, si el último commit tiene
+# 30 días o más, el flujo actualiza registro/latido.txt (un commit chico).
+#
+# Si una consulta falla, el flujo queda en rojo y GitHub avisa por correo.
+
+on:
+  schedule:
+    - cron: "17 11 * * *"   # ~08:17 en Chile
+    - cron: "43 23 * * *"   # ~20:43 en Chile
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mantener-activo
+  cancel-in-progress: false
+
+jobs:
+  consultar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_URL: https://cejkhfugaobfqnjpkgpl.supabase.co
+      # Llave pública (publishable), la misma que usa el sitio. Solo permite leer el catálogo.
+      SUPABASE_KEY: sb_publishable_dzR4zTF-RcJGyw6Fq1LCRA_lAf1tpF8
+    steps:
+      - name: Consultas livianas a la base
+        run: |
+          set -euo pipefail
+          for consulta in "v_estado_datos?select=lineas,con_carencia" "categories?select=id&limit=1" "products?select=id&limit=1"; do
+            codigo=$(curl -sS -o respuesta.json -w '%{http_code}' --retry 4 --retry-delay 30 --retry-all-errors \
+              "$SUPABASE_URL/rest/v1/$consulta" -H "apikey: $SUPABASE_KEY") || codigo="sin-respuesta"
+            echo "$consulta -> HTTP $codigo: $(head -c 200 respuesta.json 2>/dev/null || true)"
+            if [ "$codigo" != "200" ]; then
+              echo "::error::Supabase no respondió bien ($codigo). Revisa si el proyecto quedó pausado: https://supabase.com/dashboard/project/cejkhfugaobfqnjpkgpl"
+              exit 1
+            fi
+          done
+
+      - name: Latido para que GitHub no desactive este flujo
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rama="${GITHUB_REF_NAME:-main}"
+          ultimo=$(gh api "repos/$GITHUB_REPOSITORY/commits/$rama" --jq '.commit.committer.date')
+          dias=$(( ( $(date +%s) - $(date -d "$ultimo" +%s) ) / 86400 ))
+          echo "Último commit en $rama: $ultimo (hace $dias días)"
+          if [ "$dias" -ge 30 ]; then
+            ruta="registro/latido.txt"
+            sha=$(gh api "repos/$GITHUB_REPOSITORY/contents/$ruta?ref=$rama" --jq '.sha' 2>/dev/null || true)
+            contenido=$(printf 'Último latido automático: %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" | base64 -w0)
+            args=(-X PUT "repos/$GITHUB_REPOSITORY/contents/$ruta"
+                  -f message="Latido automático: mantiene activo el flujo programado"
+                  -f content="$contenido" -f branch="$rama")
+            if [ -n "$sha" ]; then args+=(-f sha="$sha"); fi
+            gh api "${args[@]}" --jq '"Commit de latido: " + .commit.sha'
+          fi

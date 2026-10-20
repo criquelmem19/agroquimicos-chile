@@ -1,0 +1,6 @@
+# Fin de línea LF en el repositorio y en la copia local (el sitio se edita en Windows).
+* text=auto eol=lf
+*.pdf binary
+*.png binary
+*.jpg binary
+*.ico binary

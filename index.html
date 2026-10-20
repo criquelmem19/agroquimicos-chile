@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Mientras la carencia esté incompleta, el sitio no se indexa: se comparte solo por link. -->
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+  <title>Agroquímicos Chile</title>
+  <meta name="description" content="Catálogo de agroquímicos de Chile según etiquetas SAG: productos, cultivos, objetivos, dosis, carencias y modos de acción.">
+  <meta name="theme-color" content="#1f4e3d">
+  <meta property="og:title" content="Agroquímicos Chile">
+  <meta property="og:description" content="Busca productos, cultivos, plagas, enfermedades y malezas según etiquetas SAG. Datos extraídos automáticamente: verifica siempre la etiqueta oficial.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="assets/img/icono.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script>
+    // Aplica el tema guardado antes de pintar, para que no parpadee.
+    try { var t = localStorage.getItem('tema'); if (t === 'claro' || t === 'oscuro') document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <!-- supabase-js con versión fija y huella SRI. Si jsDelivr falla, se intenta unpkg con la misma huella. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"
+          integrity="sha256-WdOUh8NYmEO0EDItij1WLOAiq6HlzLFomO8/sqDaLs0="
+          crossorigin="anonymous"
+          onerror="this.onerror=null;var s=document.createElement('script');s.src='https://unpkg.com/@supabase/supabase-js@2.117.2/dist/umd/supabase.js';s.integrity='sha256-WdOUh8NYmEO0EDItij1WLOAiq6HlzLFomO8/sqDaLs0=';s.crossOrigin='anonymous';document.head.appendChild(s);"></script>
+  <script type="module" src="assets/js/app.js"></script>
+</head>
+<body>
+  <a class="saltar" href="#vista">Ir al contenido</a>
+
+  <header class="cabecera">
+    <div class="cabecera-in">
+      <a class="marca" href="#/" aria-label="Agroquímicos Chile, inicio">
+        <img src="assets/img/icono.svg" alt="" width="34" height="34">
+        <span class="marca-texto">
+          <strong>Agroquímicos Chile</strong>
+          <small>Catálogo de etiquetas SAG</small>
+        </span>
+      </a>
+      <nav class="nav-sup" aria-label="Secciones" data-nav></nav>
+      <button class="boton-tema" type="button" data-tema aria-label="Cambiar entre modo claro y oscuro"></button>
+    </div>
+  </header>
+
+  <div class="aviso" role="note">
+    <div class="aviso-in">
+      <span class="aviso-ico" aria-hidden="true">!</span>
+      <p><strong>Información extraída automáticamente de etiquetas SAG.</strong> Puede tener errores. Antes de aplicar, lee siempre la etiqueta oficial del producto. <a href="#/estado">¿Qué tan completos están los datos?</a></p>
+    </div>
+  </div>
+
+  <main id="vista" class="vista" tabindex="-1">
+    <div class="cargando" role="status">
+      <span class="ruedita" aria-hidden="true"></span>
+      Cargando el catálogo…
+    </div>
+    <noscript>
+      <p class="nota nota-alerta">Este sitio necesita JavaScript activado para consultar el catálogo.</p>
+    </noscript>
+  </main>
+
+  <footer class="pie">
+    <div class="pie-in">
+      <p>Fuente: etiquetas y hojas de seguridad publicadas en el SAG, procesadas automáticamente. Este sitio no reemplaza la etiqueta oficial ni la recomendación de un profesional.</p>
+      <p data-actualizado></p>
+    </div>
+  </footer>
+
+  <nav class="nav-inf" aria-label="Secciones" data-nav></nav>
+</body>
+</html>

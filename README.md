@@ -1,53 +1,43 @@
 # Agroquímicos Chile
 
-Catálogo del mercado chileno de agroquímicos, construido desde etiquetas
-oficiales del SAG. Consulta, planificación de aplicaciones y foro.
+Catálogo de agroquímicos de Chile construido desde las etiquetas oficiales del SAG:
+buscador por producto, ingrediente activo, cultivo, plaga/enfermedad/maleza y empresa;
+"¿Qué puedo aplicar?" para comparar dosis, carencia y modo de acción (IRAC/FRAC/HRAC);
+fichas de producto y una página con el estado de los datos.
 
-## Arrancar
+**Sitio:** https://criquelmem19.github.io/agroquimicos-chile/
 
-```bash
-npm install
-cp .env.local.example .env.local     # rellenar la anon key
-npm run dev
-```
+> ⚠️ Los datos se extrajeron automáticamente de etiquetas en PDF y pueden tener errores.
+> La carencia todavía falta en casi todas las líneas de uso. Antes de aplicar, lee siempre
+> la etiqueta oficial del producto. Este sitio informa; no prescribe.
 
-La anon key está en el dashboard de Supabase, en Project Settings → API.
+## Cómo funciona
 
-## Conectar la CLI de Supabase
-
-```bash
-npx supabase login
-npx supabase link --project-ref cejkhfugaobfqnjpkgpl
-npx supabase db pull                 # trae las 27 migraciones ya aplicadas
-npm run types                        # genera los tipos completos
-```
-
-`types/database.types.ts` viene con un stub mínimo para que el scaffold
-compile. `npm run types` lo reemplaza con las 16 tablas y 5 vistas reales.
+- Sitio estático (HTML, CSS y JavaScript, sin paso de compilación) publicado con GitHub Pages
+  desde la rama `main`.
+- Los datos viven en Supabase y el sitio los lee en vivo con
+  [supabase-js](https://github.com/supabase/supabase-js) (versión fija, cargada desde un CDN con
+  huella SRI). Lo que se carga en la base aparece en el sitio sin volver a publicarlo.
+- En el navegador solo va la llave pública (*publishable*), que permite únicamente leer el catálogo.
+- Un flujo de GitHub Actions (`.github/workflows/mantener-activo.yml`) consulta la base dos veces al
+  día para que el plan gratis de Supabase no la pause.
 
 ## Estructura
 
 ```
-app/              Next.js App Router
-components/       Componentes compartidos
-lib/supabase/     Clientes de Supabase (server y browser)
-types/            Tipos generados desde la base
-supabase/         Migraciones
-sql/              Consultas de diagnóstico para el SQL Editor
-docs/             Diagnóstico de datos y roadmap
-CLAUDE.md         Contexto para Claude Code — leerlo primero
+index.html                 Página única del sitio
+assets/css/app.css         Estilos (modo claro y oscuro)
+assets/js/                 Código: app.js (navegación), db.js (datos), buscador.js, ui.js
+assets/js/vistas/          Una vista por sección
+supabase/migrations/       Cambios a la base hechos desde este repositorio
+scripts/                   Herramientas locales (servidor de prueba, extracción)
+CLAUDE.md                  Contexto, reglas y decisiones del proyecto
 ```
 
-## Antes de escribir código, leer
+## Probar en tu computador
 
-- **`CLAUDE.md`** — esquema, convenciones y la regla no negociable de la
-  interfaz sobre mostrar dosis y carencias.
-- **`docs/DIAGNOSTICO-carencia.md`** — por qué falta el 98% de las carencias y
-  cómo se arregla. Es la prioridad uno.
-- **`docs/ROADMAP.md`** — el orden propuesto y las decisiones pendientes.
+```bash
+python scripts/servidor_local.py
+```
 
-## Advertencia
-
-Este catálogo se extrajo de PDFs con un modelo de lenguaje y hoy solo 56 de
-2.743 líneas de uso tienen revisión humana. La etiqueta oficial del SAG es la
-única fuente válida para decidir una aplicación. La app informa; no prescribe.
+y abrir http://127.0.0.1:8765
