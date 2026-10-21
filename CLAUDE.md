@@ -93,8 +93,8 @@ recibe «permission denied» (verificado el 20-10-2026).
 | `use_targets` | 12.441 | Línea de uso ↔ objetivo |
 | `product_safety_profiles` | 149 | EPP, reingreso (`reentry_hours`), primeros auxilios, compatibilidad |
 | `documents` | 150 | Etiquetas (136), HDS (7), otros (7); `storage_path` = URL pública del PDF |
-| `extraction_runs` / `extraction_issues` / `field_evidence` | 496 / 42 / 0 | Proceso, no dominio |
-| `use_field_candidates` | 3.288 | Proceso (Fase 2): valores leídos de los PDF con cita y página, antes de aplicarlos |
+| `extraction_runs` / `extraction_issues` / `field_evidence` | 505 / 42 / 0 | Proceso, no dominio |
+| `use_field_candidates` | 3.398 | Proceso (Fase 2): valores leídos de los PDF con cita y página, antes de aplicarlos |
 
 - `product_uses.field_citations` (jsonb, Fase 2): `{"carencia"|"mojamiento"|"intervalo"|"metodo":
   {"cita", "pagina", "extractor"[, "condicional"]}}`. La página de la cita va aquí; `source_page` sigue
@@ -131,9 +131,9 @@ recibe «permission denied» (verificado el 20-10-2026).
 | Dosis interpretada (`dose_min`) | 2.612 (95 %) | igual |
 | **Carencia resuelta** (días o «no aplica») | 56 (2 %) | **2.456 (89,5 %)**: 1.673 con días + 783 no aplica |
 | Carencia «depende» (condicionada, con cita) | 0 | 26 |
-| Mojamiento (mín. o máx.) | 56 (2 %) | 754 (27,5 %) |
+| Mojamiento (mín. o máx.) | 56 (2 %) | 816 (29,7 %) |
 | Método de aplicación | 544 (20 %) | 667 (24,3 %) |
-| Intervalo | 442 (16 %) | 530 (19,3 %) |
+| Intervalo | 442 (16 %) | 531 (19,4 %) |
 | Aprobadas | 56 (2 %) | igual |
 | Confianza < 0,80 | 260 (9,5 %; promedio 0,918) | igual |
 
@@ -250,8 +250,8 @@ marcó como revisado.
    `scripts/fase2/cargar_candidatos.sql`) a la tabla privada `use_field_candidates`; la migración
    `fase2_aplicar_carencias_v1` llena **solo líneas sin carencia** (`withholding_period_raw` = cita;
    `field_citations.carencia`). 0 conflictos con valores existentes. Luego se quita `http`.
-   Lotes chicos (decenas de filas): el INSERT se genera desde el JSON con un script y va directo por
-   `execute_sql`, sin `http`.
+   Lotes chicos (decenas de filas): `sql_candidatos.py <archivo.json>` genera el INSERT desde el JSON y
+   va directo por `execute_sql`, sin `http`.
 8. **Lote 6 (`carencia-fase2-v2`, 21-10-2026):** etiquetas con la carencia fuera de la capa de texto.
    Biocap (pág. 2: columna que es imagen, «Carencia: No posee (0 días).», 44 líneas) y FALCON (texto con
    espacios dentro de las palabras, «car encia», 3 líneas). `ocr_paginas_completas.py` lee la página con
@@ -267,7 +267,11 @@ en el PDF; si una línea trae valores distintos (ej. terrestre y aérea) no se l
 («Pomáceas: 1.500 L/ha»), precauciones generales («para aplicaciones aéreas prohíbase…») y rangos al
 revés («14 a 1 días»). Datos: `datos/fase2/{mojamiento,intervalo,metodo}_v1.json`; diferencias con
 valores existentes: `datos/fase2/reporte_otros_v1.txt`. Aplicado con `fase2_aplicar_campos_v1`, solo en
-campos vacíos. Nombres de método: Al follaje, Vía riego, Al suelo, Al surco, Tratamiento de semillas,
+campos vacíos. **v2 (`campos-fase2-v2`, 21-10-2026):** si la frase no está en la capa de texto, se busca
+en el OCR de la página completa (las 474 páginas leídas con `ocr_paginas_completas.py`; 4.º argumento
+de `extraer_otros.py`), con fuente «ocr». Sumó 62 mojamientos (53 de REGLONE, cuya frase cortaba otra
+columna) y 1 intervalo, cargados con `sql_candidatos.py` (INSERT generado desde el JSON) y
+`fase2_aplicar_campos_v2`. Las líneas que ya tenían valor salieron iguales. Nombres de método: Al follaje, Vía riego, Al suelo, Al surco, Tratamiento de semillas,
 Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / »).
 
 **Decisiones:**

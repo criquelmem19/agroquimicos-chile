@@ -3,9 +3,12 @@ texto de cada línea de uso (la fila del cuadro de la etiqueta: source_text, obs
 application_timing), con patrones estrictos. Solo acepta un valor si la frase citada existe tal
 cual (salvo espacios) en el texto del PDF. Si una línea trae valores distintos, no se llena.
 
-Uso:  python -I scripts/fase2/extraer_otros.py <lineas.json> <corpus.json> <carpeta_salida>
-Salida: mojamiento_v1.json, intervalo_v1.json, metodo_v1.json (formato de exportar_candidatos.py)
-y reporte_otros_v1.txt con conteos y conflictos con valores existentes.
+Uso:  python -I scripts/fase2/extraer_otros.py <lineas.json> <corpus.json> <carpeta_salida> [carpeta_ocr]
+carpeta_ocr: OCR de páginas completas (ocr_paginas_completas.py). Si la frase no está en la capa de texto
+(por ejemplo, cortada por otra columna del cuadro), se busca ahí y la cita queda con fuente «ocr».
+Salida: mojamiento_<v>.json, intervalo_<v>.json, metodo_<v>.json (formato de exportar_candidatos.py)
+y reporte_otros_<v>.txt con conteos y conflictos con valores existentes.
+v1 (20-10-2026): solo capa de texto. v2 (21-10-2026): agrega la comprobación con OCR.
 """
 import collections
 import json
@@ -13,7 +16,8 @@ import os
 import re
 import sys
 
-EXTRACTOR = "campos-fase2-v1"
+VERSION = "v2"
+EXTRACTOR = f"campos-fase2-{VERSION}"
 
 
 def norm(s):
@@ -224,22 +228,34 @@ def ventana_corta(texto, ini, fin):
 def main():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     lineas_json, corpus_json, salida = sys.argv[1:4]
+    carpeta_ocr = sys.argv[4] if len(sys.argv) > 4 else None
     datos = json.load(open(lineas_json, encoding="utf-8"))
     corpus = json.load(open(corpus_json, encoding="utf-8"))
     paginas_norm = {d: [norm(p["texto"]) for p in ps] for d, ps in corpus.items()}
     fuente_pag = {d: [p["fuente"] for p in ps] for d, ps in corpus.items()}
+    paginas_ocr = collections.defaultdict(dict)  # {doc: {pagina: texto}}
+    if carpeta_ocr:
+        for nombre in os.listdir(carpeta_ocr):
+            m = re.fullmatch(r"(.+)_p(\d+)\.json", nombre)
+            if m:
+                lineas_ocr = json.load(open(os.path.join(carpeta_ocr, nombre), encoding="utf-8-sig"))["lineas"]
+                paginas_ocr[m.group(1)][int(m.group(2))] = norm(" ".join(lineas_ocr))
 
     resultados = {"mojamiento": [], "intervalo": [], "metodo": []}
     conteo = collections.Counter()
     conflictos = collections.defaultdict(list)
 
     def ubicar(doc, cita, pag_linea):
+        """(página, fuente) donde está la cita: primero la capa de texto (o el OCR que ya la reemplazó), después el OCR."""
         pags = paginas_norm.get(doc) or []
         orden = ([pag_linea - 1] if pag_linea and 0 < pag_linea <= len(pags) else []) + list(range(len(pags)))
         for i in orden:
             if cita and cita in pags[i]:
-                return i + 1
-        return None
+                return i + 1, fuente_pag[doc][i]
+        for n, texto in sorted(paginas_ocr.get(doc, {}).items()):
+            if cita and cita in texto:
+                return n, "ocr"
+        return None, None
 
     for l in datos["lineas"]:
         doc = l["source_document_id"]
@@ -269,12 +285,11 @@ def main():
                 for c in (frase(t, ini, fin), clausula(t, ini, fin), ventana_corta(t, ini, fin)):
                     if c and len(c) >= 8 and c not in citas:
                         citas.append(c)
-            cita = None
-            pagina = None
+            cita = pagina = fuente = None
             for c in citas:
-                p = ubicar(doc, c, l.get("source_page"))
+                p, f = ubicar(doc, c, l.get("source_page"))
                 if p:
-                    cita, pagina = c, p
+                    cita, pagina, fuente = c, p, f
                     break
             if not cita:
                 conteo[f"{campo}: cita no encontrada en el PDF (no se llena)"] += 1
@@ -301,17 +316,17 @@ def main():
             resultados[campo].append({
                 "product_use_id": l["id"], "document_id": doc,
                 "valor": valor if campo == "metodo" else vmin, "valor_max": vmax,
-                "cita": cita, "pagina": pagina,
-                "fuente": fuente_pag.get(doc, ["pdf"] * 99)[pagina - 1] if doc in fuente_pag else "pdf",
-                "nota": "Extraído del texto de la fila del cuadro de usos.",
+                "cita": cita, "pagina": pagina, "fuente": fuente,
+                "nota": "Extraído del texto de la fila del cuadro de usos."
+                        + (" Cita comprobada con OCR de la página." if fuente == "ocr" else ""),
             })
 
     os.makedirs(salida, exist_ok=True)
     for campo, filas in resultados.items():
-        ruta = os.path.join(salida, f"{campo}_v1.json")
+        ruta = os.path.join(salida, f"{campo}_{VERSION}.json")
         with open(ruta, "w", encoding="utf-8") as f:
             json.dump({"extractor": EXTRACTOR, "candidatos": filas}, f, ensure_ascii=False)
-    with open(os.path.join(salida, "reporte_otros_v1.txt"), "w", encoding="utf-8") as f:
+    with open(os.path.join(salida, f"reporte_otros_{VERSION}.txt"), "w", encoding="utf-8") as f:
         for k, v in sorted(conteo.items()):
             f.write(f"{k}: {v}\n")
         for campo, lista in conflictos.items():
