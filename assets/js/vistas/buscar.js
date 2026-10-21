@@ -95,6 +95,13 @@ function pintarResultados(cont, cat, indice, consulta) {
   }
 }
 
+function acceso(href, ico, titulo, texto, color) {
+  return h('a', { class: `acceso acceso-${color}`, href },
+    h('span', { class: 'acceso-ico' }, icono(ico)),
+    h('span', { class: 'acceso-texto' }, h('strong', null, titulo), h('span', null, texto)),
+    h('span', { class: 'acceso-ir', 'aria-hidden': 'true' }, icono('flecha')));
+}
+
 function accesos(cat) {
   const cultivosTop = [...cat.cultivos.values()]
     .filter((c) => c.nLineas >= 20 && c.nombre.length <= 30)
@@ -102,18 +109,14 @@ function accesos(cat) {
     .slice(0, 12);
   return [
     h('div', { class: 'accesos' },
-      h('a', { class: 'acceso', href: '#/aplicar' },
-        h('span', { class: 'acceso-ico' }, icono('brote')),
-        h('span', null, h('strong', null, '¿Qué puedo aplicar?'),
-          h('span', null, 'Elige cultivo y plaga, enfermedad o maleza. Compara dosis, carencia y modo de acción para rotar.'))),
-      h('a', { class: 'acceso', href: '#/productos' },
-        h('span', { class: 'acceso-ico' }, icono('frasco')),
-        h('span', null, h('strong', null, 'Productos'),
-          h('span', null, `Los ${cat.productos.size} productos, con filtros por categoría, modo de acción y empresa.`))),
-      h('a', { class: 'acceso', href: '#/estado' },
-        h('span', { class: 'acceso-ico' }, icono('grafico')),
-        h('span', null, h('strong', null, 'Estado de los datos'),
-          h('span', null, 'Cuánto está completo y cuánto revisó una persona, calculado en vivo. Revísalo antes de confiar en una carencia.')))),
+      acceso('#/aplicar', 'brote', '¿Qué puedo aplicar?',
+        'Elige cultivo y plaga, enfermedad o maleza. Compara dosis, carencia y modo de acción para rotar.', 'verde'),
+      acceso('#/plan', 'calendario', 'Plan de aplicaciones',
+        'Arma tu calendario por cultivo. Te avisa si repites el grupo IRAC, FRAC o HRAC o si no alcanzas la carencia.', 'azul'),
+      acceso('#/productos', 'frasco', 'Productos',
+        `Los ${cat.productos.size} productos, con filtros por categoría, modo de acción y empresa.`, 'beige'),
+      acceso('#/estado', 'grafico', 'Estado de los datos',
+        'Cuánto está completo y cuánto revisó una persona, calculado en vivo.', 'gris')),
     h('h2', { class: 'titulo-seccion' }, 'Cultivos con más registros'),
     h('div', { class: 'chips' }, cultivosTop.map((c) =>
       h('a', { class: 'chip', href: ruta('aplicar', { cultivo: c.id }) }, c.nombre, h('small', null, String(c.nProductos))))),
@@ -146,6 +149,7 @@ export function render(main, ctx) {
 
   main.append(
     h('section', { class: 'portada' },
+      h('p', { class: 'antetitulo' }, 'Agroquímicos CRM'),
       h('h1', null, 'Busca en las etiquetas de agroquímicos'),
       h('p', { class: 'bajada' }, 'Productos, ingredientes activos, cultivos, plagas, enfermedades, malezas y empresas. No importan las tildes ni las mayúsculas.'),
       h('div', { class: 'campo-busqueda' },

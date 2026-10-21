@@ -4,7 +4,7 @@
 import { usosPorCultivo, usosPorObjetivos, compararMoa } from '../db.js';
 import { filtrar, palabras, puntaje, normalizar } from '../buscador.js';
 import {
-  h, ruta, plural, recortar, limpio, vaciar, cargando, retrasar,
+  h, icono, ruta, plural, recortar, limpio, vaciar, cargando, retrasar,
   dosis, carencia, reingreso, mojamiento, intervalo, metodo, maxAplicaciones, textoOSinDato, linkPdf, urlDeLinea,
   chipsMoa, ingredientesTexto, porcentaje,
 } from '../ui.js';
@@ -164,7 +164,10 @@ function filas(cat, u, op) {
     h('td', { 'data-etiqueta': 'Dosis' }, dosis(u)),
     h('td', { 'data-etiqueta': 'Carencia' }, carencia(u, url)),
     h('td', { 'data-etiqueta': 'Reingreso' }, reingreso(p.reingreso, url)),
-    h('td', { 'data-etiqueta': 'Más' }, boton));
+    h('td', { 'data-etiqueta': 'Más' }, h('div', { class: 'celda-acciones' },
+      boton,
+      h('a', { class: 'boton boton-chico', href: ruta('plan', { producto: p.id, uso: u.id }), title: 'Agregar este uso a tu plan de aplicaciones' },
+        icono('calendario'), 'Al plan'))));
   return [tr, detalle];
 }
 

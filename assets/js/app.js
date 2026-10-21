@@ -7,13 +7,18 @@ import * as vistaAplicar from './vistas/aplicar.js';
 import * as vistaProductos from './vistas/productos.js';
 import * as vistaProducto from './vistas/producto.js';
 import * as vistaEstado from './vistas/estado.js';
+import * as vistaPlan from './vistas/plan.js';
 
-// Secciones del menú. Para la Fase 3 (planes de manejo, foro, cuenta) basta sumarlas aquí.
+const NOMBRE_SITIO = 'Agroquímicos CRM';
+
+// Secciones del menú (titulo: el de la página; menu: el del menú de arriba; corto: el de la barra del celular).
+// Para la Fase 3 (foro, cuenta) basta sumarlas aquí.
 const SECCIONES = [
-  { camino: '', titulo: 'Buscar', corto: 'Buscar', icono: 'buscar', vista: vistaBuscar },
-  { camino: 'aplicar', titulo: '¿Qué aplico?', corto: 'Qué aplico', icono: 'brote', vista: vistaAplicar },
-  { camino: 'productos', titulo: 'Productos', corto: 'Productos', icono: 'frasco', vista: vistaProductos },
-  { camino: 'estado', titulo: 'Estado de datos', corto: 'Estado', icono: 'grafico', vista: vistaEstado },
+  { camino: '', titulo: 'Buscar', menu: 'Buscar', corto: 'Buscar', icono: 'buscar', vista: vistaBuscar },
+  { camino: 'aplicar', titulo: '¿Qué aplico?', menu: '¿Qué aplico?', corto: 'Qué aplico', icono: 'brote', vista: vistaAplicar },
+  { camino: 'plan', titulo: 'Plan de aplicaciones', menu: 'Plan', corto: 'Plan', icono: 'calendario', vista: vistaPlan },
+  { camino: 'productos', titulo: 'Productos', menu: 'Productos', corto: 'Productos', icono: 'frasco', vista: vistaProductos },
+  { camino: 'estado', titulo: 'Estado de los datos', menu: 'Estado', corto: 'Estado', icono: 'grafico', vista: vistaEstado },
 ];
 // Rutas que no van en el menú.
 const OTRAS = { producto: vistaProducto };
@@ -38,7 +43,7 @@ function pintarMenus(actual) {
     vaciar(nav);
     for (const s of SECCIONES) {
       nav.append(h('a', { href: `#/${s.camino}`, 'aria-current': s.camino === actual ? 'page' : null },
-        icono(s.icono), inferior ? s.corto : s.titulo));
+        h('span', { class: 'nav-ico' }, icono(s.icono)), inferior ? s.corto : s.menu));
     }
   }
 }
@@ -98,7 +103,7 @@ async function mostrar() {
   }
 
   if (!vista) {
-    document.title = 'Página no encontrada · Agroquímicos Chile';
+    document.title = `Página no encontrada · ${NOMBRE_SITIO}`;
     principal.append(h('div', { class: 'vacio' }, h('h1', null, 'No encontramos esa página'),
       h('p', null, h('a', { href: '#/' }, 'Volver al buscador'))));
     return;
@@ -117,7 +122,7 @@ async function mostrar() {
       const s = q.toString();
       history.replaceState(null, '', `#/${partes.map(encodeURIComponent).join('/')}${s ? `?${s}` : ''}`);
     },
-    titulo: (t) => { document.title = t ? `${t} · Agroquímicos Chile` : 'Agroquímicos Chile'; },
+    titulo: (t) => { document.title = t ? `${t} · ${NOMBRE_SITIO}` : NOMBRE_SITIO; },
   };
   contexto.titulo(seccion ? (seccion.camino ? seccion.titulo : '') : '');
 

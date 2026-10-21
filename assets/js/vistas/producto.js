@@ -40,7 +40,9 @@ function lineaUso(cat, u) {
       par('Método', metodo(u, url, 160)),
       par('Fuente', linkPdf(url, u.source_page))),
     textoLargo('Observaciones', u.observations),
-    textoLargo('Texto leído de la etiqueta', u.source_text));
+    textoLargo('Texto leído de la etiqueta', u.source_text),
+    h('div', { class: 'acciones' },
+      h('a', { class: 'boton boton-chico', href: ruta('plan', { producto: u.product_id, uso: u.id }) }, icono('calendario'), 'Agregar al plan')));
 }
 
 function seccionUsos(cat, p, lineas, contenedor) {

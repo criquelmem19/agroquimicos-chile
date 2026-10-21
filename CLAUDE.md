@@ -1,6 +1,8 @@
-# Agroquímicos Chile — memoria del proyecto
+# Agroquímicos CRM — memoria del proyecto
 
-Leer completo antes de tocar algo. Última actualización: 20-10-2026.
+Leer completo antes de tocar algo. Última actualización: 21-10-2026.
+El sitio se llama **Agroquímicos CRM** (antes «Agroquímicos Chile»; el repo y la URL siguen siendo
+`agroquimicos-chile`). «CRM» es la marca de Cristóbal y va arriba, en el logo.
 
 ## Quién y cómo trabajar
 
@@ -21,7 +23,9 @@ productores, muchas veces **desde el celular en el campo**.
 - **Fase 1 (hecha el 20-10-2026):** catálogo publicado.
 - **Fase 2 (hecha el 20 y 21-10-2026):** carencia de 2 % a 89,5 % de las líneas, con cita y página; además
   mojamiento, método e intervalo. Ver «Fase 2 — estado».
-- **Fase 3 (no empezar sin que Cristóbal lo pida):** cuentas, planes de manejo, planificación, foro.
+- **Plan de aplicaciones (hecho el 21-10-2026, a pedido de Cristóbal):** calendario por cultivo con
+  alertas (ver «El sitio»). Se guarda solo en el equipo, sin cuentas.
+- **Fase 3 (no empezar sin que Cristóbal lo pida):** cuentas, planes guardados en la nube y compartidos, foro.
 
 ## Reglas del sitio (obligatorias)
 
@@ -39,6 +43,19 @@ productores, muchas veces **desde el celular en el campo**.
 
 Por qué importa: la carencia decide si se puede cosechar. En fruta de exportación un error significa
 rechazo en destino o residuos sobre la tolerancia.
+
+## Reglas de estética (pedidas por Cristóbal el 21-10-2026)
+
+- Limpio, moderno y sencillo, **al estilo de los sitios de Enza Zaden**: fondo blanco, mucho aire, letra
+  redondeada (**Rubik**, de Google Fonts, con la del sistema de respaldo), botones tipo píldora negros,
+  bloques de color plano en la portada, tarjetas con bordes suaves y pie de página negro. Solo información importante.
+- Paleta fresca: **verde** (`#1f9d55`, bloques `#63d17b`), **azul** (`#1d6fd8`, bloques `#cfe3fa`),
+  **negro** (`#141414`), **beige muy claro** (`#f7f4ee`) y **gris** (`#6b6962`). Todo como variables en
+  `assets/css/app.css`; el modo oscuro solo las redefine.
+- Marca: logo «CRM» (píldora negra con letras blancas y un punto verde) arriba a la izquierda, junto a
+  «Agroquímicos CRM». Ícono de la pestaña: `assets/img/icono.svg` con la misma marca.
+- Se mantienen: letra de 17 px y alto contraste (se usa al sol), barra inferior en celular, modo oscuro.
+- Grupos de modo de acción con color propio: FRAC azul, IRAC verde, HRAC tierra.
 
 ## Arquitectura (decidida el 19-10-2026; no cambiarla sin avisar a Cristóbal)
 
@@ -138,7 +155,11 @@ recibe «permission denied» (verificado el 20-10-2026).
 | Confianza < 0,80 | 260 (9,5 %; promedio 0,918) | igual |
 
 Las 56 aprobadas son **todas de ACABAN® 050 SC** (producto de prueba del esquema, «Carga inicial
-revisada» 14-07-2026), y su documento **no tiene PDF** en el bucket (`storage_path` null): pedir el PDF a Cristóbal.
+revisada» 14-07-2026), y su documento **no tiene PDF** en el bucket (`storage_path` null). Ese documento
+es la versión del **16-06-2025** (`acaban_050_sc (1).pdf`, sha256 `514f80b8…`). El 21-10-2026 Cristóbal
+mandó otro PDF: la etiqueta del **26-10-2022** (sha256 `d3229ccd…`), que **no coincide** en la carencia de
+5 cultivos (palto 14 vs 1 día en la base, ciruelo y damasco 7 vs 6, durazno y nectarino 7 vs 2; el resto,
+dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el PDF de 2025.
 
 ### Problemas conocidos de los datos (no corregidos; no borrar sin preguntar)
 
@@ -160,9 +181,9 @@ revisada» 14-07-2026), y su documento **no tiene PDF** en el bucket (`storage_p
 - `crops.aliases` estaba vacío: el 20-10-2026 se llenaron 45 cultivos con sinónimos de nombre común
   (Vid = Uva = Parronal, Palto = Palta…). Son **solo para buscar**, no datos de etiqueta.
 - `application_method` de la carga original: muchos con basura (texto OCR revuelto, «NOCIVO», «CUIDADO»,
-  párrafos enteros) y algunos errados. **Conflicto importante** (pendiente de mostrar a Cristóbal):
-  Katana Syngenta, 4 líneas de cítricos dicen «Al follaje», pero la etiqueta (pág. 1) dice «Aplique solo
-  como un rocío dirigido al suelo debajo de los árboles para evitar daños al follaje y la corteza de los árboles.»
+  párrafos enteros) y algunos errados. Katana Syngenta (4 líneas de cítricos decían «Al follaje» y la
+  etiqueta dice «dirigido al suelo… para evitar daños al follaje») **se corrigió el 21-10-2026 con el «sí»
+  de Cristóbal** (`correccion_metodo_katana`; el valor anterior quedó en `use_field_candidates.existing_value`).
   Lista completa de diferencias en `datos/fase2/reporte_otros_v1.txt` (casi todas son solo otro nombre:
   «Riego por goteo» = «Vía riego»).
 - Intervalo: 4 líneas guardan 14–14 días donde la etiqueta dice «intervalo de 14 días como máximo».
@@ -177,6 +198,15 @@ revisada» 14-07-2026), y su documento **no tiene PDF** en el bucket (`storage_p
     reingreso; herramienta para rotar (marcar grupos ya usados). También parte por objetivo sin cultivo.
   - `#/productos?cat=&moa=&empresa=&ing=&q=` lista con filtros por categoría, modo de acción y empresa.
   - `#/producto/<id>` ficha: ingredientes, empresas y roles, líneas de uso por cultivo, seguridad, documentos.
+  - `#/plan?producto=<id>&uso=<id>` «Plan de aplicaciones»: calendario del mes + lista, por cultivo y
+    temporada (julio a junio). Los botones «Al plan» de «¿Qué aplico?» y «Agregar al plan» de la ficha
+    llegan aquí con el producto y el uso elegidos, y se confirma con la fecha. Guardado solo en el equipo
+    (`localStorage`, clave `planes-v1`; varios planes). Lógica en `assets/js/plan.js` (sin interfaz),
+    vista en `assets/js/vistas/plan.js`. Alertas (solo comparan con la etiqueta, sin recomendaciones
+    propias): mismo grupo IRAC/FRAC/HRAC que la aplicación anterior o ya usado en el plan; más aplicaciones
+    que el máximo por temporada; menos días que el intervalo; no alcanza la carencia antes de la fecha de
+    cosecha (o sin dato / «depende»); uso de otro cultivo. Aparecen antes de agregar y en un aviso
+    emergente (`notificar` en `ui.js`). Exporta a CSV para Excel (`;`, UTF-8 con BOM) e imprime la lista.
   - `#/estado` «Estado de los datos» (en vivo desde `v_estado_datos`).
 - Datos: al abrir se cargan las listas chicas (vistas `v_sitio_*`, `categories`, `active_ingredients`,
   `companies`, reingreso de `product_safety_profiles`); las líneas de uso se piden por cultivo, objetivo o
@@ -188,9 +218,8 @@ revisada» 14-07-2026), y su documento **no tiene PDF** en el bucket (`storage_p
   `field_citations` (`citaDe`); carencia condicionada → «Depende: ver condición en la etiqueta» + cita.
 - La dosis se muestra **como texto de la etiqueta** (`dose_raw`), no los números interpretados.
 - Seguridad del código: los textos de la base nunca se insertan como HTML (`h()` en `ui.js`).
-- Diseño: verde campo + banda ocre (como la banda de una etiqueta), letra del sistema a 17 px, alto
-  contraste para el sol, modo oscuro automático o con botón (guardado en `localStorage`), barra inferior
-  en celular. Los grupos FRAC/IRAC/HRAC tienen color propio.
+- Diseño: ver «Reglas de estética». Modo oscuro automático o con botón (guardado en `localStorage`),
+  barra inferior en celular con 5 secciones (Buscar, Qué aplico, Plan, Productos, Estado).
 - Fase 3 sin rehacer: agregar secciones en `SECCIONES` de `app.js` (menú + ruta) y vistas nuevas en
   `assets/js/vistas/`. El cliente de Supabase está en `db.js → cliente()`; para Auth, activar
   `persistSession` allí.
@@ -328,9 +357,8 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
 - La CLI de Supabase ya está instalada (`%LOCALAPPDATA%\Programs\supabase-cli\supabase.exe`, v2.120.0)
   pero **sin sesión**: falta que Cristóbal haga `supabase login` (necesaria para subir PDF nuevos al
   bucket y para borrar las funciones).
-- Pedir a Cristóbal el PDF de ACABAN® 050 SC (sus 56 líneas aprobadas no tienen etiqueta enlazable).
-- Mostrarle a Cristóbal el conflicto de Katana (método «Al follaje» vs «dirigido al suelo», ver «Problemas
-  conocidos») y corregir solo con su visto bueno.
+- Pedir a Cristóbal el PDF de ACABAN® 050 SC **versión 16-06-2025** (la de 2022 no coincide con las 56
+  líneas aprobadas, ver «Estado de los datos»). Subirlo al bucket requiere la CLI con sesión.
 - Revisión humana: para que una línea diga «Revisado» alguien tiene que compararla con la etiqueta
   (hoy solo las 56 de ACABAN). Quitar `noindex` lo decide Cristóbal.
 - Limpieza de datos (con su visto bueno): cultivos-frase, duplicados de cultivos, objetivos y productos,

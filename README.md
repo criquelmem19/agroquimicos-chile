@@ -1,9 +1,11 @@
-# Agroquímicos Chile
+# Agroquímicos CRM
 
 Catálogo de agroquímicos de Chile construido desde las etiquetas oficiales del SAG:
 buscador por producto, ingrediente activo, cultivo, plaga/enfermedad/maleza y empresa;
 "¿Qué puedo aplicar?" para comparar dosis, carencia y modo de acción (IRAC/FRAC/HRAC);
-fichas de producto y una página con el estado de los datos.
+un plan de aplicaciones por cultivo que avisa si se repite el grupo de modo de acción, si se pasa
+el máximo o el intervalo de la etiqueta o si no se alcanza la carencia antes de cosechar (se guarda
+solo en el equipo); fichas de producto y una página con el estado de los datos.
 
 **Sitio:** https://criquelmem19.github.io/agroquimicos-chile/
 
@@ -28,7 +30,7 @@ fichas de producto y una página con el estado de los datos.
 ```
 index.html                 Página única del sitio
 assets/css/app.css         Estilos (modo claro y oscuro)
-assets/js/                 Código: app.js (navegación), db.js (datos), buscador.js, ui.js
+assets/js/                 Código: app.js (navegación), db.js (datos), buscador.js, ui.js, plan.js (plan de aplicaciones)
 assets/js/vistas/          Una vista por sección
 supabase/migrations/       Cambios a la base hechos desde este repositorio
 scripts/                   Herramientas locales (servidor de prueba; fase2/: lectura de las etiquetas)

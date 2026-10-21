@@ -46,6 +46,13 @@ const ICONOS = {
   flecha: '<path d="m9 6 6 6-6 6"/>',
   escudo: '<path d="M12 3 5 6v6c0 4.5 3 7.6 7 9 4-1.4 7-4.5 7-9V6z"/>',
   rotar: '<path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v5h-5"/>',
+  calendario: '<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17.2h.01M12 17.2h.01"/>',
+  mas: '<path d="M12 5v14M5 12h14"/>',
+  basura: '<path d="M4 7h16M10 11v6M14 11v6"/><path d="m6 7 1 12.4A2 2 0 0 0 9 21h6a2 2 0 0 0 2-1.6L18 7"/><path d="M9 7V4.5h6V7"/>',
+  lapiz: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
+  imprimir: '<path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/>',
+  descargar: '<path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/>',
+  cerrar: '<path d="M6 6l12 12M18 6 6 18"/>',
 };
 
 export function icono(nombre) {
@@ -242,6 +249,20 @@ export function mensajeError(err) {
 
 export function cargando(texto = 'Cargando…') {
   return h('div', { class: 'cargando', role: 'status' }, h('span', { class: 'ruedita', 'aria-hidden': 'true' }), texto);
+}
+
+// Aviso emergente abajo de la pantalla (sobre la barra del celular), que se cierra solo.
+export function notificar(contenido, ms = 6000) {
+  let zona = document.querySelector('.avisos-flotantes');
+  if (!zona) {
+    zona = h('div', { class: 'avisos-flotantes', role: 'status', 'aria-live': 'polite' });
+    document.body.append(zona);
+  }
+  const t = h('div', { class: 'flotante' }, h('div', { class: 'flotante-texto' }, contenido),
+    h('button', { type: 'button', class: 'flotante-cerrar', 'aria-label': 'Cerrar aviso', onclick: () => t.remove() }, icono('cerrar')));
+  zona.append(t);
+  setTimeout(() => t.remove(), ms);
+  return t;
 }
 
 export function retrasar(fn, ms = 150) {
