@@ -1,8 +1,9 @@
 """Exporta los candidatos (salida de aplicar_mapa.py) a un JSON compacto para cargarlos en la tabla
 `use_field_candidates`. El archivo queda en el repositorio como registro auditable de la extracción.
 
-Uso:  python -I scripts/fase2/exportar_candidatos.py <candidatos.json> <salida.json> <campo>
+Uso:  python -I scripts/fase2/exportar_candidatos.py <candidatos.json> <salida.json> <campo> [extractor]
 Campo: carencia | mojamiento | metodo | intervalo
+extractor: exporta solo los candidatos de esa versión (ej. carencia-fase2-v2, el lote 6 del mapa).
 Formato: {"extractor": ..., "campo": ..., "filas": [[product_use_id, document_id, valor, valor_max, cita, pagina, fuente, nota], ...]}
 valor: número (días o L/ha), "NA" (no aplica), "COND" (carencia condicionada) o texto (método).
 """
@@ -14,13 +15,16 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     entrada, salida, campo = sys.argv[1], sys.argv[2], sys.argv[3]
     datos = json.load(open(entrada, encoding="utf-8"))
+    extractor = sys.argv[4] if len(sys.argv) > 4 else datos["extractor"]
     filas = []
     for c in datos["candidatos"]:
+        if c.get("extractor", datos["extractor"]) != extractor:
+            continue
         filas.append([c["product_use_id"], c["document_id"], c["valor"], c.get("valor_max"), c["cita"], c["pagina"],
                       "ocr" if c.get("fuente") == "ocr" else "texto", c.get("nota")])
     filas.sort(key=lambda f: f[0])
     with open(salida, "w", encoding="utf-8") as f:
-        json.dump({"extractor": datos["extractor"], "campo": campo, "filas": filas}, f, ensure_ascii=False, separators=(",", ":"))
+        json.dump({"extractor": extractor, "campo": campo, "filas": filas}, f, ensure_ascii=False, separators=(",", ":"))
     print(f"{len(filas)} filas → {salida}")
 
 

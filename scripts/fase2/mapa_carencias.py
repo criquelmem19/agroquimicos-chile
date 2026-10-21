@@ -25,8 +25,9 @@ def R(cultivos, valor, cita, enc=None, cond=None, pag=None, prioridad=None, nota
                 prioridad=(prioridad if prioridad is not None else (1 if cond else 0)))
 
 
-def doc(prefijo, producto, pagina, reglas, enc=None, notas=None):
-    MAPA[prefijo] = dict(producto=producto, pagina=pagina, reglas=reglas, enc=enc or {}, notas=notas)
+def doc(prefijo, producto, pagina, reglas, enc=None, notas=None, extractor="carencia-fase2-v1"):
+    """extractor: versión con que se cargan las reglas de este documento (los lotes nuevos usan una propia)."""
+    MAPA[prefijo] = dict(producto=producto, pagina=pagina, reglas=reglas, enc=enc or {}, notas=notas, extractor=extractor)
 
 
 CARENCIA_DIAS = "Período de carencia (días recomendados de espera entre la última aplicación y la cosecha):"

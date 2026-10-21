@@ -19,7 +19,7 @@ planificar aplicaciones y planes de manejo, y un foro de experiencias. La usan a
 productores, muchas veces **desde el celular en el campo**.
 
 - **Fase 1 (hecha el 20-10-2026):** catálogo publicado.
-- **Fase 2 (hecha el 20-10-2026):** carencia de 2 % a 87,8 % de las líneas, con cita y página; además
+- **Fase 2 (hecha el 20 y 21-10-2026):** carencia de 2 % a 89,5 % de las líneas, con cita y página; además
   mojamiento, método e intervalo. Ver «Fase 2 — estado».
 - **Fase 3 (no empezar sin que Cristóbal lo pida):** cuentas, planes de manejo, planificación, foro.
 
@@ -129,7 +129,7 @@ recibe «permission denied» (verificado el 20-10-2026).
 | Dato | Antes de la Fase 2 | Después de la Fase 2 |
 |---|---|---|
 | Dosis interpretada (`dose_min`) | 2.612 (95 %) | igual |
-| **Carencia resuelta** (días o «no aplica») | 56 (2 %) | **2.409 (87,8 %)**: 1.629 con días + 780 no aplica |
+| **Carencia resuelta** (días o «no aplica») | 56 (2 %) | **2.456 (89,5 %)**: 1.673 con días + 783 no aplica |
 | Carencia «depende» (condicionada, con cita) | 0 | 26 |
 | Mojamiento (mín. o máx.) | 56 (2 %) | 754 (27,5 %) |
 | Método de aplicación | 544 (20 %) | 667 (24,3 %) |
@@ -224,11 +224,14 @@ a `ACTIVE_HEALTHY` (2–5 minutos).
 
 ## Fase 2 — estado (hecha el 20-10-2026)
 
-Resultado: ver «Estado de los datos». Quedan 308 líneas (11 %) con «Sin dato, verificar etiqueta»: sobre
-todo «cultivos» que son frases o palabras sueltas («NOCIVO», «CUIDADO»), flores y ornamentales para los
-que la etiqueta no da carencia (no se asume «no aplica» sin cita) y usos que el párrafo de carencia no
-nombra. Detalle por etiqueta: `datos/fase2/reporte_carencias_v1.txt`. Todo quedó «pendiente»
-(«Extraído automáticamente»): nada se marcó como revisado.
+Resultado: ver «Estado de los datos». Quedan 261 líneas (9,5 %) con «Sin dato, verificar etiqueta»
+(más 26 «Depende»): sobre todo «cultivos» que son frases o palabras sueltas («NOCIVO», «CUIDADO»),
+flores y ornamentales para los que la etiqueta no da carencia (no se asume «no aplica» sin cita), usos al
+suelo o en bandejas que la etiqueta no cubre (ACTARA: 92 líneas) y fertilizantes/bioestimulantes cuyas
+etiquetas no hablan de carencia (BOROCAL S, Ibicarbox, Stimplex, Acadian). Se comprobó con OCR de página
+completa que esas etiquetas no esconden la carencia en imágenes. Detalle por etiqueta:
+`datos/fase2/reporte_carencias_v2.txt`. Todo quedó «pendiente» («Extraído automáticamente»): nada se
+marcó como revisado.
 
 **Carencia (extractor `carencia-fase2-v1`)**, scripts en `scripts/fase2/` (cada uno explica su uso arriba):
 1. `descargar_pdfs.py` baja los PDF del bucket a una carpeta fuera de OneDrive (scratchpad) y verifica el sha256.
@@ -247,6 +250,15 @@ nombra. Detalle por etiqueta: `datos/fase2/reporte_carencias_v1.txt`. Todo qued�
    `scripts/fase2/cargar_candidatos.sql`) a la tabla privada `use_field_candidates`; la migración
    `fase2_aplicar_carencias_v1` llena **solo líneas sin carencia** (`withholding_period_raw` = cita;
    `field_citations.carencia`). 0 conflictos con valores existentes. Luego se quita `http`.
+   Lotes chicos (decenas de filas): el INSERT se genera desde el JSON con un script y va directo por
+   `execute_sql`, sin `http`.
+8. **Lote 6 (`carencia-fase2-v2`, 21-10-2026):** etiquetas con la carencia fuera de la capa de texto.
+   Biocap (pág. 2: columna que es imagen, «Carencia: No posee (0 días).», 44 líneas) y FALCON (texto con
+   espacios dentro de las palabras, «car encia», 3 líneas). `ocr_paginas_completas.py` lee la página con
+   OCR, se revisa contra la imagen y `parchar_corpus.py` reemplaza la página en el corpus. `doc(...,
+   extractor="carencia-fase2-v2")` en `mapa_lote6.py`; `exportar_candidatos.py … carencia carencia-fase2-v2`
+   exporta solo ese lote (`datos/fase2/carencias_v2.json`). Se comprobó que la exportación v1 rehecha es
+   idéntica byte a byte a la ya cargada.
 
 **Mojamiento, intervalo y método (extractor `campos-fase2-v1`)**: `extraer_otros.py`, reglas locales sin
 modelo de lenguaje sobre el texto de cada línea. Solo acepta un valor si la frase citada existe tal cual

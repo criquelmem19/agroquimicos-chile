@@ -124,6 +124,7 @@ def main():
             _, valor, i, cita, pag, fuente = mejores[0]
             resueltas += 1
             candidatos.append({
+                "extractor": d["extractor"],
                 "product_use_id": l["id"], "document_id": doc_id, "cultivo": nombre,
                 "valor": valor, "cita": cita, "pagina": pag, "fuente": fuente, "regla": i,
                 "nota": d["reglas"][i].get("nota") or d.get("notas"),

@@ -8,7 +8,7 @@ fichas de producto y una página con el estado de los datos.
 **Sitio:** https://criquelmem19.github.io/agroquimicos-chile/
 
 > ⚠️ Los datos se extrajeron automáticamente de etiquetas en PDF y pueden tener errores.
-> La carencia está en el 88 % de las líneas de uso, cada una con su cita de la etiqueta, pero
+> La carencia está en el 89 % de las líneas de uso, cada una con su cita de la etiqueta, pero
 > nadie la ha revisado todavía. Antes de aplicar, lee siempre la etiqueta oficial del producto.
 > Este sitio informa; no prescribe.
 
