@@ -114,9 +114,7 @@ function accesos(cat) {
       acceso('#/plan', 'calendario', 'Plan de aplicaciones',
         'Arma tu calendario por cultivo. Te avisa si repites el grupo IRAC, FRAC o HRAC o si no alcanzas la carencia.', 'azul'),
       acceso('#/productos', 'frasco', 'Productos',
-        `Los ${cat.productos.size} productos, con filtros por categoría, modo de acción y empresa.`, 'beige'),
-      acceso('#/estado', 'grafico', 'Estado de los datos',
-        'Cuánto está completo y cuánto revisó una persona, calculado en vivo.', 'gris')),
+        `Los ${cat.productos.size} productos, con filtros por categoría, modo de acción y empresa.`, 'beige')),
     h('h2', { class: 'titulo-seccion' }, 'Cultivos con más registros'),
     h('div', { class: 'chips' }, cultivosTop.map((c) =>
       h('a', { class: 'chip', href: ruta('aplicar', { cultivo: c.id }) }, c.nombre, h('small', null, String(c.nProductos))))),
@@ -151,7 +149,6 @@ export function render(main, ctx) {
     h('section', { class: 'portada' },
       h('p', { class: 'antetitulo' }, 'Agroquímicos CRM'),
       h('h1', null, 'Busca en las etiquetas de agroquímicos'),
-      h('p', { class: 'bajada' }, 'Productos, ingredientes activos, cultivos, plagas, enfermedades, malezas y empresas. No importan las tildes ni las mayúsculas.'),
       h('div', { class: 'campo-busqueda' },
         h('label', { class: 'oculto', for: 'buscador' }, 'Buscar'),
         icono('buscar'), entrada),

@@ -5,7 +5,7 @@ buscador por producto, ingrediente activo, cultivo, plaga/enfermedad/maleza y em
 "¿Qué puedo aplicar?" para comparar dosis, carencia y modo de acción (IRAC/FRAC/HRAC);
 un plan de aplicaciones por cultivo que avisa si se repite el grupo de modo de acción, si se pasa
 el máximo o el intervalo de la etiqueta o si no se alcanza la carencia antes de cosechar (se guarda
-solo en el equipo); fichas de producto y una página con el estado de los datos.
+en el equipo, por fecha o por días desde el trasplante, con opción semillero); fichas de producto.
 
 **Sitio:** https://criquelmem19.github.io/agroquimicos-chile/
 
@@ -29,11 +29,12 @@ solo en el equipo); fichas de producto y una página con el estado de los datos.
 
 ```
 index.html                 Página única del sitio
-assets/css/app.css         Estilos (modo claro y oscuro)
+assets/css/app.css         Estilos
 assets/js/                 Código: app.js (navegación), db.js (datos), buscador.js, ui.js, plan.js (plan de aplicaciones)
 assets/js/vistas/          Una vista por sección
 supabase/migrations/       Cambios a la base hechos desde este repositorio
-scripts/                   Herramientas locales (servidor de prueba; fase2/: lectura de las etiquetas)
+scripts/                   Herramientas locales (servidor de prueba; fase2/: lectura de las etiquetas;
+                           planes/: planilla Excel → plan de aplicaciones)
 datos/fase2/               Lo que se leyó de las etiquetas (con cita y página), tal como se cargó
 CLAUDE.md                  Contexto, reglas y decisiones del proyecto
 ```

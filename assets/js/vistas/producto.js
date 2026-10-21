@@ -143,11 +143,8 @@ function seccionSeguridad(p, detalle, contenedor) {
   agregarTexto('Fitotoxicidad', perfil.phytotoxicity);
   agregarTexto('Manejo de resistencia', perfil.resistance_management);
   agregarTexto('Ecotoxicología', perfil.ecotoxicology);
-  const avisos = Array.isArray(perfil.warnings) ? perfil.warnings.filter((w) => limpio(w)) : [];
-  if (avisos.length) items.push(par('Advertencias del proceso de extracción', avisos.join('\n')));
 
   agregar(contenedor, [
-    h('div', { class: 'nota nota-info' }, 'Extraído automáticamente de la etiqueta y sin revisión. Puede venir incompleto o con errores de lectura: compáralo con el PDF.'),
     banderas.length ? h('div', { class: 'chips' }, banderas) : null,
     h('div', { class: 'tarjeta seguridad' }, h('dl', null, items))]);
 }

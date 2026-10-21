@@ -24,7 +24,8 @@ productores, muchas veces **desde el celular en el campo**.
 - **Fase 2 (hecha el 20 y 21-10-2026):** carencia de 2 % a 89,5 % de las líneas, con cita y página; además
   mojamiento, método e intervalo. Ver «Fase 2 — estado».
 - **Plan de aplicaciones (hecho el 21-10-2026, a pedido de Cristóbal):** calendario por cultivo con
-  alertas (ver «El sitio»). Se guarda solo en el equipo, sin cuentas.
+  alertas (ver «El sitio»). Se guarda en el equipo; los planes de Cristóbal también quedan guardados en
+  la base y se abren con su link personal (ver «Planes guardados»).
 - **Fase 3 (no empezar sin que Cristóbal lo pida):** cuentas, planes guardados en la nube y compartidos, foro.
 
 ## Reglas del sitio (obligatorias)
@@ -33,8 +34,10 @@ productores, muchas veces **desde el celular en el campo**.
    «Extraído automáticamente», con alerta si `confidence_score < 0,80`.
 2. Nunca dejar una carencia en blanco. Si falta: «Sin dato, verificar etiqueta» + link al PDF (con página).
 3. Todo producto y toda línea de uso con link a su etiqueta PDF.
-4. Aviso visible en todas las páginas: datos de etiquetas SAG procesadas automáticamente, pueden
-   tener errores, leer la etiqueta oficial antes de aplicar.
+4. ~~Aviso visible en todas las páginas~~: **eliminado a pedido de Cristóbal el 21-10-2026** («elimina
+   de la app todo este tipo de avisos»), junto con los textos de presentación de cada página, la nota del
+   pie («Fuente…») y la página «Estado de los datos». No volver a agregar avisos generales ni textos
+   explicativos largos. Se mantienen las etiquetas por dato (reglas 1–3) y las alertas del plan.
 5. **Nunca inventar ni completar datos agronómicos con conocimiento general.** Solo lo que dice la
    etiqueta, con cita (texto y página).
 6. Mientras la carencia esté incompleta: `noindex` (meta robots en `index.html`). Se comparte solo por link.
@@ -51,10 +54,12 @@ rechazo en destino o residuos sobre la tolerancia.
   bloques de color plano en la portada, tarjetas con bordes suaves y pie de página negro. Solo información importante.
 - Paleta fresca: **verde** (`#1f9d55`, bloques `#63d17b`), **azul** (`#1d6fd8`, bloques `#cfe3fa`),
   **negro** (`#141414`), **beige muy claro** (`#f7f4ee`) y **gris** (`#6b6962`). Todo como variables en
-  `assets/css/app.css`; el modo oscuro solo las redefine.
+  `assets/css/app.css`.
+- **Sin modo noche** (Cristóbal lo pidió quitar el 21-10-2026: «está muy de más»). Solo modo claro.
 - Marca: logo «CRM» (píldora negra con letras blancas y un punto verde) arriba a la izquierda, junto a
   «Agroquímicos CRM». Ícono de la pestaña: `assets/img/icono.svg` con la misma marca.
-- Se mantienen: letra de 17 px y alto contraste (se usa al sol), barra inferior en celular, modo oscuro.
+- Se mantienen: letra de 17 px y alto contraste (se usa al sol), barra inferior en celular (Buscar,
+  Qué aplico, Plan, Productos).
 - Grupos de modo de acción con color propio: FRAC azul, IRAC verde, HRAC tierra.
 
 ## Arquitectura (decidida el 19-10-2026; no cambiarla sin avisar a Cristóbal)
@@ -111,7 +116,8 @@ recibe «permission denied» (verificado el 20-10-2026).
 | `product_safety_profiles` | 149 | EPP, reingreso (`reentry_hours`), primeros auxilios, compatibilidad |
 | `documents` | 150 | Etiquetas (136), HDS (7), otros (7); `storage_path` = URL pública del PDF |
 | `extraction_runs` / `extraction_issues` / `field_evidence` | 505 / 42 / 0 | Proceso, no dominio |
-| `use_field_candidates` | 3.398 | Proceso (Fase 2): valores leídos de los PDF con cita y página, antes de aplicarlos |
+| `use_field_candidates` | 3.402 | Proceso (Fase 2): valores leídos de los PDF con cita y página, antes de aplicarlos |
+| `planes_guardados` | 1 | Planes de aplicación de una persona, privados, se leen con su clave (ver «Planes guardados») |
 
 - `product_uses.field_citations` (jsonb, Fase 2): `{"carencia"|"mojamiento"|"intervalo"|"metodo":
   {"cita", "pagina", "extractor"[, "condicional"]}}`. La página de la cita va aquí; `source_page` sigue
@@ -137,9 +143,9 @@ recibe «permission denied» (verificado el 20-10-2026).
   `supabase/migrations/` de este repo (copia de cada una aplicada con el MCP; el texto exacto también está
   en `supabase_migrations.schema_migrations.statements`). La migración `20260911000002_invariantes_de_calidad`
   del borrador anterior **nunca se aplicó**; su idea quedó en `aprobado_requiere_carencia`.
-- Advisors (20-10-2026, después de la Fase 2): seguridad solo queda el INFO «RLS sin políticas» de las
-  4 tablas del proceso (es intencional). Rendimiento: solo «unused index» (las estadísticas se
-  reiniciaron al despertar el proyecto).
+- Advisors (21-10-2026): seguridad solo quedan el INFO «RLS sin políticas» de las 4 tablas del proceso
+  y de `planes_guardados`, y el WARN de `plan_guardado` ejecutable por anon (todo intencional).
+  Rendimiento: solo «unused index» (las estadísticas se reiniciaron al despertar el proyecto).
 
 ### Estado de los datos (medido el 20-10-2026, sobre 2.743 líneas)
 
@@ -198,16 +204,25 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     reingreso; herramienta para rotar (marcar grupos ya usados). También parte por objetivo sin cultivo.
   - `#/productos?cat=&moa=&empresa=&ing=&q=` lista con filtros por categoría, modo de acción y empresa.
   - `#/producto/<id>` ficha: ingredientes, empresas y roles, líneas de uso por cultivo, seguridad, documentos.
-  - `#/plan?producto=<id>&uso=<id>` «Plan de aplicaciones»: calendario del mes + lista, por cultivo y
-    temporada (julio a junio). Los botones «Al plan» de «¿Qué aplico?» y «Agregar al plan» de la ficha
-    llegan aquí con el producto y el uso elegidos, y se confirma con la fecha. Guardado solo en el equipo
-    (`localStorage`, clave `planes-v1`; varios planes). Lógica en `assets/js/plan.js` (sin interfaz),
-    vista en `assets/js/vistas/plan.js`. Alertas (solo comparan con la etiqueta, sin recomendaciones
-    propias): mismo grupo IRAC/FRAC/HRAC que la aplicación anterior o ya usado en el plan; más aplicaciones
-    que el máximo por temporada; menos días que el intervalo; no alcanza la carencia antes de la fecha de
-    cosecha (o sin dato / «depende»); uso de otro cultivo. Aparecen antes de agregar y en un aviso
-    emergente (`notificar` en `ui.js`). Exporta a CSV para Excel (`;`, UTF-8 con BOM) e imprime la lista.
-  - `#/estado` «Estado de los datos» (en vivo desde `v_estado_datos`).
+  - `#/plan?producto=<id>&uso=<id>` / `#/plan?abrir=<clave>` «Plan de aplicaciones»: calendario del mes +
+    lista por día (cada día = una mezcla: n.° de aplicación, etapa, equipo y sus productos). Los botones
+    «Al plan» de «¿Qué aplico?» y «Agregar al plan» de la ficha llegan con el producto y el uso elegidos.
+    Guardado en el equipo (`localStorage`, clave `planes-v1`; varios planes). Lógica en `assets/js/plan.js`
+    (sin interfaz), vista en `assets/js/vistas/plan.js`.
+    - Plan: nombre, cultivo (o varios: `otrosCultivos`, ej. cucurbitáceas), **destino consumo o
+      semillero** («Lechuga semillero»), fecha de trasplante y de cosecha (de semilla si es semillero).
+    - Aplicación: por fecha o por **días desde el trasplante** (`ddt`; con la fecha de trasplante la fecha
+      sale sola y se mueve si cambia el trasplante). Producto del catálogo (con su uso de la etiqueta) o
+      **fuera del catálogo** (`externo`: nombre, ingrediente, tipo). Además: dosis de tu plan, objetivo,
+      equipo, etapa, n.° de aplicación, alternativa Syngenta, nota.
+    - Alertas (solo comparan con la etiqueta, sin recomendaciones propias): mismo grupo IRAC/FRAC/HRAC en
+      la misma mezcla, en la aplicación anterior o antes en el plan; la etiqueta no tiene usos para el
+      cultivo; más aplicaciones que el máximo por temporada; menos días que el intervalo; no alcanza la
+      carencia antes de la cosecha (o sin dato / «depende»); uso de otro cultivo. El grupo de un producto
+      fuera del catálogo sale de su ingrediente si ese ingrediente está en el catálogo (grupos de las
+      etiquetas; tolera errores de tipeo); fertilizantes, bioestimulantes y coadyuvantes no tienen grupo.
+      Aparecen antes de agregar y en un aviso emergente (`notificar` en `ui.js`).
+    - Exporta a CSV para Excel (`;`, UTF-8 con BOM) e imprime la lista.
 - Datos: al abrir se cargan las listas chicas (vistas `v_sitio_*`, `categories`, `active_ingredients`,
   `companies`, reingreso de `product_safety_profiles`); las líneas de uso se piden por cultivo, objetivo o
   producto. Todo paginado de a 1.000 filas (límite de la API) en `db.js → todas()`.
@@ -218,8 +233,26 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
   `field_citations` (`citaDe`); carencia condicionada → «Depende: ver condición en la etiqueta» + cita.
 - La dosis se muestra **como texto de la etiqueta** (`dose_raw`), no los números interpretados.
 - Seguridad del código: los textos de la base nunca se insertan como HTML (`h()` en `ui.js`).
-- Diseño: ver «Reglas de estética». Modo oscuro automático o con botón (guardado en `localStorage`),
-  barra inferior en celular con 5 secciones (Buscar, Qué aplico, Plan, Productos, Estado).
+- Diseño: ver «Reglas de estética». La página «Estado de los datos» se eliminó (la vista
+  `v_estado_datos` sigue en la base: el pie usa su fecha de última actualización).
+
+## Planes guardados (link personal, sin cuentas)
+
+- Tabla privada `planes_guardados` (clave secreta ≥ 32 caracteres, descripción, `datos` = `{version, planes}`
+  en el formato de `plan.js`). Sin permisos para la llave pública; se lee solo con la función
+  `plan_guardado(p_clave)` (SECURITY DEFINER, `search_path` vacío), que devuelve el plan de esa clave y
+  nada más. El advisor muestra un WARN por esa función: es intencional (funciona como un link secreto).
+- El sitio abre `#/plan?abrir=<clave>`: copia los planes al equipo; si ya estaban, pregunta antes de
+  reemplazarlos (se perderían los cambios hechos en ese equipo).
+- **Plan de Cristóbal (21-10-2026):** lechuga semillero (87 aplicaciones) y cucurbitáceas semillero
+  (86; cultivos Cucurbitáceas, Zapallo, Zapallo italiano, Melón, Sandía, Pepino y Pepino dulce),
+  temporada 26-27, desde su planilla Excel (hojas fitosanitarias y de fertilización; **sin precios**).
+  Sin fecha de trasplante: él la pone en el sitio. La clave está solo en el link que se le entregó (no se
+  escribe aquí: el repo es público). Los datos del plan no van al repo.
+- Convertir una planilla: `scripts/planes/planilla_a_plan.py` (lee el .xlsx sin librerías, reconoce las
+  mezclas por las celdas combinadas, busca los productos en el catálogo y elige el uso de la etiqueta si
+  es claro). Cargar: INSERT a `planes_guardados` con el JSON (en partes si es largo) y comprobar con una
+  suma md5 por plan (id, ddt, producto, dosis, objetivo…) calculada igual en Python y en SQL.
 - Fase 3 sin rehacer: agregar secciones en `SECCIONES` de `app.js` (menú + ruta) y vistas nuevas en
   `assets/js/vistas/`. El cliente de Supabase está en `db.js → cliente()`; para Auth, activar
   `persistSession` allí.
@@ -359,8 +392,18 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   bucket y para borrar las funciones).
 - Pedir a Cristóbal el PDF de ACABAN® 050 SC **versión 16-06-2025** (la de 2022 no coincide con las 56
   líneas aprobadas, ver «Estado de los datos»). Subirlo al bucket requiere la CLI con sesión.
+- **Productos del plan de Cristóbal que no están en el catálogo** (21-10-2026). Él pidió «búscalos y
+  agrégalos». Plaguicidas (necesitan su etiqueta oficial: buscarla en SAG o en el sitio del fabricante,
+  pedir permiso para descargar, subir al bucket con la CLI y extraer con cita): RAYO, MOSPILAN, PREVICUR,
+  PUNTO 70, LUNA EXPERIENCE, MURALLA DELTA, CONFIDOR 200 SL, CONFIDOR 350, PIRIMOR, ZERO, ABAMAX 1,8 EC,
+  BULLDOCK, GLADIADOR, IMPULSO 25 SC, METALAXIL MZ 58, KASUMIN, AZUFRE FLOABLE AN 600, AZUFRE 80%,
+  CITROLIV, BC-1000, ENTONEM, CONDOR SHIELD. Fertilizantes, bioestimulantes y coadyuvantes (SILWET,
+  ZOBERAMINOL, CALCIO-BORO, DEFENDER MANGANESO, VITANICA RZ, SAGASTIM, FLOWER POWER, FRUTALIV, STIMULATE,
+  ULTRASOL, MEZCLA 17-20-20) quedan como «fuera del catálogo». Con esas etiquetas, las alertas de rotación
+  verían también imidacloprid y acetamiprid (IRAC 4A), que hoy no están en el catálogo.
 - Revisión humana: para que una línea diga «Revisado» alguien tiene que compararla con la etiqueta
   (hoy solo las 56 de ACABAN). Quitar `noindex` lo decide Cristóbal.
+- TOPAS 200 EW no tiene grupo de modo de acción en los datos (penconazol sin grupo): revisar su etiqueta.
 - Limpieza de datos (con su visto bueno): cultivos-frase, duplicados de cultivos, objetivos y productos,
   ingredientes basura, métodos antiguos con basura.
 - Mejoras posibles: modo sin conexión completo (service worker), imagen para compartir por WhatsApp,

@@ -6,7 +6,7 @@ import { filtrar, palabras, puntaje, normalizar } from '../buscador.js';
 import {
   h, icono, ruta, plural, recortar, limpio, vaciar, cargando, retrasar,
   dosis, carencia, reingreso, mojamiento, intervalo, metodo, maxAplicaciones, textoOSinDato, linkPdf, urlDeLinea,
-  chipsMoa, ingredientesTexto, porcentaje,
+  chipsMoa, ingredientesTexto,
 } from '../ui.js';
 
 const SIN_GRUPO = 'Sin grupo de modo de acción informado';
@@ -242,12 +242,6 @@ function resultados(zona, cat, lineas, op, ctx, paramsBase) {
       h('span', null, h('strong', null, plural(grupos.size, 'grupo', 'grupos')), ' de modo de acción'),
       h('span', null, 'Carencia con dato: ', h('strong', null, `${conCarencia} de ${lineas.length}`))));
 
-  if (porcentaje(conCarencia, lineas.length) < 80) {
-    zona.append(h('div', { class: 'nota nota-alerta' },
-      h('p', null, h('strong', null, 'Ojo con la carencia. '),
-        `Solo ${conCarencia} de ${lineas.length} líneas la tienen en los datos. Donde dice «Sin dato», revísala en la etiqueta antes de decidir (cada línea tiene su link al PDF).`)));
-  }
-
   if (grupos.size) {
     const claves = [...grupos.keys()].sort(compararMoa);
     const pintarRotacion = h('div', { class: 'chips' });
@@ -263,7 +257,7 @@ function resultados(zona, cat, lineas, op, ctx, paramsBase) {
     }
     zona.append(h('section', { class: 'rotacion', 'aria-label': 'Rotación de modos de acción' },
       h('h3', null, 'Rotar modos de acción'),
-      h('p', null, 'Marca los grupos que ya usaste en esta temporada. Los productos que repiten un grupo marcado quedan al final y atenuados. El número es la cantidad de productos.'),
+      h('p', null, 'Marca los grupos que ya usaste: los productos que los repiten quedan al final.'),
       pintarRotacion));
   }
 
@@ -294,9 +288,7 @@ export async function render(main, ctx) {
   const todos = objetivoParam === 'todos';
   const objetivo = objetivoParam && !todos ? cat.objetivos.get(objetivoParam) : null;
 
-  main.append(
-    h('h1', null, '¿Qué puedo aplicar?'),
-    h('p', { class: 'bajada' }, 'Elige el cultivo y lo que quieres controlar. Verás los productos registrados con su ingrediente activo, grupo de modo de acción, dosis, carencia y reingreso.'));
+  main.append(h('h1', null, '¿Qué puedo aplicar?'));
 
   if ((cultivoId && !cultivo) || (objetivoParam && !todos && !objetivo)) {
     main.append(h('div', { class: 'nota nota-alerta' }, 'No encontramos ese cultivo u objetivo. ', h('a', { href: '#/aplicar' }, 'Empezar de nuevo')));

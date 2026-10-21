@@ -7,20 +7,15 @@
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
   <title>Agroquímicos CRM</title>
   <meta name="description" content="Agroquímicos CRM: catálogo de agroquímicos de Chile según etiquetas SAG, con dosis, carencias, modos de acción y plan de aplicaciones.">
-  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0f1211" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff">
   <meta property="og:title" content="Agroquímicos CRM">
-  <meta property="og:description" content="Busca productos, cultivos, plagas, enfermedades y malezas según etiquetas SAG, y arma tu plan de aplicaciones. Datos extraídos automáticamente: verifica siempre la etiqueta oficial.">
+  <meta property="og:description" content="Busca productos, cultivos, plagas, enfermedades y malezas según etiquetas SAG, y arma tu plan de aplicaciones.">
   <meta property="og:type" content="website">
   <link rel="icon" href="assets/img/icono.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="assets/css/app.css">
-  <script>
-    // Aplica el tema guardado antes de pintar, para que no parpadee.
-    try { var t = localStorage.getItem('tema'); if (t === 'claro' || t === 'oscuro') document.documentElement.dataset.theme = t; } catch (e) {}
-  </script>
   <!-- supabase-js con versión fija y huella SRI. Si jsDelivr falla, se intenta unpkg con la misma huella. -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"
           integrity="sha256-WdOUh8NYmEO0EDItij1WLOAiq6HlzLFomO8/sqDaLs0="
@@ -41,16 +36,8 @@
         </span>
       </a>
       <nav class="nav-sup" aria-label="Secciones" data-nav></nav>
-      <button class="boton-tema" type="button" data-tema aria-label="Cambiar entre modo claro y oscuro"></button>
     </div>
   </header>
-
-  <div class="aviso" role="note">
-    <div class="aviso-in">
-      <span class="aviso-ico" aria-hidden="true">!</span>
-      <p><strong>Información extraída automáticamente de etiquetas SAG.</strong> Puede tener errores. Antes de aplicar, lee siempre la etiqueta oficial del producto. <a href="#/estado">¿Qué tan completos están los datos?</a></p>
-    </div>
-  </div>
 
   <main id="vista" class="vista" tabindex="-1">
     <div class="cargando" role="status">
@@ -68,7 +55,6 @@
         <span class="marca-logo" aria-hidden="true">CRM</span>
         <strong>Agroquímicos CRM</strong>
       </div>
-      <p>Fuente: etiquetas y hojas de seguridad publicadas en el SAG, procesadas automáticamente. Este sitio no reemplaza la etiqueta oficial ni la recomendación de un profesional.</p>
       <p data-actualizado></p>
     </div>
   </footer>

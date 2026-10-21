@@ -129,7 +129,6 @@ export function render(main, ctx) {
 
   main.append(
     h('h1', null, 'Productos'),
-    h('p', { class: 'bajada' }, 'Todos los productos del catálogo. Filtra por categoría, grupo de modo de acción (IRAC, FRAC, HRAC) o empresa.'),
     h('div', { class: 'filtros', role: 'search' },
       h('label', { for: 'f-cat' }, 'Categoría', selCategoria),
       h('label', { for: 'f-moa' }, 'Modo de acción', selMoa),

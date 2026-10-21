@@ -258,9 +258,11 @@ export function detalleProducto(productoId) {
   });
 }
 
-export async function estadoDatos() {
+// Planes guardados en la base para una persona: se leen solo con su clave (link personal), por una
+// función de la base; la tabla no se puede leer con la llave pública.
+export async function planGuardado(clave) {
   const db = await cliente();
-  const { data, error } = await db.from('v_estado_datos').select('*').maybeSingle();
+  const { data, error } = await db.rpc('plan_guardado', { p_clave: clave });
   if (error) throw error;
   return data;
 }

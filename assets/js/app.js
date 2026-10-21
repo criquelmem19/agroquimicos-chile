@@ -6,7 +6,6 @@ import * as vistaBuscar from './vistas/buscar.js';
 import * as vistaAplicar from './vistas/aplicar.js';
 import * as vistaProductos from './vistas/productos.js';
 import * as vistaProducto from './vistas/producto.js';
-import * as vistaEstado from './vistas/estado.js';
 import * as vistaPlan from './vistas/plan.js';
 
 const NOMBRE_SITIO = 'Agroquímicos CRM';
@@ -18,7 +17,6 @@ const SECCIONES = [
   { camino: 'aplicar', titulo: '¿Qué aplico?', menu: '¿Qué aplico?', corto: 'Qué aplico', icono: 'brote', vista: vistaAplicar },
   { camino: 'plan', titulo: 'Plan de aplicaciones', menu: 'Plan', corto: 'Plan', icono: 'calendario', vista: vistaPlan },
   { camino: 'productos', titulo: 'Productos', menu: 'Productos', corto: 'Productos', icono: 'frasco', vista: vistaProductos },
-  { camino: 'estado', titulo: 'Estado de los datos', menu: 'Estado', corto: 'Estado', icono: 'grafico', vista: vistaEstado },
 ];
 // Rutas que no van en el menú.
 const OTRAS = { producto: vistaProducto };
@@ -46,32 +44,6 @@ function pintarMenus(actual) {
         h('span', { class: 'nav-ico' }, icono(s.icono)), inferior ? s.corto : s.menu));
     }
   }
-}
-
-function temaActual() {
-  const t = document.documentElement.dataset.theme;
-  if (t) return t;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'oscuro' : 'claro';
-}
-
-function pintarBotonTema() {
-  const b = document.querySelector('[data-tema]');
-  const oscuro = temaActual() === 'oscuro';
-  b.replaceChildren(icono(oscuro ? 'sol' : 'luna'));
-  b.setAttribute('aria-label', oscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
-  b.title = oscuro ? 'Modo claro' : 'Modo oscuro';
-}
-
-function prepararTema() {
-  const b = document.querySelector('[data-tema]');
-  b.addEventListener('click', () => {
-    const nuevo = temaActual() === 'oscuro' ? 'claro' : 'oscuro';
-    document.documentElement.dataset.theme = nuevo;
-    try { localStorage.setItem('tema', nuevo); } catch (e) { /* sin almacenamiento */ }
-    pintarBotonTema();
-  });
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', pintarBotonTema);
-  pintarBotonTema();
 }
 
 function pintarPie() {
@@ -141,7 +113,6 @@ async function mostrar() {
 }
 
 async function iniciar() {
-  prepararTema();
   pintarMenus(leerRuta().partes[0] || '');
   try {
     catalogo = await cargarCatalogo();

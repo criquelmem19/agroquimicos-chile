@@ -1,8 +1,8 @@
 // Plan de aplicaciones: calendario por cultivo y temporada, con alertas según la etiqueta
 // (mismo grupo IRAC/FRAC/HRAC, máximo por temporada, intervalo y carencia antes de la cosecha).
-// Se guarda solo en este equipo. Parámetros: producto=<id>&uso=<id> (llega con el uso ya elegido
-// desde «¿Qué aplico?» o la ficha de un producto).
-import { usosPorCultivo, usosPorProducto } from '../db.js';
+// Se guarda en este equipo. Parámetros: producto=<id>&uso=<id> (llega con el uso elegido desde
+// «¿Qué aplico?» o la ficha), abrir=<clave> (link personal con planes guardados en la base).
+import { usosPorCultivo, usosPorProducto, planGuardado } from '../db.js';
 import { filtrar, palabras, normalizar } from '../buscador.js';
 import * as P from '../plan.js';
 import { UMBRAL_CONFIANZA } from '../config.js';
@@ -15,14 +15,14 @@ const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', '
 const DIAS = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'];
 const NIVEL_CLASE = { peligro: 'nota-peligro', alerta: 'nota-alerta', info: 'nota-info', ok: 'nota-ok' };
 const NIVEL_TEXTO = { peligro: 'No cumple la etiqueta', alerta: 'Revisar', info: 'Para saber', ok: 'Cumple' };
+const TIPOS = ['Insecticida', 'Acaricida', 'Fungicida', 'Bactericida', 'Herbicida', 'Fertilizante', 'Bioestimulante', 'Coadyuvante', 'Otro'];
 
 const mesPorPlan = new Map();
 
 // ---------- Piezas ----------
 
-function sistema(p) {
-  const k = p && p.moa[0];
-  const s = k ? k.split(' ')[0].toLowerCase() : 'otro';
+function sistema(moa) {
+  const s = moa[0] ? moa[0].split(' ')[0].toLowerCase() : 'otro';
   return ['frac', 'irac', 'hrac'].includes(s) ? s : 'otro';
 }
 
@@ -32,7 +32,7 @@ function nombreObjetivos(cat, u, max = 3) {
   return nombres.slice(0, max).join(' · ') + (nombres.length > max ? ` y ${nombres.length - max} más` : '');
 }
 
-// Regla 1 del sitio: la dosis siempre va con su estado.
+// Regla 1 del sitio: la dosis de la etiqueta siempre va con su estado.
 function textoDosis(u) {
   const estado = u.review_status === 'aprobado' ? 'revisada' : 'extraída automáticamente';
   const baja = u.confidence_score != null && Number(u.confidence_score) < UMBRAL_CONFIANZA ? ', confianza baja' : '';
@@ -45,10 +45,16 @@ function textoCarencia(u) {
   return 'carencia: ver etiqueta';
 }
 
-function listaAlertas(alertas, { soloGraves = false } = {}) {
-  const l = soloGraves ? alertas.filter(P.esGrave) : alertas;
-  if (!l.length) return null;
-  return h('ul', { class: 'alertas-plan' }, l.map((a) => h('li', { class: `alerta-plan ${NIVEL_CLASE[a.nivel]}` },
+function nombreCultivoPlan(cat, plan) {
+  const nombres = P.cultivosDelPlan(plan).map((id) => cat.cultivos.get(id)).filter(Boolean).map((c) => c.nombre);
+  if (!nombres.length) return '';
+  const base = nombres.length > 2 ? `${nombres[0]} y ${nombres.length - 1} más` : nombres.join(' y ');
+  return plan.destino === 'semillero' ? `${base} semillero` : base;
+}
+
+function listaAlertas(alertas) {
+  if (!alertas.length) return null;
+  return h('ul', { class: 'alertas-plan' }, alertas.map((a) => h('li', { class: `alerta-plan ${NIVEL_CLASE[a.nivel]}` },
     h('span', { class: 'alerta-nivel' }, a.nivel === 'ok' ? icono('check') : icono('alerta'), NIVEL_TEXTO[a.nivel]),
     h('span', null, a.texto))));
 }
@@ -61,11 +67,11 @@ function buscadorOpciones({ id, etiqueta, placeholder, opciones }) {
     vaciar(lista);
     const ops = opciones(entrada.value);
     if (!ops.length) {
-      lista.append(h('li', null, h('div', { class: 'opcion tenue' }, 'Sin coincidencias. Prueba con otra palabra.')));
+      lista.append(h('li', null, h('div', { class: 'opcion tenue' }, 'Sin coincidencias.')));
       return;
     }
     for (const o of ops) {
-      lista.append(h('li', null, h('button', { type: 'button', class: 'opcion', onclick: o.accion },
+      lista.append(h('li', null, h('button', { type: 'button', class: `opcion ${o.clase || ''}`, onclick: o.accion },
         h('span', null, o.etiqueta), o.detalle ? h('small', null, o.detalle) : null)));
     }
   };
@@ -81,6 +87,17 @@ function opcionesCultivo(cat, texto, alElegir) {
   return elegidos.map((c) => ({ etiqueta: recortar(c.nombre, 60), detalle: plural(c.nProductos, 'producto', 'productos'), accion: () => alElegir(c.id) }));
 }
 
+// Líneas de la etiqueta de un producto para los cultivos del plan.
+function lineasDelProducto(usosCultivo, productoId) {
+  return usosCultivo.get(productoId) || [];
+}
+
+function etiquetaUso(cat, plan, u) {
+  const varios = P.cultivosDelPlan(plan).length > 1;
+  const c = cat.cultivos.get(u.crop_id);
+  return `${varios && c ? `${c.nombre}: ` : ''}${nombreObjetivos(cat, u, 3)}`;
+}
+
 // ---------- Calendario del mes ----------
 
 function calendarioMes(cat, plan, alertas, mes, alCambiarMes, alElegir) {
@@ -90,8 +107,10 @@ function calendarioMes(cat, plan, alertas, mes, alCambiarMes, alElegir) {
   inicio.setDate(1 - ((primero.getDay() + 6) % 7)); // lunes de la primera semana
   const porFecha = new Map();
   for (const a of P.ordenadas(plan)) {
-    if (!porFecha.has(a.fecha)) porFecha.set(a.fecha, []);
-    porFecha.get(a.fecha).push(a);
+    const f = P.fechaDe(plan, a);
+    if (!f) continue;
+    if (!porFecha.has(f)) porFecha.set(f, []);
+    porFecha.get(f).push(a);
   }
   const hoy = P.hoy();
   const semanas = [];
@@ -102,19 +121,23 @@ function calendarioMes(cat, plan, alertas, mes, alCambiarMes, alElegir) {
       const iso = P.isoLocal(d);
       const delMes = d.getMonth() === m - 1;
       const aps = porFecha.get(iso) || [];
-      const clases = ['dia', delMes ? '' : 'dia-fuera', iso === hoy ? 'dia-hoy' : '', iso === plan.cosecha ? 'dia-cosecha' : ''].filter(Boolean).join(' ');
+      const clases = ['dia', delMes ? '' : 'dia-fuera', iso === hoy ? 'dia-hoy' : '', iso === plan.cosecha ? 'dia-cosecha' : '', iso === plan.trasplante ? 'dia-trasplante' : ''].filter(Boolean).join(' ');
+      const visibles = aps.slice(0, 3);
       fila.push(h('td', { class: clases },
         h('span', { class: 'dia-num' }, String(d.getDate())),
+        iso === plan.trasplante ? h('span', { class: 'dia-marca' }, 'Trasplante') : null,
         iso === plan.cosecha ? h('span', { class: 'dia-marca' }, 'Cosecha') : null,
-        aps.map((a) => {
-          const p = cat.productos.get(a.productoId);
+        visibles.map((a) => {
           const grave = (alertas.get(a.id) || []).some(P.esGrave);
+          const moa = P.gruposDe(cat, a);
+          const nombre = P.nombreDe(cat, a);
           return h('button', {
-            type: 'button', class: `cal-ap cal-${sistema(p)}${grave ? ' cal-grave' : ''}`,
-            title: `${p ? p.nombre : 'Producto'}${p && p.moa.length ? ` · ${p.moa.join(', ')}` : ''}${grave ? ' · tiene alertas' : ''}`,
+            type: 'button', class: `cal-ap cal-${sistema(moa)}${grave ? ' cal-grave' : ''}`,
+            title: `${nombre}${moa.length ? ` · ${moa.join(', ')}` : ''}${grave ? ' · con alertas' : ''}`,
             onclick: () => alElegir(a.id),
-          }, h('span', { class: 'cal-ap-nombre' }, recortar(p ? p.nombre : 'Producto', 22)), grave ? h('span', { class: 'cal-ap-alerta', 'aria-label': 'con alertas' }, '!') : null);
-        })));
+          }, h('span', { class: 'cal-ap-nombre' }, recortar(nombre, 20)), grave ? h('span', { class: 'cal-ap-alerta', 'aria-label': 'con alertas' }, '!') : null);
+        }),
+        aps.length > visibles.length ? h('button', { type: 'button', class: 'cal-mas', onclick: () => alElegir(aps[3].id) }, `+${aps.length - visibles.length}`) : null));
       d.setDate(d.getDate() + 1);
     }
     semanas.push(h('tr', null, fila));
@@ -135,156 +158,201 @@ function calendarioMes(cat, plan, alertas, mes, alCambiarMes, alElegir) {
       h('tbody', null, semanas)));
 }
 
-// ---------- Lista de aplicaciones ----------
+// ---------- Lista por día (cada día es una mezcla) ----------
 
-function tarjetaAplicacion(cat, plan, a, alertas, alCambiar) {
-  const p = cat.productos.get(a.productoId);
+function filaProducto(cat, plan, a, alertas, usosCultivo, alCambiar) {
+  const p = a.productoId ? cat.productos.get(a.productoId) : null;
   const u = a.linea;
   const url = u ? urlDeLinea(cat, u) : (p && p.etiqueta ? p.etiqueta.url : null);
-  const f = P.aFecha(a.fecha);
+  const moa = P.gruposDe(cat, a);
   const editor = h('div', { class: 'editor-ap', hidden: true });
 
-  const abrirEditor = async () => {
+  const abrirEditor = () => {
     if (!editor.hidden) { editor.hidden = true; return; }
-    vaciar(editor).append(cargando('Cargando los usos…'));
-    editor.hidden = false;
-    let lineas = [];
-    try {
-      const todas = await usosPorProducto(a.productoId);
-      lineas = plan.cultivoId ? todas.filter((x) => x.crop_id === plan.cultivoId) : todas;
-    } catch (e) { /* sin conexión: solo se puede cambiar la fecha y la nota */ }
-    const fecha = h('input', { class: 'entrada', type: 'date', value: a.fecha, required: true });
-    const nota = h('input', { class: 'entrada', type: 'text', value: a.nota || '', placeholder: 'Ej: cuartel 3, mezcla con…', maxlength: '200' });
+    const fecha = h('input', { class: 'entrada', type: 'date', value: P.fechaDe(plan, a) || '' });
+    const dia = h('input', { class: 'entrada', type: 'number', inputmode: 'numeric', step: '1', value: P.ddtDe(plan, a) ?? '' });
+    fecha.addEventListener('change', () => { if (plan.trasplante && P.esFecha(fecha.value)) dia.value = P.diasEntre(plan.trasplante, fecha.value); });
+    dia.addEventListener('input', () => { if (plan.trasplante && dia.value !== '') fecha.value = P.sumarDias(plan.trasplante, Number(dia.value)); });
+    const lineas = a.productoId ? lineasDelProducto(usosCultivo, a.productoId) : [];
     const sel = h('select', { class: 'selector' },
       h('option', { value: '' }, 'Sin elegir uso'),
       lineas.map((x) => h('option', { value: x.id, selected: u && u.id === x.id },
-        `${recortar(nombreObjetivos(cat, x, 2), 70)} — ${textoDosis(x)} · ${textoCarencia(x)}`)));
+        `${recortar(etiquetaUso(cat, plan, x), 70)} — ${textoDosis(x)} · ${textoCarencia(x)}`)));
+    const dosisPlan = h('input', { class: 'entrada', type: 'text', value: a.dosisPlan || '', maxlength: '80' });
+    const objetivo = h('input', { class: 'entrada', type: 'text', value: a.objetivo || '', maxlength: '160' });
+    const nota = h('input', { class: 'entrada', type: 'text', value: a.nota || '', maxlength: '200' });
     vaciar(editor).append(
       h('div', { class: 'editor-campos' },
         h('label', { class: 'campo' }, 'Fecha', fecha),
-        lineas.length ? h('label', { class: 'campo' }, 'Uso de la etiqueta (plaga, dosis y carencia)', sel) : null,
-        h('label', { class: 'campo' }, 'Nota', nota)),
+        h('label', { class: 'campo' }, 'Día desde el trasplante', dia),
+        lineas.length ? h('label', { class: 'campo campo-ancho' }, 'Uso de la etiqueta', sel) : null,
+        h('label', { class: 'campo' }, 'Dosis de tu plan', dosisPlan),
+        h('label', { class: 'campo' }, 'Objetivo', objetivo),
+        h('label', { class: 'campo campo-ancho' }, 'Nota', nota)),
       h('div', { class: 'acciones' },
         h('button', { type: 'button', class: 'boton boton-primario', onclick: () => {
-          if (!P.esFecha(fecha.value)) { fecha.focus(); return; }
-          const linea = sel.value ? lineas.find((x) => x.id === sel.value) : (lineas.length ? null : a.linea);
-          P.editarAplicacion(plan.id, a.id, { fecha: fecha.value, nota: limpio(nota.value), linea: P.lineaResumida(linea) });
+          const cambios = { dosisPlan: limpio(dosisPlan.value), objetivo: limpio(objetivo.value), nota: limpio(nota.value) };
+          if (dia.value !== '') Object.assign(cambios, { ddt: Number(dia.value), fecha: plan.trasplante ? null : (P.esFecha(fecha.value) ? fecha.value : null) });
+          else if (P.esFecha(fecha.value)) Object.assign(cambios, { fecha: fecha.value, ddt: null });
+          else { fecha.focus(); return; }
+          if (lineas.length) cambios.linea = P.lineaResumida(sel.value ? lineas.find((x) => x.id === sel.value) : null);
+          P.editarAplicacion(plan.id, a.id, cambios);
           alCambiar();
         } }, 'Guardar cambios'),
         h('button', { type: 'button', class: 'boton', onclick: () => { editor.hidden = true; } }, 'Cancelar')));
+    editor.hidden = false;
   };
 
+  const tipo = P.tipoDe(cat, a);
+  const datos = [];
+  if (a.dosisPlan) datos.push(h('div', null, h('dt', null, 'Dosis de tu plan'), h('dd', null, a.dosisPlan)));
+  if (u) {
+    datos.push(h('div', null, h('dt', null, 'Dosis de la etiqueta'), h('dd', null, dosis(u))));
+    datos.push(h('div', null, h('dt', null, 'Carencia'), h('dd', null, carencia(u, url))));
+  }
+  if (a.objetivo) datos.push(h('div', null, h('dt', null, 'Objetivo'), h('dd', null, a.objetivo)));
+  if (a.alternativa) datos.push(h('div', null, h('dt', null, 'Alternativa Syngenta'), h('dd', null, a.alternativa)));
+
   return h('article', { class: 'ap', id: `ap-${a.id}`, tabindex: '-1' },
-    h('div', { class: 'ap-fecha', 'aria-hidden': 'true' },
-      h('span', { class: 'ap-dia' }, String(f.getDate())),
-      h('span', { class: 'ap-mes' }, MESES[f.getMonth()].slice(0, 3)),
-      h('span', { class: 'ap-sem' }, DIAS[(f.getDay() + 6) % 7])),
-    h('div', { class: 'ap-cuerpo' },
-      h('p', { class: 'oculto' }, P.fechaCorta(a.fecha)),
-      h('div', { class: 'ap-titulo' },
-        p ? h('a', { href: ruta(`producto/${p.id}`) }, p.nombre) : h('strong', null, 'Producto que ya no está en el catálogo'),
-        p ? chipsMoa(p.moa) : null),
-      p ? h('p', { class: 'chico tenue' }, ingredientesTexto(p)) : null,
-      u ? h('p', { class: 'ap-uso' }, h('strong', null, 'Controla: '), nombreObjetivos(cat, u)) : null,
-      u ? h('dl', { class: 'ap-datos' },
-        h('div', null, h('dt', null, 'Dosis'), h('dd', null, dosis(u))),
-        h('div', null, h('dt', null, 'Carencia'), h('dd', null, carencia(u, url))))
-        : null,
-      listaAlertas(alertas),
-      a.nota ? h('p', { class: 'ap-nota' }, h('strong', null, 'Nota: '), a.nota) : null,
-      h('div', { class: 'ap-pie' },
-        linkPdf(url, u ? u.source_page : null),
-        h('span', { class: 'ap-acciones' },
-          h('button', { type: 'button', class: 'boton boton-chico', onclick: abrirEditor }, icono('lapiz'), 'Editar'),
-          h('button', { type: 'button', class: 'boton boton-chico', onclick: () => {
-            if (window.confirm(`¿Quitar ${p ? p.nombre : 'esta aplicación'} del ${P.fechaCorta(a.fecha)} del plan?`)) {
-              P.quitarAplicacion(plan.id, a.id);
-              alCambiar();
-            }
-          } }, icono('basura'), 'Quitar'))),
-      editor));
+    h('div', { class: 'ap-titulo' },
+      p ? h('a', { href: ruta(`producto/${p.id}`) }, p.nombre) : h('strong', null, P.nombreDe(cat, a)),
+      moa.length ? chipsMoa(moa) : null,
+      tipo ? h('span', { class: 'etiqueta etq-neutra' }, tipo) : null,
+      p ? null : h('span', { class: 'etiqueta etq-externo' }, 'Fuera del catálogo')),
+    p ? h('p', { class: 'chico tenue' }, ingredientesTexto(p))
+      : (a.externo && a.externo.ingrediente ? h('p', { class: 'chico tenue' }, a.externo.ingrediente) : null),
+    u ? h('p', { class: 'ap-uso' }, h('strong', null, 'Uso: '), etiquetaUso(cat, plan, u)) : null,
+    datos.length ? h('dl', { class: 'ap-datos' }, datos) : null,
+    listaAlertas(alertas),
+    a.nota ? h('p', { class: 'ap-nota' }, h('strong', null, 'Nota: '), a.nota) : null,
+    h('div', { class: 'ap-pie' },
+      p || u ? linkPdf(url, u ? u.source_page : null) : h('span'),
+      h('span', { class: 'ap-acciones' },
+        h('button', { type: 'button', class: 'boton boton-chico', onclick: abrirEditor }, icono('lapiz'), a.productoId && !u ? 'Elegir uso' : 'Editar'),
+        h('button', { type: 'button', class: 'boton boton-chico', onclick: () => {
+          if (window.confirm(`¿Quitar ${P.nombreDe(cat, a)} (${P.cuando(plan, a)}) del plan?`)) {
+            P.quitarAplicacion(plan.id, a.id);
+            alCambiar();
+          }
+        } }, icono('basura'), 'Quitar'))),
+    editor);
 }
 
-function listaAplicaciones(cat, plan, alertas, alCambiar) {
+function listaPorDia(cat, plan, alertas, usosCultivo, alCambiar) {
   const aps = P.ordenadas(plan);
   if (!aps.length) {
-    return h('div', { class: 'vacio' }, h('p', null, h('strong', null, 'Todavía no hay aplicaciones en este plan.')),
-      h('p', { class: 'chico' }, 'Agrega la primera con el formulario de arriba.'));
+    return h('div', { class: 'vacio' }, h('p', null, h('strong', null, 'Todavía no hay aplicaciones en este plan.')));
+  }
+  const dias = [];
+  for (const a of aps) {
+    const clave = P.claveDia(plan, a);
+    if (!dias.length || dias[dias.length - 1].clave !== clave) dias.push({ clave, aps: [] });
+    dias[dias.length - 1].aps.push(a);
   }
   const bloques = [];
   let mesActual = null;
-  for (const a of aps) {
-    const mes = a.fecha.slice(0, 7);
+  for (const dia of dias) {
+    const a0 = dia.aps[0];
+    const f = P.fechaDe(plan, a0);
+    const ddt = P.ddtDe(plan, a0);
+    const mes = f ? f.slice(0, 7) : 'sin';
     if (mes !== mesActual) {
       mesActual = mes;
-      const [y, m] = mes.split('-').map(Number);
-      bloques.push(h('h3', { class: 'lista-mes' }, `${MESES[m - 1]} ${y}`));
+      if (f) {
+        const [y, m] = mes.split('-').map(Number);
+        bloques.push(h('h3', { class: 'lista-mes' }, `${MESES[m - 1].charAt(0).toUpperCase()}${MESES[m - 1].slice(1)} ${y}`));
+      } else if (plan.trasplante == null) {
+        bloques.push(h('h3', { class: 'lista-mes' }, 'Por días desde el trasplante'));
+      }
     }
-    bloques.push(tarjetaAplicacion(cat, plan, a, alertas.get(a.id) || [], alCambiar));
+    const etapas = [...new Set(dia.aps.map((x) => x.etapa).filter(Boolean))];
+    const equipos = [...new Set(dia.aps.map((x) => x.equipo).filter(Boolean))];
+    const numeros = [...new Set(dia.aps.map((x) => x.numero).filter((n) => n != null))];
+    const fd = f ? P.aFecha(f) : null;
+    bloques.push(h('section', { class: 'jornada', 'aria-label': f ? P.fechaCorta(f) : `Día ${ddt}` },
+      h('header', { class: 'jornada-cabeza' },
+        h('div', { class: 'ap-fecha', 'aria-hidden': 'true' },
+          fd ? [h('span', { class: 'ap-dia' }, String(fd.getDate())), h('span', { class: 'ap-mes' }, MESES[fd.getMonth()].slice(0, 3)), h('span', { class: 'ap-sem' }, DIAS[(fd.getDay() + 6) % 7])]
+            : [h('span', { class: 'ap-mes' }, 'día'), h('span', { class: 'ap-dia' }, ddt != null ? String(ddt) : '–')]),
+        h('div', { class: 'jornada-datos' },
+          h('strong', null, [f ? P.fechaCorta(f) : null, ddt != null ? `día ${ddt} desde el trasplante` : null].filter(Boolean).join(' · ') || 'Sin fecha'),
+          h('span', { class: 'chico tenue' }, [
+            numeros.length ? `Aplicación n.° ${numeros.join(', ')}` : null,
+            etapas.join(' · ') || null,
+            equipos.join(' · ') || null,
+            plural(dia.aps.length, 'producto', 'productos'),
+          ].filter(Boolean).join(' · ')))),
+      dia.aps.map((a) => filaProducto(cat, plan, a, alertas.get(a.id) || [], usosCultivo, alCambiar))));
   }
   return h('div', { class: 'lista-aps' }, bloques);
 }
 
 // ---------- Formulario para agregar ----------
 
-function formulario(cat, plan, lineasCultivo, pre, alAgregar) {
+function formulario(cat, plan, usosCultivo, pre, alAgregar) {
   const estado = {
-    fecha: pre.fecha || P.hoy(),
     productoId: pre.productoId || null,
     linea: pre.linea || null,
+    externo: null,
     todos: false,
   };
   const zonaProducto = h('div');
   const zonaUso = h('div');
   const zonaAvisos = h('div', { 'aria-live': 'polite' });
-  const fecha = h('input', { class: 'entrada', type: 'date', id: 'f-fecha', value: estado.fecha, required: true });
-  const nota = h('input', { class: 'entrada', type: 'text', id: 'f-nota', placeholder: 'Opcional. Ej: cuartel 3, mezcla con…', maxlength: '200' });
+  const fecha = h('input', { class: 'entrada', type: 'date', id: 'f-fecha', value: plan.trasplante ? '' : P.hoy() });
+  const dia = h('input', { class: 'entrada', type: 'number', id: 'f-dia', inputmode: 'numeric', step: '1', placeholder: 'Ej: 15' });
+  const dosisPlan = h('input', { class: 'entrada', type: 'text', id: 'f-dosis', placeholder: 'Ej: 20 g / 100 L', maxlength: '80' });
+  const objetivo = h('input', { class: 'entrada', type: 'text', id: 'f-objetivo', placeholder: 'Ej: pulgón, trips', maxlength: '160' });
+  const nota = h('input', { class: 'entrada', type: 'text', id: 'f-nota', placeholder: 'Opcional', maxlength: '200' });
   const boton = h('button', { type: 'submit', class: 'boton boton-primario' }, icono('mas'), 'Agregar al plan');
+  fecha.addEventListener('change', () => { if (plan.trasplante && P.esFecha(fecha.value)) dia.value = P.diasEntre(plan.trasplante, fecha.value); avisos(); });
+  dia.addEventListener('input', () => { if (plan.trasplante && dia.value !== '') fecha.value = P.sumarDias(plan.trasplante, Number(dia.value)); avisos(); });
 
-  const productosDelCultivo = new Map();
-  for (const u of lineasCultivo || []) {
-    if (!productosDelCultivo.has(u.product_id)) productosDelCultivo.set(u.product_id, []);
-    productosDelCultivo.get(u.product_id).push(u);
-  }
-  // Se busca por nombre, ingrediente activo o grupo («frac 3»).
+  const productosDelCultivo = [...usosCultivo.keys()].map((id) => cat.productos.get(id)).filter(Boolean);
   const claves = new Map();
   const palabrasDe = (p) => {
     if (!claves.has(p.id)) claves.set(p.id, p.palabras.concat(...p.ings.map((x) => palabras(x.ing.nombre)), palabras(p.moa.join(' '))));
     return claves.get(p.id);
   };
 
-  const avisos = () => {
+  const cuandoNueva = () => {
+    if (dia.value !== '') return { ddt: Number(dia.value), fecha: plan.trasplante ? null : (P.esFecha(fecha.value) ? fecha.value : null) };
+    if (P.esFecha(fecha.value)) return { fecha: fecha.value, ddt: null };
+    return null;
+  };
+
+  function avisos() {
     vaciar(zonaAvisos);
-    if (!estado.productoId) return;
-    const lista = P.alertasDeNueva(plan, cat, { fecha: estado.fecha, productoId: estado.productoId, linea: estado.linea, nota: '' });
+    const c = cuandoNueva();
+    if (!c || (!estado.productoId && !estado.externo)) return;
+    const lista = P.alertasDeNueva(plan, cat, { ...c, productoId: estado.productoId, externo: estado.externo, linea: estado.linea }, { usosCultivo });
     const graves = lista.filter(P.esGrave);
     zonaAvisos.append(graves.length
       ? h('div', { class: 'previa previa-alerta' }, h('p', null, h('strong', null, `Ojo: ${plural(graves.length, 'alerta', 'alertas')} si la agregas`)), listaAlertas(lista))
       : h('div', { class: 'previa previa-ok' }, h('p', null, icono('check'), h('strong', null, ' Sin alertas'), ' con lo que ya tiene el plan.'), listaAlertas(lista)));
-  };
+  }
 
   const pintarUso = () => {
     vaciar(zonaUso);
     if (!estado.productoId) return;
-    if (!plan.cultivoId) {
-      zonaUso.append(h('p', { class: 'nota nota-info' }, 'Elige el cultivo del plan (arriba) para ver los usos de la etiqueta: plaga, dosis y carencia.'));
+    if (!P.cultivosDelPlan(plan).length) {
+      zonaUso.append(h('p', { class: 'chico tenue' }, 'Elige el cultivo del plan para ver los usos de la etiqueta.'));
       return;
     }
-    let lineas = productosDelCultivo.get(estado.productoId) || [];
+    let lineas = lineasDelProducto(usosCultivo, estado.productoId);
     if (estado.linea && !lineas.some((u) => u.id === estado.linea.id)) lineas = [estado.linea, ...lineas];
     if (!lineas.length) {
-      zonaUso.append(h('p', { class: 'nota nota-alerta' }, 'Este producto no tiene usos registrados para el cultivo del plan. Revisa la etiqueta antes de aplicarlo.'));
+      zonaUso.append(h('p', { class: 'nota nota-alerta' }, `La etiqueta no tiene usos para ${nombreCultivoPlan(cat, plan) || 'este cultivo'}.`));
       return;
     }
     if (lineas.length === 1 && !estado.linea) estado.linea = lineas[0];
-    const cultivo = cat.cultivos.get(plan.cultivoId);
     zonaUso.append(h('fieldset', { class: 'campo usos' },
-      h('legend', null, `Uso de la etiqueta en ${cultivo ? cultivo.nombre : 'el cultivo'}`),
+      h('legend', null, 'Uso de la etiqueta'),
       lineas.map((u) => {
         const radio = h('input', { type: 'radio', name: 'f-uso', value: u.id, checked: estado.linea && estado.linea.id === u.id });
         radio.addEventListener('change', () => { estado.linea = u; avisos(); });
         return h('label', { class: 'uso-opcion' }, radio,
-          h('span', null, h('strong', null, nombreObjetivos(cat, u, 3)),
+          h('span', null, h('strong', null, etiquetaUso(cat, plan, u)),
             h('span', { class: 'chico tenue' }, ` · ${textoDosis(u)} · ${textoCarencia(u)}`)));
       })));
   };
@@ -302,19 +370,36 @@ function formulario(cat, plan, lineasCultivo, pre, alAgregar) {
           } }, 'Cambiar'))));
       return;
     }
-    const conCultivo = plan.cultivoId && !estado.todos;
-    const base = conCultivo ? [...productosDelCultivo.keys()].map((id) => cat.productos.get(id)).filter(Boolean) : [...cat.productos.values()];
-    const cultivo = plan.cultivoId ? cat.cultivos.get(plan.cultivoId) : null;
+    if (estado.externo) {
+      const x = estado.externo;
+      const nombre = h('input', { class: 'entrada', type: 'text', value: x.nombre, maxlength: '80', placeholder: 'Nombre comercial' });
+      const ing = h('input', { class: 'entrada', type: 'text', value: x.ingrediente, maxlength: '120', placeholder: 'Ej: imidacloprid' });
+      const tipo = h('select', { class: 'selector' }, TIPOS.map((t) => h('option', { value: t, selected: x.tipo === t }, t)));
+      const actualizar = () => { Object.assign(x, { nombre: limpio(nombre.value), ingrediente: limpio(ing.value), tipo: tipo.value }); avisos(); };
+      nombre.addEventListener('input', retrasar(actualizar, 200));
+      ing.addEventListener('input', retrasar(actualizar, 200));
+      tipo.addEventListener('change', actualizar);
+      zonaProducto.append(h('div', { class: 'form-grid' },
+        h('label', { class: 'campo' }, 'Producto (fuera del catálogo)', nombre),
+        h('label', { class: 'campo' }, 'Ingrediente activo', ing),
+        h('label', { class: 'campo' }, 'Tipo', tipo),
+        h('div', { class: 'campo' }, h('span', { class: 'campo-etiqueta' }, ' '),
+          h('button', { type: 'button', class: 'boton boton-chico', onclick: () => { estado.externo = null; pintarProducto(); avisos(); } }, 'Buscar en el catálogo'))));
+      nombre.focus();
+      return;
+    }
+    const conCultivo = P.cultivosDelPlan(plan).length && !estado.todos;
+    const base = conCultivo ? productosDelCultivo : [...cat.productos.values()];
     zonaProducto.append(buscadorOpciones({
       id: 'f-producto',
-      etiqueta: conCultivo ? `Producto (${plural(base.length, 'registrado', 'registrados')} para ${cultivo ? cultivo.nombre : 'el cultivo'})` : 'Producto',
+      etiqueta: conCultivo ? `Producto (${plural(base.length, 'registrado', 'registrados')} para ${nombreCultivoPlan(cat, plan)})` : 'Producto',
       placeholder: 'Nombre, ingrediente o grupo (ej: FRAC 3)',
       opciones: (texto) => {
         const t = limpio(texto);
         const lista = t
           ? filtrar(base, t, palabrasDe, (p) => p.nLineas, 30)
           : [...base].sort((a, b) => normalizar(a.nombre).localeCompare(normalizar(b.nombre), 'es')).slice(0, 15);
-        return lista.map((p) => ({
+        const ops = lista.map((p) => ({
           etiqueta: p.nombre,
           detalle: p.moa.length ? p.moa.join(' + ') : 'sin grupo',
           accion: () => {
@@ -325,32 +410,43 @@ function formulario(cat, plan, lineasCultivo, pre, alAgregar) {
             (r || boton).focus();
           },
         }));
+        if (t) {
+          ops.push({
+            etiqueta: `Agregar «${t}» como producto fuera del catálogo`, clase: 'opcion-todos',
+            accion: () => { estado.externo = { nombre: t, ingrediente: '', tipo: 'Insecticida' }; pintarProducto(); avisos(); },
+          });
+        }
+        return ops;
       },
     }));
-    if (plan.cultivoId) {
+    if (P.cultivosDelPlan(plan).length) {
       zonaProducto.append(h('button', { type: 'button', class: 'boton-texto', onclick: () => { estado.todos = !estado.todos; pintarProducto(); } },
         estado.todos ? 'Ver solo los registrados para el cultivo' : 'Buscar entre todos los productos'));
     }
   };
 
-  fecha.addEventListener('change', () => { if (P.esFecha(fecha.value)) { estado.fecha = fecha.value; avisos(); } });
-
   const form = h('form', { class: 'tarjeta form-plan', novalidate: true },
     h('h2', { class: 'form-titulo' }, icono('mas'), 'Agregar una aplicación'),
     h('div', { class: 'form-grid' },
       h('div', { class: 'campo' }, h('label', { for: 'f-fecha' }, 'Fecha'), fecha),
-      h('div', { class: 'campo' }, h('label', { for: 'f-nota' }, 'Nota'), nota)),
-    zonaProducto, zonaUso, zonaAvisos,
+      h('div', { class: 'campo' }, h('label', { for: 'f-dia' }, 'o día desde el trasplante'), dia)),
+    zonaProducto, zonaUso,
+    h('div', { class: 'form-grid' },
+      h('div', { class: 'campo' }, h('label', { for: 'f-dosis' }, 'Dosis de tu plan'), dosisPlan),
+      h('div', { class: 'campo' }, h('label', { for: 'f-objetivo' }, 'Objetivo'), objetivo)),
+    h('div', { class: 'campo' }, h('label', { for: 'f-nota' }, 'Nota'), nota),
+    zonaAvisos,
     h('div', { class: 'acciones' }, boton));
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    if (!P.esFecha(fecha.value)) { fecha.focus(); return; }
-    if (!estado.productoId) {
+    const c = cuandoNueva();
+    if (!c) { fecha.focus(); return; }
+    if (!estado.productoId && !(estado.externo && estado.externo.nombre)) {
       const b = form.querySelector('#f-producto');
       if (b) b.focus();
       return;
     }
-    alAgregar({ fecha: fecha.value, productoId: estado.productoId, linea: estado.linea, nota: limpio(nota.value) });
+    alAgregar({ ...c, productoId: estado.productoId, externo: estado.externo, linea: estado.linea, dosisPlan: limpio(dosisPlan.value), objetivo: limpio(objetivo.value), nota: limpio(nota.value) });
   });
 
   pintarProducto();
@@ -362,12 +458,16 @@ function formulario(cat, plan, lineasCultivo, pre, alAgregar) {
 // ---------- Exportar ----------
 
 function descargarCsv(cat, plan, alertas) {
-  const filas = [['Fecha', 'Producto', 'Grupo de modo de acción', 'Controla', 'Dosis (texto de la etiqueta)', 'Estado', 'Carencia', 'Alertas', 'Nota']];
+  const filas = [['Fecha', 'Día desde trasplante', 'Etapa', 'N.° aplicación', 'Producto', 'Tipo', 'Ingrediente activo', 'Grupo de modo de acción',
+    'Dosis de tu plan', 'Objetivo', 'Equipo', 'Alternativa Syngenta', 'Dosis de la etiqueta', 'Estado', 'Carencia', 'Alertas', 'Nota']];
   for (const a of P.ordenadas(plan)) {
-    const p = cat.productos.get(a.productoId);
+    const p = a.productoId ? cat.productos.get(a.productoId) : null;
     const u = a.linea;
+    const f = P.fechaDe(plan, a);
     filas.push([
-      P.fechaCorta(a.fecha), p ? p.nombre : '', p ? p.moa.join(' + ') : '', u ? nombreObjetivos(cat, u, 10) : 'Sin uso elegido',
+      f ? P.fechaCorta(f) : '', P.ddtDe(plan, a) ?? '', a.etapa || '', a.numero ?? '', P.nombreDe(cat, a), P.tipoDe(cat, a),
+      p ? ingredientesTexto(p) : (a.externo && a.externo.ingrediente) || '', P.gruposDe(cat, a).join(' + '),
+      a.dosisPlan || '', a.objetivo || '', a.equipo || '', a.alternativa || '',
       u ? limpio(u.dose_raw) || 'Sin dato, verificar etiqueta' : '', u ? (u.review_status === 'aprobado' ? 'Revisado' : 'Extraído automáticamente') : '',
       u ? (u.withholding_period_days != null ? `${u.withholding_period_days} días` : u.withholding_not_applicable ? 'No aplica' : 'Sin dato, verificar etiqueta') : '',
       (alertas.get(a.id) || []).filter(P.esGrave).map((x) => x.texto).join(' | '), a.nota || '',
@@ -382,14 +482,42 @@ function descargarCsv(cat, plan, alertas) {
 
 // ---------- Vista ----------
 
+async function abrirGuardados(clave, zona) {
+  let datos = null;
+  try {
+    datos = await planGuardado(clave);
+  } catch (e) {
+    zona.append(h('div', { class: 'nota nota-alerta' }, 'No se pudo abrir tu plan guardado. Revisa la conexión e intenta de nuevo con el mismo link.'));
+    return;
+  }
+  const lista = datos && Array.isArray(datos.planes) ? datos.planes : [];
+  if (!lista.length) {
+    zona.append(h('div', { class: 'nota nota-alerta' }, 'Ese link no tiene planes guardados.'));
+    return;
+  }
+  const r = P.importarPlanes(lista);
+  if (r.existentes.length) {
+    const nombres = r.existentes.map((p) => `«${p.nombre}»`).join(' y ');
+    if (window.confirm(`Este equipo ya tiene ${nombres}. ¿Reemplazarlo por la versión guardada? (Se pierden los cambios hechos en este equipo.)`)) {
+      P.importarPlanes(r.existentes, { reemplazar: true });
+    }
+  }
+  if (r.nuevos.length) notificar(h('p', null, h('strong', null, `Plan cargado: ${r.nuevos.map((p) => p.nombre).join(' y ')}.`)), 5000);
+}
+
 export async function render(main, ctx) {
   const { cat, params } = ctx;
-  main.append(
-    h('div', { class: 'portada-seccion' },
-      h('h1', null, 'Plan de aplicaciones'),
-      h('p', { class: 'bajada' }, 'Tu calendario de aplicaciones por cultivo. Avisa si repites el grupo IRAC, FRAC o HRAC, si pasas el máximo o el intervalo de la etiqueta, o si no alcanzas la carencia antes de cosechar.')));
+  main.append(h('h1', null, 'Plan de aplicaciones'));
   const zona = h('div', null, cargando('Preparando tu plan…'));
   main.append(zona);
+
+  if (params.get('abrir')) {
+    const avisoZona = h('div');
+    main.insertBefore(avisoZona, zona);
+    await abrirGuardados(params.get('abrir'), avisoZona);
+    if (!ctx.vigente()) return;
+    ctx.cambiarParams({});
+  }
 
   // Llega un uso elegido desde otra vista: se prepara el formulario con ese producto y uso.
   const pre = {};
@@ -409,50 +537,54 @@ export async function render(main, ctx) {
     ctx.cambiarParams({});
   }
 
-  let sinConexion = false;
   const pintar = async (opciones = {}) => {
     const plan = P.planActivo();
     vaciar(zona);
     if (!P.almacenamientoDisponible()) {
       zona.append(h('div', { class: 'nota nota-alerta' }, 'Este navegador no deja guardar datos (¿modo incógnito?): el plan se perderá al cerrar la página.'));
     }
-    zona.append(h('div', { class: 'nota nota-info' },
-      h('p', null, h('strong', null, 'Tu plan se guarda solo en este equipo. '),
-        'Las alertas comparan tu plan con los datos leídos de las etiquetas, que pueden tener errores: antes de aplicar, confirma siempre en la etiqueta oficial.')));
 
     if (!plan) {
+      const semillero = h('input', { type: 'checkbox', id: 'p-semillero' });
       zona.append(h('div', { class: 'tarjeta vacio-plan' },
         h('h2', null, 'Crea tu primer plan'),
-        h('p', null, 'Un plan es un cultivo en una temporada (por ejemplo, «Cerezo huerto norte 2026-27»).'),
         buscadorOpciones({
-          id: 'p-cultivo-nuevo', etiqueta: '¿Para qué cultivo?', placeholder: 'Ej: cerezo, uva, papa',
+          id: 'p-cultivo-nuevo', etiqueta: '¿Para qué cultivo?', placeholder: 'Ej: lechuga, cerezo, papa',
           opciones: (t) => opcionesCultivo(cat, t, (id) => {
             const c = cat.cultivos.get(id);
-            P.crearPlan({ nombre: `${c.nombre} ${P.temporada()}`, cultivoId: id });
+            const destino = semillero.checked ? 'semillero' : 'consumo';
+            P.crearPlan({ nombre: `${c.nombre}${destino === 'semillero' ? ' semillero' : ''} ${P.temporada()}`, cultivoId: id, destino });
             pintar();
           }),
         }),
+        h('label', { class: 'casilla' }, semillero, 'Es semillero (producción de semilla)'),
         h('button', { type: 'button', class: 'boton', onclick: () => { P.crearPlan({ nombre: `Plan ${P.temporada()}` }); pintar(); } }, 'Crear sin cultivo por ahora')));
       return;
     }
 
-    // Líneas del cultivo (para elegir usos) y las de otros cultivos que estén en el plan, al día.
-    let lineasCultivo = [];
+    // Líneas de la etiqueta para los cultivos del plan (para elegir usos) y las de otros cultivos que
+    // estén en el plan, al día.
+    const usosCultivo = new Map();
+    let sinConexion = false;
     try {
-      if (plan.cultivoId) lineasCultivo = await usosPorCultivo(plan.cultivoId);
-      const porId = new Map(lineasCultivo.map((u) => [u.id, u]));
-      const otros = [...new Set(plan.aplicaciones.filter((a) => a.linea && !porId.has(a.linea.id)).map((a) => a.productoId))];
+      const porId = new Map();
+      for (const cid of P.cultivosDelPlan(plan)) {
+        for (const u of await usosPorCultivo(cid)) {
+          porId.set(u.id, u);
+          if (!usosCultivo.has(u.product_id)) usosCultivo.set(u.product_id, []);
+          usosCultivo.get(u.product_id).push(u);
+        }
+      }
+      const otros = [...new Set(plan.aplicaciones.filter((a) => a.linea && !porId.has(a.linea.id)).map((a) => a.productoId).filter(Boolean))];
       for (const pid of otros) for (const u of await usosPorProducto(pid)) porId.set(u.id, u);
       P.refrescarLineas(plan, porId);
-      sinConexion = false;
     } catch (e) {
       sinConexion = true;
     }
     if (!ctx.vigente()) return;
-    if (sinConexion) zona.append(h('div', { class: 'nota nota-alerta' }, 'Sin conexión: se muestran los datos guardados con cada aplicación. Pueden no estar al día.'));
+    if (sinConexion) zona.append(h('div', { class: 'nota nota-alerta' }, 'Sin conexión: se muestran los datos guardados con cada aplicación.'));
 
-    const alertas = P.calcularAlertas(plan, cat);
-    const cultivo = plan.cultivoId ? cat.cultivos.get(plan.cultivoId) : null;
+    const alertas = P.calcularAlertas(plan, cat, { usosCultivo: sinConexion ? null : usosCultivo });
 
     // Barra de planes
     const todos = P.planes();
@@ -469,18 +601,27 @@ export async function render(main, ctx) {
     // Datos del plan
     const nombre = h('input', { class: 'entrada', id: 'p-nombre', type: 'text', value: plan.nombre, maxlength: '80' });
     nombre.addEventListener('change', () => { P.editarPlan(plan.id, { nombre: limpio(nombre.value) || plan.nombre }); pintar(); });
+    const destino = h('select', { class: 'selector', id: 'p-destino' },
+      h('option', { value: 'consumo', selected: plan.destino !== 'semillero' }, 'Consumo'),
+      h('option', { value: 'semillero', selected: plan.destino === 'semillero' }, 'Semillero (producción de semilla)'));
+    destino.addEventListener('change', () => { P.editarPlan(plan.id, { destino: destino.value }); pintar(); });
+    const trasplante = h('input', { class: 'entrada', id: 'p-trasplante', type: 'date', value: plan.trasplante || '' });
+    trasplante.addEventListener('change', () => { P.editarPlan(plan.id, { trasplante: P.esFecha(trasplante.value) ? trasplante.value : null }); pintar(); });
     const cosecha = h('input', { class: 'entrada', id: 'p-cosecha', type: 'date', value: plan.cosecha || '' });
     cosecha.addEventListener('change', () => { P.editarPlan(plan.id, { cosecha: P.esFecha(cosecha.value) ? cosecha.value : null }); pintar(); });
-    const campoCultivo = cultivo
-      ? h('div', { class: 'campo' }, h('span', { class: 'campo-etiqueta' }, 'Cultivo'),
-        h('div', { class: 'elegido' }, h('strong', null, cultivo.nombre),
-          h('button', { type: 'button', class: 'boton boton-chico', onclick: () => { P.editarPlan(plan.id, { cultivoId: null }); pintar(); } }, 'Cambiar')))
-      : buscadorOpciones({ id: 'p-cultivo', etiqueta: 'Cultivo', placeholder: 'Ej: cerezo, uva, papa', opciones: (t) => opcionesCultivo(cat, t, (id) => { P.editarPlan(plan.id, { cultivoId: id }); pintar(); }) });
+    const cultivos = P.cultivosDelPlan(plan).map((id) => cat.cultivos.get(id)).filter(Boolean);
+    const campoCultivo = cultivos.length
+      ? h('div', { class: 'campo' }, h('span', { class: 'campo-etiqueta' }, cultivos.length > 1 ? 'Cultivos' : 'Cultivo'),
+        h('div', { class: 'elegido' }, h('strong', null, nombreCultivoPlan(cat, plan)),
+          cultivos.length > 1 ? h('span', { class: 'chico' }, cultivos.map((c) => c.nombre).join(', ')) : null,
+          h('button', { type: 'button', class: 'boton boton-chico', onclick: () => { P.editarPlan(plan.id, { cultivoId: null, otrosCultivos: [] }); pintar(); } }, 'Cambiar')))
+      : buscadorOpciones({ id: 'p-cultivo', etiqueta: 'Cultivo', placeholder: 'Ej: lechuga, cerezo, papa', opciones: (t) => opcionesCultivo(cat, t, (id) => { P.editarPlan(plan.id, { cultivoId: id, otrosCultivos: [] }); pintar(); }) });
     zona.append(h('section', { class: 'tarjeta datos-plan', 'aria-label': 'Datos del plan' },
       h('div', { class: 'form-grid' },
         h('div', { class: 'campo' }, h('label', { for: 'p-nombre' }, 'Nombre del plan'), nombre),
-        h('div', { class: 'campo' }, h('label', { for: 'p-cosecha' }, 'Fecha estimada de cosecha'), cosecha,
-          h('small', { class: 'tenue' }, plan.cosecha ? 'Con ella se revisa la carencia de cada aplicación.' : 'Ponla para revisar la carencia de cada aplicación.'))),
+        h('div', { class: 'campo' }, h('label', { for: 'p-destino' }, 'Destino'), destino),
+        h('div', { class: 'campo' }, h('label', { for: 'p-trasplante' }, 'Fecha de trasplante'), trasplante),
+        h('div', { class: 'campo' }, h('label', { for: 'p-cosecha' }, plan.destino === 'semillero' ? 'Fecha de cosecha de semilla' : 'Fecha de cosecha'), cosecha)),
       campoCultivo));
 
     // Resumen de alertas
@@ -494,40 +635,45 @@ export async function render(main, ctx) {
 
     // Formulario
     const alAgregar = (nueva) => {
-      const lista = P.alertasDeNueva(plan, cat, nueva);
+      const lista = P.alertasDeNueva(plan, cat, nueva, { usosCultivo });
       const a = P.agregarAplicacion(plan.id, nueva);
-      mesPorPlan.set(plan.id, nueva.fecha.slice(0, 7));
-      const p = cat.productos.get(nueva.productoId);
+      const f = P.fechaDe(plan, a);
+      if (f) mesPorPlan.set(plan.id, f.slice(0, 7));
       const graves2 = lista.filter(P.esGrave);
       notificar(h('div', null,
-        h('p', null, h('strong', null, `Agregado: ${p ? p.nombre : 'producto'} el ${P.fechaCorta(nueva.fecha)}.`)),
+        h('p', null, h('strong', null, `Agregado: ${P.nombreDe(cat, a)} (${P.cuando(plan, a)}).`)),
         graves2.length ? listaAlertas(graves2) : h('p', null, 'Sin alertas con lo que ya tiene el plan.')), graves2.length ? 12000 : 5000);
       pintar({ enfocar: a.id });
     };
-    zona.append(formulario(cat, plan, lineasCultivo, opciones.pre || {}, alAgregar));
+    zona.append(formulario(cat, plan, usosCultivo, opciones.pre || {}, alAgregar));
 
-    // Calendario y lista
+    // Calendario (si hay fechas) y lista por día
     const aps = P.ordenadas(plan);
-    let mes = mesPorPlan.get(plan.id);
-    if (!mes) {
-      const proxima = aps.find((a) => a.fecha >= P.hoy()) || aps[aps.length - 1];
-      mes = (proxima ? proxima.fecha : P.hoy()).slice(0, 7);
-    }
-    const zonaCal = h('div');
+    const conFecha = aps.filter((a) => P.fechaDe(plan, a));
     const elegir = (id) => {
       const el = document.getElementById(`ap-${id}`);
       if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus({ preventScroll: true }); }
     };
-    const pintarCal = (m) => {
-      mesPorPlan.set(plan.id, m);
-      vaciar(zonaCal).append(calendarioMes(cat, plan, alertas, m, pintarCal, elegir));
-    };
-    pintarCal(mes);
+    zona.append(h('h2', { class: 'titulo-seccion' }, 'Calendario'));
+    if (conFecha.length) {
+      let mes = mesPorPlan.get(plan.id);
+      if (!mes) {
+        const proxima = conFecha.find((a) => P.fechaDe(plan, a) >= P.hoy()) || conFecha[conFecha.length - 1];
+        mes = P.fechaDe(plan, proxima).slice(0, 7);
+      }
+      const zonaCal = h('div');
+      const pintarCal = (m) => {
+        mesPorPlan.set(plan.id, m);
+        vaciar(zonaCal).append(calendarioMes(cat, plan, alertas, m, pintarCal, elegir));
+      };
+      pintarCal(mes);
+      zona.append(zonaCal);
+    } else if (aps.length) {
+      zona.append(h('p', { class: 'nota nota-info' }, 'Pon la fecha de trasplante para ver las aplicaciones en el calendario.'));
+    }
     zona.append(
-      h('h2', { class: 'titulo-seccion' }, 'Calendario'),
-      zonaCal,
       h('h2', { class: 'titulo-seccion' }, 'Aplicaciones', h('span', { class: 'contador' }, `(${aps.length})`)),
-      listaAplicaciones(cat, plan, alertas, () => pintar()),
+      listaPorDia(cat, plan, alertas, usosCultivo, () => pintar()),
       h('div', { class: 'barra-plan barra-plan-pie' },
         h('button', { type: 'button', class: 'boton boton-chico', onclick: () => window.print() }, icono('imprimir'), 'Imprimir o guardar PDF'),
         h('button', { type: 'button', class: 'boton boton-chico', onclick: () => descargarCsv(cat, plan, alertas) }, icono('descargar'), 'Descargar para Excel'),
