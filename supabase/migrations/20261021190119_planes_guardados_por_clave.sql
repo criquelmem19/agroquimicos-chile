@@ -1,7 +1,7 @@
 -- Planes de aplicación guardados para una persona, sin cuentas: se leen solo con su clave secreta
 -- (link personal #/plan?abrir=<clave>) mediante la función plan_guardado. La tabla no se puede leer
--- ni listar con la llave pública. Primer uso: plan fitosanitario HF Graneros 26-27 de Cristóbal
--- (lechuga y cucurbitáceas semillero), sin precios.
+-- ni listar con la llave pública. Primer uso: plan fitosanitario 26-27 de Cristóbal (lechuga y
+-- cucurbitáceas semillero), sin precios.
 create table public.planes_guardados (
   clave text primary key check (length(clave) >= 32),
   descripcion text not null,
