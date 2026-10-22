@@ -1,9 +1,11 @@
 """Paso 2c del recopilador: OCR de las páginas sin texto (etiquetas escaneadas). Sin IA.
 
-Uso:  <datos>/venv/Scripts/python.exe -I scripts/recopilador/ocr.py [--ids 1,2,3] [--todas]
+Uso:  <datos>/venv/Scripts/python.exe -I scripts/recopilador/ocr.py [--ids 1,2,3] [--todas] [--rehacer]
 
 - Busca en <datos>/sag/texto/*/paginas.json las páginas «sin_texto» de las filas en estado «texto»
-  (o de --ids; --todas incluye también las páginas de la HDS).
+  (o de --ids; --todas incluye también las páginas de la HDS; --rehacer repite las que ya pasaron por OCR
+  y siguen sin texto).
+- Si casi no lee letras, prueba la página girada (escaneos de lado) y guarda el giro en ocr_p<N>.json.
 - Renderiza cada página con pypdfium2 (venv de la carpeta de datos) y la lee con el OCR de Windows en
   español (scripts/fase2/ocr_imagen.ps1), una página por llamada y con tope de tiempo.
 - Guarda <datos>/sag/texto/<id>/ocr_p<N>.json ({"texto", "lineas"}) y p<N>.jpg (imagen reducida, para que
@@ -21,20 +23,13 @@ from comun import DATOS, consola_utf8, escribir_json, leer_json, ruta, sql  # no
 
 PS = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "fase2", "ocr_imagen.ps1")
 MAX_LADO = 9000
+MIN_LETRAS = 200  # menos que esto: la página puede estar escaneada de lado
 
 
-def ocr_pagina(pdf_path, n, carpeta):
-    import pypdfium2 as pdfium
-    pdf = pdfium.PdfDocument(pdf_path)
-    pagina = pdf[n - 1]
-    escala = min(300 / 72, MAX_LADO / max(pagina.get_size()))
-    imagen = pagina.render(scale=escala).to_pil()
-    pdf.close()
+def leer_imagen(imagen, carpeta, n):
+    """OCR de Windows sobre una imagen PIL; devuelve las líneas leídas."""
     png = os.path.join(carpeta, f"ocr_p{n}.png")
     imagen.save(png)
-    chica = imagen.copy()
-    chica.thumbnail((textos.LADO_IMAGEN, textos.LADO_IMAGEN))
-    chica.convert("RGB").save(os.path.join(carpeta, f"p{n}.jpg"), quality=82)
     salida = os.path.join(carpeta, f"ocr_p{n}_crudo.json")
     r = subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", PS,
                         "-Imagen", png, "-Salida", salida], capture_output=True, text=True, timeout=300)
@@ -44,9 +39,32 @@ def ocr_pagina(pdf_path, n, carpeta):
     with open(salida, encoding="utf-8-sig") as f:
         lineas = json.load(f).get("lineas") or []
     os.remove(salida)
-    if isinstance(lineas, str):
-        lineas = [lineas]
-    datos = {"texto": "\n".join(lineas), "lineas": lineas}
+    return [lineas] if isinstance(lineas, str) else lineas
+
+
+def letras(lineas):
+    return sum(c.isalpha() for linea in lineas for c in linea)
+
+
+def ocr_pagina(pdf_path, n, carpeta):
+    """Si la página derecha casi no da texto, prueba girada (etiquetas escaneadas de lado) y se queda con
+    el giro que más letras lee. p<N>.jpg se guarda con ese giro, para que el subagente la vea derecha."""
+    import pypdfium2 as pdfium
+    pdf = pdfium.PdfDocument(pdf_path)
+    pagina = pdf[n - 1]
+    escala = min(300 / 72, MAX_LADO / max(pagina.get_size()))
+    imagen = pagina.render(scale=escala).to_pil()
+    pdf.close()
+    giro, lineas = 0, leer_imagen(imagen, carpeta, n)
+    if letras(lineas) < MIN_LETRAS:
+        for g in (270, 90, 180):  # PIL gira en sentido antihorario: 270 = 90° a la derecha
+            otras = leer_imagen(imagen.rotate(g, expand=True), carpeta, n)
+            if letras(otras) > letras(lineas):
+                giro, lineas = g, otras
+    chica = imagen.rotate(giro, expand=True) if giro else imagen.copy()
+    chica.thumbnail((textos.LADO_IMAGEN, textos.LADO_IMAGEN))
+    chica.convert("RGB").save(os.path.join(carpeta, f"p{n}.jpg"), quality=82)
+    datos = {"texto": "\n".join(lineas), "lineas": lineas, "giro": giro}
     escribir_json(os.path.join(carpeta, f"ocr_p{n}.json"), datos)
     return datos["texto"]
 
@@ -55,6 +73,7 @@ def main():
     consola_utf8()
     args = sys.argv[1:]
     todas = "--todas" in args
+    rehacer = "--rehacer" in args
     if "--ids" in args:
         ids = [int(x) for x in args[args.index("--ids") + 1].split(",")]
     else:
@@ -72,7 +91,8 @@ def main():
         inicio_hds = min([p["pagina"] for p in info if p["tipo"] == "hds"] or [10 ** 6])
         hechas = 0
         for p in info:
-            if p["tipo"] != "sin_texto" or p["fuente"] == "ocr" or (not todas and p["pagina"] > inicio_hds):
+            if p["tipo"] != "sin_texto" or (p["fuente"] == "ocr" and not rehacer) \
+                    or (not todas and p["pagina"] > inicio_hds):
                 continue
             try:
                 lectura[p["pagina"] - 1] = ocr_pagina(ruta("sag", "pdf", f"{doc}.pdf"), p["pagina"], carpeta)

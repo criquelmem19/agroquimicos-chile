@@ -340,9 +340,13 @@ vigentes 1xxx, sin dato 2xxx, cancelados 3xxx; dentro, más nuevas primero. Lo n
 5. `textos.py` (venv): texto por página, páginas sin texto, etiqueta/HDS (la HDS repite «NCh2245»/«Hoja de
    datos de seguridad» en cada página), N° SAG y «solo exportación» por regex, `p<N>.jpg` de las páginas de
    etiqueta (2.000 px); cruce firme por N° SAG (planilla, cancelados, productos) y versiones anteriores.
-6. `ocr.py` (venv): OCR de Windows de las páginas sin texto que están antes de la HDS.
+   **Con el Python del sistema no hace las imágenes y no avisa** (falta pypdfium2): usar siempre el venv.
+6. `ocr.py` (venv): OCR de Windows de las páginas sin texto que están antes de la HDS. Si casi no lee letras,
+   prueba la página girada (escaneos de lado) y guarda el giro en `ocr_p<N>.json`; `p<N>.jpg` y `recorte.py`
+   usan la página derecha. `--rehacer`: repite las páginas que ya pasaron por OCR y siguen sin texto.
 7. `lote.py --agentes 2 --por 4`: elige las siguientes etiquetas por prioridad y escribe el encargo de cada
-   subagente (y el comando de carga).
+   subagente (y el comando de carga). Salta las que tienen páginas sin OCR; una página que ya pasó por OCR y
+   quedó sin texto (en blanco) no frena.
 8. `cargar.py <carpeta> --ids … --lote … --modelo …`: verifica (`verificar.py`) y carga, una transacción por
    etiqueta. `--ensayo`: solo escribe el SQL. `--completar`: llena campos vacíos de lo ya cargado, sin reemplazar.
 9. `reporte.py`: números para el informe (inventario, cobertura, autorizados sin etiqueta, problemas).
@@ -393,7 +397,7 @@ uso mostró que lo caro era la conversación larga del orquestador, no Haiku.
    líneas al azar contra el PDF y la imagen, y reporta errores).
 6. Al final: `reporte.py`, actualizar «Estado del recopilador» aquí, commit y push, e informar a Cristóbal.
 
-**Estado del recopilador (22-10-2026, fin de la sesión 1):** ver el final de este archivo.
+**Estado del recopilador (22-10-2026, fin de la sesión 2):** ver el final de este archivo.
 
 ## Fase 2 — estado (hecha el 20-10-2026)
 
@@ -499,24 +503,37 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   encabezado; se verifica que cada número de la dosis esté en las citas de la fila.
 - Comparar números «sueltos» (sin separadores): «2 - 2,5» quedaba «225» y se perdían dosis. `verificar.numeros_de`.
 
-## Estado del recopilador (fin de la sesión 1, 22-10-2026)
+## Estado del recopilador (fin de la sesión 2, 22-10-2026)
 
 - Frase de Cristóbal para seguir: **«Sigue con el recopilador del SAG»** → hacer «Cómo seguir» (sección Recopilador).
-- Inventario: 1.634 filas; **1.477 en «texto» (listas para extraer)**, 10 cargadas, 59 versiones anteriores,
+- Inventario: 1.634 filas; **1.463 en «texto» (listas para extraer)**, 24 cargadas, 59 versiones anteriores,
   62 no son etiqueta, 14 sin PDF (13 sin link en el listado + 1 roto), 5 ilegibles, 5 duplicados, 2 ya en la base.
-  Todos los PDF bajados, con texto, imágenes y OCR (2 tandas, 131 documentos con páginas escaneadas).
-- Cargadas: ANTRACOL 70 % WP y Alsystin 480 SC (piloto) y el lote `2026-10-22-1` (Haiku): LUNA EXPERIENCE
-  400 SC, METALAXIL MZ 58 WP, MOSPILAN, MURALLA DELTA 190 OD, ABAMAX 1,8 % EC, PREVICUR ENERGY 840 SL, AZUFRE
-  FLOABLE AN 600 y PUNTO 70 DS. Siguen en la cola, primero, los otros 14 productos del plan de Cristóbal.
-- Base: 161 productos (132 con N° SAG), 3.122 líneas; dosis 95,8 %, carencia 90,7 %; 34 MB. Las 379 líneas del
-  recopilador: dosis 100 %, carencia 98,9 %, máx. aplicaciones 91 %, intervalo 72 %, mojamiento 35 %.
-- `recopilador_revision`: 87 objetivos, 31 cultivos, 15 empresas y 10 ingredientes nuevos (revisar con Cristóbal).
-- Planilla de autorizados: 1.421; 261 sin etiqueta en el listado ni en la base (provisorio: baja a medida que la
+  Todos los PDF bajados, con texto, imágenes y OCR.
+- Cargadas: ANTRACOL 70 % WP y Alsystin 480 SC (piloto); lote `2026-10-22-1`: LUNA EXPERIENCE 400 SC, METALAXIL
+  MZ 58 WP, MOSPILAN, MURALLA DELTA 190 OD, ABAMAX 1,8 % EC, PREVICUR ENERGY 840 SL, AZUFRE FLOABLE AN 600 y
+  PUNTO 70 DS; lote `2026-10-22-2`: PUNTO 70 WG, RAYO 50 EC, BULLDOCK 125 SC, CITROLIV EMULSIBLE+, CITROLIV
+  MISCIBLE, CONFIDOR 350 SC, Confidor Forte 200 SL y ZERO 5 EC; lote `2026-10-22-3`: PIRIMOR, BC-1000,
+  GLADIADOR 450 WP, Impulso 25 SC, KASUMIN y ABAMECTIN 18 EC (todos Haiku). Del plan de Cristóbal solo falta
+  **PUNTO 70 WP** (primero en la cola). AZUFRE 80 %, ENTONEM y CONDOR SHIELD no aparecen en el listado del SAG
+  con ese nombre.
+- Base: 175 productos (146 con N° SAG), 3.596 líneas; dosis 94,7 %, carencia 90,4 %; 34 MB. Sesión 2: 14
+  etiquetas, 474 líneas; dosis 87 %, carencia 88,6 % (+ 28 «depende»: CITROLIV EMULSIBLE+). Flojas, para rehacer
+  con `cargar.py --completar` (Sonnet): ABAMECTIN 18 EC (30 de 56 líneas sin dosis: se extrajo sin `p1.jpg`) y
+  CITROLIV EMULSIBLE+ (inventario 485, OCR malo: 23 de 28 sin dosis). CITROLIV MISCIBLE quedó sin carencia (la
+  cita no pasó el control). Imidacloprid ya tiene IRAC 4A (de una etiqueta); acetamiprid sigue sin grupo.
+- Arreglos de la sesión 2: `lote.py` ya no frena por páginas en blanco (33 etiquetas destrabadas, entre ellas
+  PIRIMOR y BC-1000); `ocr.py` gira las páginas escaneadas de lado (8 etiquetas: PUNTO 70 WP, CRUSADER, GOLDAZIM
+  500 SC, DEGREE, RADICAL, DOMARK 40 EW, GIBGRO 10 LS, SPROUT NIP 3 EC); se hicieron los `p<N>.jpg` que faltaban
+  en 29 documentos. En 5 PDF (inventario 1167, 1189, 1315, 1594, 1718) pypdfium2 ve menos páginas que pdftotext:
+  no hay imagen ni recorte, el subagente solo tiene el texto.
+- `recopilador_revision`: 223 objetivos, 47 cultivos, 25 empresas y 16 ingredientes nuevos (revisar con Cristóbal).
+- Planilla de autorizados: 1.421; 257 sin etiqueta en el listado ni en la base (provisorio: baja a medida que la
   extracción lee el N° SAG). Listas en `sag/autorizados_sin_etiqueta.csv` y `sag/problemas.csv`.
-- Uso: el lote de 8 etiquetas con Haiku, orquestado desde esta sesión larga, gastó ~22 % de la ventana de 5 h y
-  ~3 % del semanal. Con el plan Pro se calculan ~250–400 etiquetas por semana: la carga completa toma 4–6 semanas.
-- Falta: el control al azar (`control.py`, después de ~100 etiquetas), las diferencias de los 98 productos que ya
-  estaban (incluido ACABAN, inventario 161) y, al terminar, el workflow mensual.
+- Uso: sesión 2 (nueva, contexto chico): 14 etiquetas con Haiku = ~24 % de la ventana de 5 h (57 → 81 %) y ~4 %
+  del semanal (76 → 80 %); cada subagente de 3–4 etiquetas gastó 320–400 mil tokens. Unas 50 etiquetas por
+  ventana de 5 h; el límite semanal deja ~250–350 por semana: la carga completa toma 4–6 semanas.
+- Falta: el control al azar (`control.py`, después de ~100 etiquetas; van 24), las diferencias de los 98
+  productos que ya estaban (incluido ACABAN, inventario 161) y, al terminar, el workflow mensual.
 
 ## Pendiente
 
@@ -538,8 +555,9 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   BULLDOCK, GLADIADOR, IMPULSO 25 SC, METALAXIL MZ 58, KASUMIN, AZUFRE FLOABLE AN 600, AZUFRE 80%,
   CITROLIV, BC-1000, ENTONEM, CONDOR SHIELD. Fertilizantes, bioestimulantes y coadyuvantes (SILWET,
   ZOBERAMINOL, CALCIO-BORO, DEFENDER MANGANESO, VITANICA RZ, SAGASTIM, FLOWER POWER, FRUTALIV, STIMULATE,
-  ULTRASOL, MEZCLA 17-20-20) quedan como «fuera del catálogo». Con esas etiquetas, las alertas de rotación
-  verían también imidacloprid y acetamiprid (IRAC 4A), que hoy no están en el catálogo.
+  ULTRASOL, MEZCLA 17-20-20) quedan como «fuera del catálogo». **22-10-2026:** el recopilador ya cargó todos los
+  plaguicidas de esta lista que están en el listado del SAG, salvo PUNTO 70 WP (primero en la cola); ver «Estado
+  del recopilador».
 - Revisión humana: para que una línea diga «Revisado» alguien tiene que compararla con la etiqueta
   (hoy solo las 56 de ACABAN). Quitar `noindex` lo decide Cristóbal.
 - TOPAS 200 EW no tiene grupo de modo de acción en los datos (penconazol sin grupo): revisar su etiqueta.

@@ -9,7 +9,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from comun import DATOS  # noqa: E402
+from comun import DATOS, leer_json  # noqa: E402
 
 
 def main():
@@ -21,11 +21,17 @@ def main():
     else:
         pdf_path = os.path.join(DATOS, "sag", "pdf", f"{doc}.pdf")
         carpeta = os.path.join(DATOS, "sag", "texto", doc)
+    # Página escaneada de lado: ocr.py la giró y p<N>.jpg quedó derecha; las fracciones se miden sobre esa.
+    giro = leer_json(os.path.join(carpeta, f"ocr_p{pagina}.json"), {}).get("giro", 0)
     pdf = pdfium.PdfDocument(pdf_path)
     p = pdf[pagina - 1]
     ancho, alto = p.get_size()
+    if giro in (90, 270):
+        ancho = alto
     escala = min(8.0, 2000 / (ancho * max(0.05, x1 - x0)))
     imagen = p.render(scale=escala).to_pil()
+    if giro:
+        imagen = imagen.rotate(giro, expand=True)
     w, h = imagen.size
     recorte = imagen.crop((int(x0 * w), int(y0 * h), int(x1 * w), int(y1 * h)))
     salida = os.path.join(carpeta, f"zoom_p{pagina}_{x0:.2f}_{y0:.2f}.jpg")

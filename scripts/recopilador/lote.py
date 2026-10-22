@@ -18,10 +18,13 @@ PYV = os.path.join(DATOS, "venv", "Scripts", "python.exe")
 
 
 def falta_ocr(i):
-    """Hay una página sin texto (y sin OCR) antes de que empiece la HDS: la etiqueta está incompleta."""
-    info = leer_json(os.path.join(DATOS, "sag", "texto", str(i), "paginas.json"), [])
+    """Hay una página sin texto (y sin OCR) antes de que empiece la HDS: la etiqueta está incompleta.
+    Si ocr.py ya la leyó y no encontró texto (página en blanco), no frena: el subagente tiene su imagen."""
+    carpeta = os.path.join(DATOS, "sag", "texto", str(i))
+    info = leer_json(os.path.join(carpeta, "paginas.json"), [])
     inicio_hds = min([p["pagina"] for p in info if p["tipo"] == "hds"] or [10 ** 6])
-    return any(p["tipo"] == "sin_texto" and p["pagina"] < inicio_hds for p in info)
+    return any(p["tipo"] == "sin_texto" and p["pagina"] < inicio_hds
+               and not os.path.exists(os.path.join(carpeta, f"ocr_p{p['pagina']}.json")) for p in info)
 
 
 def encargo(ids):
