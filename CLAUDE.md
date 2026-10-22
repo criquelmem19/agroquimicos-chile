@@ -369,7 +369,8 @@ nuevas, una escaneada) con Opus, Sonnet y Haiku; el límite de uso cortó la may
 Opus en Cuproso Flo 22/22 cultivos con dosis y carencia iguales a la base; en Antracol separó la dosis por ha y
 por 100 L y asignó la carencia por cultivo (Sonnet la dejó vacía). Haiku (instrucciones nuevas): Strepto Plus
 14/14 carencias iguales (las 7 diferencias de dosis son errores de la base: la etiqueta dice «Preventivo: 60 /
-Curativo: 120» y la base guardó 60); Dormex 8/8 carencias, 7/8 dosis; ACABAN (instrucciones viejas) 37/50 dosis
+Curativo: 120» y la base guardó 60); Dormex 8/8 carencias, 7/8 dosis; Scholar 19/19 dosis y carencias (Haiku:
+~130 mil tokens por etiqueta); ACABAN (instrucciones viejas) 37/50 dosis
 y 36/50 carencias contra las aprobadas (fallaban flores: «flores» no asignado a cada fila, ya corregido).
 Lo que salió del piloto: dosis armada (cifra + unidad del encabezado), números en palabras («sólo una vez»),
 fruta ↔ planta en la carencia, plural/singular, `cultivos_de_fila` (herbicidas con ~80 cultivos por celda) y
@@ -497,6 +498,25 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
 - Exigir que la dosis sea texto literal: en los cuadros la cifra está en la celda y la unidad en el
   encabezado; se verifica que cada número de la dosis esté en las citas de la fila.
 - Comparar números «sueltos» (sin separadores): «2 - 2,5» quedaba «225» y se perdían dosis. `verificar.numeros_de`.
+
+## Estado del recopilador (fin de la sesión 1, 22-10-2026)
+
+- Frase de Cristóbal para seguir: **«Sigue con el recopilador del SAG»** → hacer «Cómo seguir» (sección Recopilador).
+- Inventario: 1.634 filas; **1.477 en «texto» (listas para extraer)**, 10 cargadas, 59 versiones anteriores,
+  62 no son etiqueta, 14 sin PDF (13 sin link en el listado + 1 roto), 5 ilegibles, 5 duplicados, 2 ya en la base.
+  Todos los PDF bajados, con texto, imágenes y OCR (2 tandas, 131 documentos con páginas escaneadas).
+- Cargadas: ANTRACOL 70 % WP y Alsystin 480 SC (piloto) y el lote `2026-10-22-1` (Haiku): LUNA EXPERIENCE
+  400 SC, METALAXIL MZ 58 WP, MOSPILAN, MURALLA DELTA 190 OD, ABAMAX 1,8 % EC, PREVICUR ENERGY 840 SL, AZUFRE
+  FLOABLE AN 600 y PUNTO 70 DS. Siguen en la cola, primero, los otros 14 productos del plan de Cristóbal.
+- Base: 161 productos (132 con N° SAG), 3.122 líneas; dosis 95,8 %, carencia 90,7 %; 34 MB. Las 379 líneas del
+  recopilador: dosis 100 %, carencia 98,9 %, máx. aplicaciones 91 %, intervalo 72 %, mojamiento 35 %.
+- `recopilador_revision`: 87 objetivos, 31 cultivos, 15 empresas y 10 ingredientes nuevos (revisar con Cristóbal).
+- Planilla de autorizados: 1.421; 261 sin etiqueta en el listado ni en la base (provisorio: baja a medida que la
+  extracción lee el N° SAG). Listas en `sag/autorizados_sin_etiqueta.csv` y `sag/problemas.csv`.
+- Uso: el lote de 8 etiquetas con Haiku, orquestado desde esta sesión larga, gastó ~22 % de la ventana de 5 h y
+  ~3 % del semanal. Con el plan Pro se calculan ~250–400 etiquetas por semana: la carga completa toma 4–6 semanas.
+- Falta: el control al azar (`control.py`, después de ~100 etiquetas), las diferencias de los 98 productos que ya
+  estaban (incluido ACABAN, inventario 161) y, al terminar, el workflow mensual.
 
 ## Pendiente
 
