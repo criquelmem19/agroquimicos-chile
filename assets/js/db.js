@@ -138,6 +138,9 @@ function armarCatalogo(crudo, fechaCache) {
       nLineas: p.n_lineas,
       nCultivos: p.n_cultivos,
       reingreso: reingreso.has(p.id) ? reingreso.get(p.id) : null,
+      // Motivo por el que no se puede usar en Chile (solo exportación, cancelado, sustancia prohibida) o null.
+      noDisponible: p.no_disponible || null,
+      toxicidadAbejas: p.toxicidad_abejas || null,
     };
     productos.set(p.id, prod);
     for (const x of ings) if (!x.ing.productos.includes(prod)) x.ing.productos.push(prod);

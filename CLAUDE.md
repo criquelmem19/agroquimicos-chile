@@ -1,6 +1,6 @@
 # Agroquímicos CRM — memoria del proyecto
 
-Leer completo antes de tocar algo. Última actualización: 21-10-2026.
+Leer completo antes de tocar algo. Última actualización: 22-10-2026.
 El sitio se llama **Agroquímicos CRM** (antes «Agroquímicos Chile»; el repo y la URL siguen siendo
 `agroquimicos-chile`). «CRM» es la marca de Cristóbal y va arriba, en el logo.
 
@@ -26,6 +26,9 @@ productores, muchas veces **desde el celular en el campo**.
 - **Plan de aplicaciones (hecho el 21-10-2026, a pedido de Cristóbal):** calendario por cultivo con
   alertas (ver «El sitio»). Se guarda en el equipo; los planes de Cristóbal también quedan guardados en
   la base y se abren con su link personal (ver «Planes guardados»).
+- **Recopilador del SAG (desde el 22-10-2026, a pedido de Cristóbal):** cargar todas las etiquetas que publica
+  el SAG (~1.500), con cada dato citado. Claude quedó como **recopilador** del proyecto: el mismo flujo sirve para
+  las etiquetas nuevas del SAG y para cualquier producto que pida. Ver «Recopilador del SAG».
 - **Fase 3 (no empezar sin que Cristóbal lo pida):** cuentas, planes guardados en la nube y compartidos, foro.
 
 ## Reglas del sitio (obligatorias)
@@ -73,7 +76,9 @@ rechazo en destino o residuos sobre la tolerancia.
   `sha256-WdOUh8NYmEO0EDItij1WLOAiq6HlzLFomO8/sqDaLs0=`; si jsDelivr falla, intenta unpkg con la misma huella).
   Para cambiar de versión: actualizar URL y huella en `index.html` (la huella sale de
   `https://data.jsdelivr.com/v1/packages/npm/@supabase/supabase-js@VERSION?structure=flat`, archivo `/dist/umd/supabase.js`).
-- **Costo cero:** GitHub Free + Supabase Free.
+- **Costo cero:** GitHub Free + Supabase Free. Límites que cuidar: base < 400 MB, bucket < 900 MB.
+- **Los PDF del SAG no se suben al bucket** (pesarían > 1 GB): `documents.source_url` guarda la URL oficial y el
+  sitio usa `coalesce(storage_path, source_url)`. Al bucket solo etiquetas de otras fuentes que podrían desaparecer.
 - Descartado: publicar como página de claude.ai (no puede consultar Supabase en vivo).
 - El repo existía como privado con un borrador Next.js/Vercel (11-09-2026). Se reutilizó: se hizo
   público y se reemplazó el contenido por el sitio estático en un commit normal (la historia conserva el borrador).
@@ -86,7 +91,12 @@ rechazo en destino o residuos sobre la tolerancia.
   Los commits terminan con `Co-Authored-By: Claude …`.
 - **Supabase:** se usa el conector MCP de Supabase de claude.ai (ya autenticado, con `restore_project`,
   `execute_sql`, `apply_migration`, `get_advisors`, `deploy_edge_function`…). No tiene herramientas de
-  Storage ni para borrar Edge Functions: para eso, la CLI de Supabase (ver «Pendiente»).
+  Storage ni para borrar Edge Functions: para eso, la CLI de Supabase.
+- **CLI de Supabase** (`%LOCALAPPDATA%\Programs\supabase-cli\supabase.exe`, v2.120.0) **con sesión iniciada**
+  (comprobado el 22-10-2026). `supabase db query --linked --project-ref cejkhfugaobfqnjpkgpl -f archivo.sql`
+  corre SQL como `postgres`: así cargan los scripts sin pasar datos por la conversación. Cada llamada crea un
+  usuario temporal y **dos llamadas a la vez se anulan** («password authentication failed for cli_login_postgres»):
+  `scripts/recopilador/comun.py → sql()` usa un candado y reintenta.
 - **Python 3.12** en `%LOCALAPPDATA%\Programs\Python\Python312\python.exe` (puede no estar en el PATH
   de una terminal abierta antes de instalarlo). `pdftotext` viene con Git for Windows.
 - La carpeta local está en OneDrive: no guardar PDFs ni archivos grandes aquí (se sincronizan).
@@ -118,6 +128,18 @@ recibe «permission denied» (verificado el 20-10-2026).
 | `extraction_runs` / `extraction_issues` / `field_evidence` | 505 / 42 / 0 | Proceso, no dominio |
 | `use_field_candidates` | 3.402 | Proceso (Fase 2): valores leídos de los PDF con cita y página, antes de aplicarlos |
 | `planes_guardados` | 1 | Planes de aplicación de una persona, privados, se leen con su clave (ver «Planes guardados») |
+| `sag_inventario` | 1.634 (22-10) | Proceso, privada: cada PDF del listado del SAG y su estado en el recopilador |
+| `recopilador_revision` | — | Proceso, privada: cultivos, objetivos, ingredientes, empresas y categorías que creó el recopilador (revisar) |
+
+- **Recopilador (22-10-2026):** `field_citations` (mismo formato que en `product_uses`) también en `products`,
+  `product_active_ingredients`, `product_companies`, `product_safety_profiles` y `active_ingredients` (grupo de modo
+  de acción leído de una etiqueta, con `documento`). `documents.source_url` (URL oficial). En `products`:
+  `sag_estado` (autorizado / cancelado / no_figura, según las listas del SAG), `sag_vencimiento`, `sag_fecha_limite`
+  (cancelados: hasta cuándo se puede usar), `solo_exportacion`, `sustancia_prohibida`, `toxicidad_abejas`,
+  `avisaje_abejas` (lista del SAG de abejas, por N° SAG). Índice único `products_registration_number_ux` (N° SAG,
+  ya existía: 0 duplicados). `v_sitio_productos` agrega al final `no_disponible` (motivo por el que no se usa en
+  Chile), `sag_estado`, `sag_fecha_limite`, `toxicidad_abejas`; el sitio saca esos productos de «¿Qué aplico?»,
+  los marca en la lista y en la ficha, y el plan avisa.
 
 - `product_uses.field_citations` (jsonb, Fase 2): `{"carencia"|"mojamiento"|"intervalo"|"metodo":
   {"cita", "pagina", "extractor"[, "condicional"]}}`. La página de la cita va aquí; `source_page` sigue
@@ -284,6 +306,94 @@ a `ACTIVE_HEALTHY` (2–5 minutos).
   si una persona lo revisó.
 - **Nunca borrar datos sin preguntar.**
 
+## Recopilador del SAG (empezado el 22-10-2026)
+
+Meta: todos los productos con etiqueta publicada por el SAG en la base, con los datos de su etiqueta y la cita
+(texto y página) de cada uno; cada lote se carga apenas está listo. Reglas: las de la Fase 2 (solo lo que dice la
+etiqueta, sin cita no hay dato, todo «pendiente», no pisar valores existentes ni tocar líneas revisadas). La HDS
+solo completa la seguridad que la etiqueta no trae.
+
+**Carpeta de datos** (fuera de OneDrive y del repo; variable `AGRO_DATOS`): `C:\Users\crisa\agroquimicos-datos\`.
+`sag/listado_<fecha>.json` (+ páginas HTML), `sag/pdf/<id>.pdf` (1.567 PDF, 1,5 GB), `sag/texto/<id>/`
+(`lectura.json`, `layout.json`, `paginas.json`, `etiqueta.txt`, `hds.txt`, `p<N>.jpg`, `ocr_p<N>.json`),
+`sag/extraido/<id>.json` (subagentes), `sag/verificado/`, `sag/sql/`, `sag/diferencias.csv`,
+`sag/autorizados_sin_etiqueta.csv`, `sag/problemas.csv`, `oficiales/` (listas del SAG), `base/` (PDF del bucket
+para comparar), `piloto/`, `venv/` (pypdfium2 4.30.0 + Pillow). `<id>` = `sag_inventario.id`. Al repo van solo
+scripts y CLAUDE.md.
+
+**Estado (en la base, `sag_inventario.estado`):** nuevo → descargado → texto → cargado (producto nuevo) o
+diferencias (su N° SAG ya estaba: solo se agrega el documento del SAG y se anotan diferencias). Aparte:
+no_etiqueta, error_descarga (13 sin link + 1 roto), duplicado (mismo sha256), ya_en_base (mismo PDF que un
+documento), version_anterior (hay una etiqueta más nueva del mismo N° SAG), ilegible. Todo se retoma desde aquí.
+`prioridad` (menor primero): vigente en la planilla e insecticida/fungicida/herbicida/acaricida 0xxx, otros
+vigentes 1xxx, sin dato 2xxx, cancelados 3xxx; dentro, más nuevas primero. Lo nuevo que crea el recopilador
+(cultivos, objetivos, ingredientes, empresas, categorías) queda en `recopilador_revision`.
+
+**Scripts** (`scripts/recopilador/`, cada uno explica su uso arriba; Python con `-I`; los marcados (venv) con
+`C:\Users\crisa\agroquimicos-datos\venv\Scripts\python.exe`):
+1. `inventario_sag.py`: recorre el listado del SAG (109 páginas de 15) con pausa → `sag/listado_<fecha>.json`.
+2. `listas_oficiales.py`: baja planilla de autorizados, abejas, cancelados, prohibidos y restringidos (toma el link
+   más nuevo de la página de registros) → `oficiales/`; `oficiales.py` los lee.
+3. `cruzar_inventario.py`: listado → `sag_inventario` (no retrocede estados; lo que desaparece queda
+   `en_listado = false`) y cruce provisorio por nombre.
+4. `descargar.py` (venv): baja los «nuevo» con 1 s de pausa y reintentos; sha256 y páginas; marca duplicados.
+5. `textos.py` (venv): texto por página, páginas sin texto, etiqueta/HDS (la HDS repite «NCh2245»/«Hoja de
+   datos de seguridad» en cada página), N° SAG y «solo exportación» por regex, `p<N>.jpg` de las páginas de
+   etiqueta (2.000 px); cruce firme por N° SAG (planilla, cancelados, productos) y versiones anteriores.
+6. `ocr.py` (venv): OCR de Windows de las páginas sin texto que están antes de la HDS.
+7. `lote.py --agentes 2 --por 4`: elige las siguientes etiquetas por prioridad y escribe el encargo de cada
+   subagente (y el comando de carga).
+8. `cargar.py <carpeta> --ids … --lote … --modelo …`: verifica (`verificar.py`) y carga, una transacción por
+   etiqueta. `--ensayo`: solo escribe el SQL. `--completar`: llena campos vacíos de lo ya cargado, sin reemplazar.
+9. `reporte.py`: números para el informe (inventario, cobertura, autorizados sin etiqueta, problemas).
+Auxiliares: `comun.py`, `expandir.py` (fila × cultivo y su carencia; «cereza (7)» calza con «Cerezo»),
+`recorte.py` (zoom de una zona para los subagentes), `base_pdf.py`, `comparar_piloto.py`,
+`instrucciones_extraccion.md` (lo que leen los subagentes; esquema `recopilador-v1`).
+
+**Extracción:** cada subagente lee las instrucciones, `etiqueta.txt` y las imágenes `p<N>.jpg` (en el texto las
+celdas de varias líneas se descuadran; la imagen muestra qué dosis y carencia van con qué cultivo) y escribe un
+JSON por etiqueta, sin devolverlo. `verificar.py` busca cada cita en el texto de su página (orden de lectura,
+-layout u OCR; sin distinguir mayúsculas, espacios ni guiones de corte): si no está, el dato se borra. Los números
+deben estar en la cita (una dosis armada «185 cc/hL» vale si «185» y «cc/hL» están en los fragmentos de la fila).
+Cultivos, objetivos, empresas e ingredientes deben estar escritos en la página. Se guarda en `extraction_runs`
+(versión `recopilador-sag-v1`, modelo y resumen de lo descartado).
+
+**Límites de uso (plan Pro de Cristóbal):** el 22-10-2026, 10 subagentes en paralelo agotaron la ventana de 5
+horas en ~20 minutos y el límite semanal quedó en 71 %. Por eso: pocos subagentes a la vez (2–3), 3–5
+etiquetas cada uno (cada etiqueta agrega 20–50 mil tokens al contexto del subagente), revisar el uso con
+`get_usage` antes de cada tanda y parar cerca de 80 %. Orquestar desde una sesión nueva: en una sesión con
+contexto grande cada llamada cuesta mucho.
+
+**Piloto (22-10-2026):** 20 etiquetas (10 ya en la base, incluida ACABAN con sus 56 líneas aprobadas, y 10
+nuevas, una escaneada) con Opus, Sonnet y Haiku; el límite de uso cortó la mayoría a medias. Resultados:
+Opus en Cuproso Flo 22/22 cultivos con dosis y carencia iguales a la base; en Antracol separó la dosis por ha y
+por 100 L y asignó la carencia por cultivo (Sonnet la dejó vacía). Haiku (instrucciones nuevas): Strepto Plus
+14/14 carencias iguales (las 7 diferencias de dosis son errores de la base: la etiqueta dice «Preventivo: 60 /
+Curativo: 120» y la base guardó 60); Dormex 8/8 carencias, 7/8 dosis; ACABAN (instrucciones viejas) 37/50 dosis
+y 36/50 carencias contra las aprobadas (fallaban flores: «flores» no asignado a cada fila, ya corregido).
+Lo que salió del piloto: dosis armada (cifra + unidad del encabezado), números en palabras («sólo una vez»),
+fruta ↔ planta en la carencia, plural/singular, `cultivos_de_fila` (herbicidas con ~80 cultivos por celda) y
+carencia asignada en cada fila. **Decisión: Haiku para el grueso** (con la verificación de citas la calidad
+alcanza y gasta mucho menos); Opus o Sonnet solo para etiquetas que el control muestre difíciles. La medición de
+uso mostró que lo caro era la conversación larga del orquestador, no Haiku.
+
+**Prioridad a mano:** los 22 productos del plan de Cristóbal que faltaban en el catálogo van primero
+(`prioridad` negativa; `textos.py` respeta las negativas). PUNTO 70 WG estaba como «no_etiqueta» por su tema;
+`cruzar_inventario.py` ahora también acepta archivos que dicen «etiqueta»/«HDS».
+
+**Cómo seguir (cada sesión, desde una sesión nueva):**
+1. `get_usage`: si la ventana de 5 h pasa ~80 % o el semanal ~95 %, no lanzar subagentes (solo scripts).
+2. Si hay filas «nuevo» o «descargado» (etiquetas nuevas del SAG): `descargar.py`, `textos.py`, `ocr.py`.
+3. `python -I scripts/recopilador/lote.py --agentes 2 --por 4` y lanzar 2 subagentes **Haiku** (`model: haiku`,
+   `general-purpose`) con esos encargos tal cual. Esperar sus avisos (no leer sus transcripciones).
+4. `python -I scripts/recopilador/cargar.py "C:\Users\crisa\agroquimicos-datos\sag\extraido" --ids … --lote
+   AAAA-MM-DD-n --modelo claude-haiku-5-5`. Un error de una etiqueta no frena las demás; revisar el mensaje.
+5. Repetir mientras alcance el uso. Cada ~100 etiquetas: control (un subagente Sonnet que no extrajo revisa 30
+   líneas al azar contra el PDF y la imagen, y reporta errores).
+6. Al final: `reporte.py`, actualizar «Estado del recopilador» aquí, commit y push, e informar a Cristóbal.
+
+**Estado del recopilador (22-10-2026, fin de la sesión 1):** ver el final de este archivo.
+
 ## Fase 2 — estado (hecha el 20-10-2026)
 
 Resultado: ver «Estado de los datos». Quedan 261 líneas (9,5 %) con «Sin dato, verificar etiqueta»
@@ -381,17 +491,26 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   uno. Un UPDATE por campo.
 - `apply_migration` puede responder «timed out» y aun así quedar aplicada: revisar
   `supabase_migrations.schema_migrations` antes de repetirla.
+- Muchos subagentes a la vez con el plan Pro: 10 en paralelo agotaron la ventana de 5 horas en ~20 minutos y
+  ninguno terminó su lote (22-10-2026).
+- Dos `supabase db query` al mismo tiempo (se anulan el usuario temporal): usar siempre `comun.sql()`.
+- Exigir que la dosis sea texto literal: en los cuadros la cifra está en la celda y la unidad en el
+  encabezado; se verifica que cada número de la dosis esté en las citas de la fila.
+- Comparar números «sueltos» (sin separadores): «2 - 2,5» quedaba «225» y se perdían dosis. `verificar.numeros_de`.
 
 ## Pendiente
 
 - **Borrar definitivamente** las Edge Functions `export-csv` y `agro-script` (hoy desactivadas: exigen
   JWT y responden «Función retirada»). El MCP no tiene herramienta para borrar: usar la CLI de Supabase
   (`supabase functions delete <nombre> --project-ref cejkhfugaobfqnjpkgpl`) o el panel.
-- La CLI de Supabase ya está instalada (`%LOCALAPPDATA%\Programs\supabase-cli\supabase.exe`, v2.120.0)
-  pero **sin sesión**: falta que Cristóbal haga `supabase login` (necesaria para subir PDF nuevos al
-  bucket y para borrar las funciones).
-- Pedir a Cristóbal el PDF de ACABAN® 050 SC **versión 16-06-2025** (la de 2022 no coincide con las 56
-  líneas aprobadas, ver «Estado de los datos»). Subirlo al bucket requiere la CLI con sesión.
+- La CLI de Supabase ya tiene sesión (22-10-2026): sirve para subir PDF al bucket y borrar las funciones.
+- ACABAN® 050 SC **versión 16-06-2025**: está en el listado del SAG (`sag_inventario` 161). Al procesar su
+  N° SAG (1447, ya en la base) el recopilador agrega ese documento y anota las diferencias con las 56 líneas
+  aprobadas (no las toca).
+- **Recopilador:** seguir con los lotes (ver «Recopilador del SAG» y la frase para continuar al final del
+  informe de cada sesión). Cuando termine la carga completa: workflow mensual de GitHub Actions que revise el
+  listado del SAG sin IA y anote lo nuevo en un CSV del repo con un aviso; luego, toxicidad en abejas en el sitio.
+  Revisar `recopilador_revision` (cultivos/objetivos nuevos) y `sag/diferencias.csv` con Cristóbal.
 - **Productos del plan de Cristóbal que no están en el catálogo** (21-10-2026). Él pidió «búscalos y
   agrégalos». Plaguicidas (necesitan su etiqueta oficial: buscarla en SAG o en el sitio del fabricante,
   pedir permiso para descargar, subir al bucket con la CLI y extraer con cita): RAYO, MOSPILAN, PREVICUR,

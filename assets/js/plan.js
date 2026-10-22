@@ -354,6 +354,11 @@ export function calcularAlertas(plan, cat, { usosCultivo = null } = {}) {
     if (a.productoId && !u && usosCultivo && cultivos.length && !(usosCultivo.get(a.productoId) || []).length) {
       add('alerta', 'sin-registro', `La etiqueta no tiene usos para ${nombreCultivos.join(', ') || 'el cultivo del plan'}.`);
     }
+    // El producto no se puede usar en Chile (solo exportación, autorización cancelada o sustancia prohibida).
+    const enCatalogo = a.productoId ? cat.productos.get(a.productoId) : null;
+    if (enCatalogo && enCatalogo.noDisponible) {
+      add('peligro', 'no-disponible', `${enCatalogo.nombre} no se puede usar en Chile: ${enCatalogo.noDisponible}.`);
+    }
     // El uso elegido es de otro cultivo.
     if (u && cultivos.length && u.crop_id && !cultivos.includes(u.crop_id)) {
       const c = cat.cultivos.get(u.crop_id);

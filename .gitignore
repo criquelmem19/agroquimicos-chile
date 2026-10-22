@@ -12,3 +12,6 @@ desktop.ini
 
 # Configuración local de Claude Code (rutas de este computador)
 .claude/
+
+# Estado local de la CLI de Supabase
+supabase/.temp/

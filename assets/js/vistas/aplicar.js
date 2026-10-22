@@ -218,8 +218,15 @@ function tabla(cat, lineas, op) {
       cuerpo));
 }
 
-function resultados(zona, cat, lineas, op, ctx, paramsBase) {
+function resultados(zona, cat, todasLasLineas, op, ctx, paramsBase) {
   vaciar(zona);
+  // Productos que no se pueden usar en Chile (solo exportación, cancelados, sustancias prohibidas): fuera de la tabla.
+  const lineas = todasLasLineas.filter((u) => !(cat.productos.get(u.product_id) || {}).noDisponible);
+  const ocultos = new Set(todasLasLineas.filter((u) => !lineas.includes(u)).map((u) => u.product_id));
+  if (ocultos.size) {
+    zona.append(h('p', { class: 'nota nota-info' },
+      `No se muestran ${plural(ocultos.size, 'producto', 'productos')} que no se pueden usar en Chile (solo exportación, autorización cancelada o sustancia prohibida). Están en la lista de productos.`));
+  }
   if (!lineas.length) {
     zona.append(h('div', { class: 'vacio' }, h('p', null, h('strong', null, 'No hay líneas de uso para esta combinación.')),
       h('p', { class: 'chico' }, 'Prueba con otro objetivo o revisa el nombre del cultivo.')));

@@ -18,6 +18,7 @@ function tarjeta(p) {
     p.categorias.length ? h('div', { class: 'chips' }, etiquetasCategoria(p)) : null,
     h('h3', null, h('a', { href: ruta(`producto/${p.id}`) }, p.nombre)),
     h('div', { class: 'linea-datos' }, [p.registro ? `Reg. SAG ${p.registro}` : 'Sin N° de registro en los datos', p.formulacion || p.formulacionCodigo].filter(Boolean).join(' · ')),
+    p.noDisponible ? h('div', null, h('span', { class: 'etiqueta etq-peligro', title: p.noDisponible }, 'No se usa en Chile')) : null,
     h('div', { class: 'linea-datos' }, ingredientesTexto(p)),
     chipsMoa(p.moa),
     principal ? h('div', { class: 'linea-datos' }, `${principal.empresa.nombre} (${rolesTexto(principal.roles)})`) : null,

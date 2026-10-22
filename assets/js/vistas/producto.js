@@ -173,6 +173,7 @@ export async function render(main, ctx) {
     h('header', { class: 'ficha-cabeza' },
       p.categorias.length ? h('div', { class: 'chips' }, etiquetasCategoria(p)) : null,
       h('h1', null, p.nombre),
+      p.noDisponible ? h('p', { class: 'nota nota-peligro' }, `No se puede usar en Chile. ${p.noDisponible}.`) : null,
       h('div', { class: 'linea-datos' },
         [p.registro ? `Registro SAG N° ${p.registro}` : 'Sin N° de registro en los datos',
           p.formulacion ? `${p.formulacion}${p.formulacionCodigo ? ` (${p.formulacionCodigo})` : ''}` : p.formulacionCodigo].filter(Boolean).join(' · ')),
