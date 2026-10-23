@@ -99,6 +99,10 @@ rechazo en destino o residuos sobre la tolerancia.
   `scripts/recopilador/comun.py → sql()` usa un candado y reintenta.
 - **Python 3.12** en `%LOCALAPPDATA%\Programs\Python\Python312\python.exe` (puede no estar en el PATH
   de una terminal abierta antes de instalarlo). `pdftotext` viene con Git for Windows.
+- **Tesseract 5.4.0** (23-10-2026, `winget install UB-Mannheim.TesseractOCR`, con el «sí» de Cristóbal):
+  `C:\Program Files\Tesseract-OCR\tesseract.exe`. Su carpeta de idiomas no se puede escribir sin permisos de
+  administrador: el español (`spa.traineddata` de tessdata_best) está en `C:\Users\crisa\agroquimicos-datos\tessdata`
+  (con copias de eng y osd) y se usa con `--tessdata-dir`.
 - La carpeta local está en OneDrive: no guardar PDFs ni archivos grandes aquí (se sincronizan).
   Usar una carpeta fuera de OneDrive o el scratchpad para trabajar con los PDF.
 - Probar el sitio: `python scripts/servidor_local.py` (sin caché) → http://127.0.0.1:8765.
@@ -347,7 +351,11 @@ vigentes 1xxx, sin dato 2xxx, cancelados 3xxx; dentro, más nuevas primero. Lo n
    **Desde el 23-10-2026** lee a ~7.000 px y en mosaico 2×2, y se queda con la lectura con más letras (a 300 ppp
    leía basura: PUNTO 70 WP, 127 palabras contra 923). `--mejorar` repite con esa lectura las páginas OCR antiguas
    (ya se hizo con todas las etiquetas en «texto»). No usarlo en etiquetas extraídas y sin cargar: sus citas salieron
-   del OCR anterior y dejarían de calzar.
+   del OCR anterior y dejarían de calzar. **Segunda lectura con Tesseract** (`--psm 11`, texto disperso): lee las
+   cifras sueltas de los cuadros que Windows se salta, y al revés; va en `ocr_p<N>.json` («tesseract») y al final del
+   texto de la página, tras «--- segunda lectura (Tesseract) ---». `--tesseract` la agrega sin repetir Windows
+   (~27 s por página); `--forzar --ids …` también en páginas con capa de texto cuyo cuadro es una imagen (409).
+   Releer una etiqueta ya cargada ya no le cambia el estado (`textos.anotar` no retrocede «cargado»/«diferencias»).
 7. `lote.py --agentes 2 --por 4`: elige las siguientes etiquetas por prioridad y escribe el encargo de cada
    subagente (y el comando de carga). Salta las que tienen páginas sin OCR; una página que ya pasó por OCR y
    quedó sin texto (en blanco) no frena.
@@ -510,7 +518,7 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
 - Sacar con el OCR de Windows las cifras sueltas de los cuadros escaneados (23-10-2026, PUNTO 70 WP y la 343):
   recortar a la zona con texto, 600–900 ppp, trozos de 1.000–3.500 px y quitar la marca de agua naranja
   («USO EXCLUSIVO SAG», canal rojo) apenas suman palabras y siguen sin leer «Vides», «10-15» o «0,7-0,9».
-  Para eso hace falta otro lector (ver «Pendiente»).
+  Lo resolvió Tesseract en modo texto disperso (`--psm 11`); su modo normal (`--psm 3`) tampoco las lee.
 
 ## Estado del recopilador (fin de la sesión 3, 23-10-2026)
 
@@ -528,9 +536,13 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   «O»/«lOO» del OCR como 0/100 y «no se consideran períodos de carencia» como «no aplica»; `textos.py` reconoce
   «Ficha con Datos de Seguridad (FDS)» (solo para lo que se procese desde ahora: en 229, 303, 422 y 423 las
   páginas de la FDS quedaron como etiqueta, sin efecto en las citas).
-- **Inventario 409 sin cargar a propósito:** su cuadro de usos es una imagen dentro de una página con texto, y
-  `ocr.py` solo lee páginas sin texto. Su JSON (sin usos) está en `sag/extraido/409.json`; `lote.py` lo salta porque
-  ya existe. Cargarlo así lo dejaría sin usos para siempre (`--completar` solo llena líneas existentes).
+- **Inventario 409 sin cargar a propósito:** su cuadro de usos es una imagen dentro de una página con texto.
+  Ya tiene la segunda lectura (`ocr.py --tesseract --forzar`) y vuelve a la cola. Cargarla sin usos la habría dejado
+  así para siempre (`--completar` solo llena líneas existentes).
+- Segunda lectura con Tesseract (23-10, después del cierre de la sesión 3): instalado y probado; corre en segundo
+  plano sobre las 174 etiquetas escaneadas (319 páginas), en «texto» y ya cargadas. Revisar que haya terminado:
+  `sag/ocr_tesseract.log` debe terminar en «Cruce por N° SAG». Si se cortó, repetir: `ocr.py --tesseract --ids
+  <lista de sag/ids_tesseract.txt>` (salta las páginas que ya la tienen).
 - Uso, sesión 3: 51 etiquetas = 5 h de 0 a 76 % y semanal de 80 a 91 %; tandas de 3 subagentes × 4 etiquetas
   (290–400 mil tokens cada uno) = ~15 % de la ventana de 5 h y ~2 % del semanal. Unas 60 etiquetas por ventana;
   el semanal alcanza para ~450 por semana: faltan ~3–4 semanas.
@@ -585,12 +597,12 @@ Sesión 2 (22-10-2026), para la historia:
   ULTRASOL, MEZCLA 17-20-20) quedan como «fuera del catálogo». **22-10-2026:** el recopilador ya cargó todos los
   plaguicidas de esta lista que están en el listado del SAG; PUNTO 70 WP (23-10) quedó con pocas dosis (cuadro
   escaneado); ver «Estado del recopilador».
-- **Cuadros escaneados (23-10-2026):** el OCR de Windows no lee las cifras sueltas de los cuadros (PUNTO 70 WP,
-  inventario 325, 343, 389, 410, 416: dosis que se ven en la imagen y no en el texto, y el verificador las borra).
-  Dos caminos, a decidir por Claude: (a) instalar Tesseract (winget, UB Mannheim) como segundo lector y sumar su
-  texto al de cada página OCR; (b) aceptar cifras leídas en la imagen solo si dos lecturas independientes (dos
-  modelos distintos) coinciden. Después: rehacer esas etiquetas y la 409 (cuadro en imagen dentro de una página
-  con texto: hacer que `ocr.py` lea también esas imágenes).
+- **Cuadros escaneados (23-10-2026):** resuelto con la segunda lectura de Tesseract (`ocr.py --tesseract`; en la
+  prueba leyó las dosis que faltaban en PUNTO 70 WP, 343, 389, 416 y 409). Falta **volver a extraer las etiquetas ya
+  cargadas que quedaron flojas** y completar sus líneas con `cargar.py --completar` (solo llena lo vacío): PUNTO 70
+  WP (inventario 1312), 163, 184, 185, 325, 343, 370, 389, 410 y 416; de la sesión 2, ABAMECTIN 18 EC y CITROLIV
+  EMULSIBLE+ (485). La 409 (BUMPER 25 % EC) no está cargada: su intento sin cuadro quedó como
+  `sag/extraido/409.sin_cuadro.json`, así que `lote.py` la vuelve a tomar.
 - Revisión humana: para que una línea diga «Revisado» alguien tiene que compararla con la etiqueta
   (hoy solo las 56 de ACABAN). Quitar `noindex` lo decide Cristóbal.
 - TOPAS 200 EW no tiene grupo de modo de acción en los datos (penconazol sin grupo): revisar su etiqueta.

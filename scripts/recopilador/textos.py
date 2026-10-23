@@ -26,6 +26,7 @@ from comun import consola_utf8, escribir_json, leer_json, lit, pdftotext, ruta, 
 from descargar import marcar_duplicados  # noqa: E402
 
 MINIMO = 80
+SEPARADOR = "\n--- segunda lectura (Tesseract) ---\n"  # ocr.py: el texto de Tesseract va después
 HDS = [r"hoja de datos de seguridad", r"hoja de seguridad", r"ficha (?:de|con) datos de seguridad", r"safety data sheet",
        r"\bm?sds\b", r"\bhds\b", r"\bfds\b", r"nch\s*2245", r"secci[oó]n\s*(?:n[°º]\s*)?\d{1,2}\s*[:.\-]",
        r"identificaci[oó]n del producto(?: qu[ií]mico)? y (?:del proveedor|de la (?:compa[ñn][ií]a|empresa))",
@@ -152,9 +153,12 @@ def procesar(fila, rehacer=False, pdf=None, carpeta=None):
         fuentes = ["pdf"] * len(lectura)
         # El OCR de ocr.py se conserva si ya existía
         for n, p in enumerate(previo or [], 1):
+            ocr = leer_json(os.path.join(carpeta, f"ocr_p{n}.json"), {})
             if p.get("fuente") == "ocr" and n <= len(lectura):
                 fuentes[n - 1] = "ocr"
-                lectura[n - 1] = leer_json(os.path.join(carpeta, f"ocr_p{n}.json"), {}).get("texto", lectura[n - 1])
+                lectura[n - 1] = ocr.get("texto", lectura[n - 1])
+            if ocr.get("tesseract") and n <= len(lectura):  # segunda lectura (ocr.py), también en páginas con texto
+                lectura[n - 1] += SEPARADOR + ocr["tesseract"]
     tipos = clasificar(lectura)
     info = [{"pagina": i + 1, "caracteres": len(re.sub(r"\s", "", t)), "tipo": tipos[i], "fuente": fuentes[i]}
             for i, t in enumerate(lectura)]
@@ -193,9 +197,12 @@ def anotar(resultados):
         f"({r['id']}, {lit(r['estado'])}, {lit(r['motivo'])}, {r['paginas']}::smallint, {r['sin_texto']}::smallint, "
         f"array[{','.join(map(str, r['etiqueta']))}]::smallint[], array[{','.join(map(str, r['hds']))}]::smallint[], "
         f"{lit(r['registro'])}, {lit(bool(r['exportacion']))})" for r in resultados)
-    sql(f"""update public.sag_inventario i set estado = v.estado, motivo = coalesce(v.motivo, i.motivo),
+    # Lo ya cargado no vuelve a «texto» (ocr.py --tesseract puede releer etiquetas cargadas).
+    sql(f"""update public.sag_inventario i set
+       estado = case when i.estado in ('cargado', 'diferencias') then i.estado else v.estado end,
+       motivo = case when i.estado in ('cargado', 'diferencias') then i.motivo else coalesce(v.motivo, i.motivo) end,
        paginas = v.paginas, paginas_sin_texto = v.sin_texto, paginas_etiqueta = v.etiqueta, paginas_hds = v.hds,
-       registro_sag = v.registro, solo_exportacion = v.exportacion, actualizado = now()
+       registro_sag = coalesce(v.registro, i.registro_sag), solo_exportacion = v.exportacion, actualizado = now()
 from (values {filas}) as v(id, estado, motivo, paginas, sin_texto, etiqueta, hds, registro, exportacion)
 where i.id = v.id;""", "textos")
 

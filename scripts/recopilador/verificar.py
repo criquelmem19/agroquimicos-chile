@@ -148,8 +148,9 @@ class Documento:
         for n in range(1, max(len(lectura), len(layout)) + 1):
             textos = [lectura[n - 1] if n <= len(lectura) else "", layout[n - 1] if n <= len(layout) else ""]
             ocr = leer_json(os.path.join(carpeta, f"ocr_p{n}.json"))
-            if ocr:
-                textos += [ocr.get("texto", ""), ocr_digitos(ocr.get("texto", ""))]
+            if ocr:  # lectura de Windows y la segunda de Tesseract (ocr.py)
+                for t in (ocr.get("texto", ""), ocr.get("tesseract", "")):
+                    textos += [t, ocr_digitos(t)]
             self.paginas[n] = {"plano": [plano(t) for t in textos], "suelto": "".join(suelto(t) + "|" for t in textos)}
 
     def en_pagina(self, fragmento, n):

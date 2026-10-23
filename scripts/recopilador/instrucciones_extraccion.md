@@ -11,7 +11,10 @@ En la carpeta de la etiqueta (`<datos>/sag/texto/<id>/`):
 
 1. `etiqueta.txt`: texto de las páginas de la etiqueta, en orden de lectura, con marcas
    `=== PÁGINA N ===` (o `=== PÁGINA N (OCR) ===` si la página era imagen y se leyó con OCR).
-   **Las citas se copian de aquí**, carácter por carácter.
+   **Las citas se copian de aquí**, carácter por carácter. Algunas páginas traen, después de la línea
+   `--- segunda lectura (Tesseract) ---`, una segunda lectura OCR de la misma página: suele traer las cifras
+   sueltas de los cuadros (dosis, carencias) que la primera no leyó. Las citas pueden salir de cualquiera de las
+   dos (con la página N de esa marca); la imagen sigue mandando para saber qué cifra va con qué fila.
 2. `p<N>.jpg`: imagen de cada página de la etiqueta (N = número de página). **Mírala siempre** que haya
    un cuadro de usos o de carencias: en el texto las celdas de varias líneas quedan desordenadas y solo la
    imagen muestra qué cultivo, plaga, dosis y carencia van en la misma fila. Si la letra se ve muy
