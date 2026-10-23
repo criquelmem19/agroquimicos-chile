@@ -539,10 +539,9 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
 - **Inventario 409 sin cargar a propósito:** su cuadro de usos es una imagen dentro de una página con texto.
   Ya tiene la segunda lectura (`ocr.py --tesseract --forzar`) y vuelve a la cola. Cargarla sin usos la habría dejado
   así para siempre (`--completar` solo llena líneas existentes).
-- Segunda lectura con Tesseract (23-10, después del cierre de la sesión 3): instalado y probado; corre en segundo
-  plano sobre las 174 etiquetas escaneadas (319 páginas), en «texto» y ya cargadas. Revisar que haya terminado:
-  `sag/ocr_tesseract.log` debe terminar en «Cruce por N° SAG». Si se cortó, repetir: `ocr.py --tesseract --ids
-  <lista de sag/ids_tesseract.txt>` (salta las páginas que ya la tienen).
+- Segunda lectura con Tesseract (23-10, después del cierre de la sesión 3): **hecha** en las 174 etiquetas
+  escaneadas (319 páginas), en «texto» y ya cargadas, sin errores y sin cambiar estados. Las etiquetas escaneadas
+  nuevas la reciben al pasar por `ocr.py` (la hace siempre que lee una página).
 - Uso, sesión 3: 51 etiquetas = 5 h de 0 a 76 % y semanal de 80 a 91 %; tandas de 3 subagentes × 4 etiquetas
   (290–400 mil tokens cada uno) = ~15 % de la ventana de 5 h y ~2 % del semanal. Unas 60 etiquetas por ventana;
   el semanal alcanza para ~450 por semana: faltan ~3–4 semanas.
