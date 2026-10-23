@@ -26,8 +26,8 @@ from comun import consola_utf8, escribir_json, leer_json, lit, pdftotext, ruta, 
 from descargar import marcar_duplicados  # noqa: E402
 
 MINIMO = 80
-HDS = [r"hoja de datos de seguridad", r"hoja de seguridad", r"ficha de datos de seguridad", r"safety data sheet",
-       r"\bm?sds\b", r"\bhds\b", r"nch\s*2245", r"secci[oó]n\s*(?:n[°º]\s*)?\d{1,2}\s*[:.\-]",
+HDS = [r"hoja de datos de seguridad", r"hoja de seguridad", r"ficha (?:de|con) datos de seguridad", r"safety data sheet",
+       r"\bm?sds\b", r"\bhds\b", r"\bfds\b", r"nch\s*2245", r"secci[oó]n\s*(?:n[°º]\s*)?\d{1,2}\s*[:.\-]",
        r"identificaci[oó]n del producto(?: qu[ií]mico)? y (?:del proveedor|de la (?:compa[ñn][ií]a|empresa))",
        r"identificaci[oó]n de (?:los )?peligros", r"propiedades f[ií]sicas y qu[ií]micas", r"estabilidad y reactividad",
        r"informaci[oó]n toxicol[oó]gica", r"informaci[oó]n ecol[oó]gica", r"informaci[oó]n (?:sobre|relativa al?) (?:el )?transporte",
@@ -64,8 +64,8 @@ def puntaje(texto, patrones):
     return sum(1 for p in patrones if re.search(p, t))
 
 
-FIRMA_HDS = re.compile(r"nch\s*2245|hoja\s+de\s+(?:datos\s+de\s+)?seguridad|ficha\s+de\s+datos\s+de\s+seguridad|"
-                       r"safety\s+data\s+sheet|\(\s*m?sds\s*\)|\bhds\b", re.I)
+FIRMA_HDS = re.compile(r"nch\s*2245|hoja\s+de\s+(?:datos\s+de\s+)?seguridad|ficha\s+(?:de|con)\s+datos\s+de\s+seguridad|"
+                       r"safety\s+data\s+sheet|\(\s*m?sds\s*\)|\(\s*fds\s*\)|\bhds\b", re.I)
 
 
 def clasificar(paginas):

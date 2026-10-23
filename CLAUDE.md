@@ -1,6 +1,6 @@
 # Agroquímicos CRM — memoria del proyecto
 
-Leer completo antes de tocar algo. Última actualización: 22-10-2026.
+Leer completo antes de tocar algo. Última actualización: 23-10-2026.
 El sitio se llama **Agroquímicos CRM** (antes «Agroquímicos Chile»; el repo y la URL siguen siendo
 `agroquimicos-chile`). «CRM» es la marca de Cristóbal y va arriba, en el logo.
 
@@ -344,6 +344,10 @@ vigentes 1xxx, sin dato 2xxx, cancelados 3xxx; dentro, más nuevas primero. Lo n
 6. `ocr.py` (venv): OCR de Windows de las páginas sin texto que están antes de la HDS. Si casi no lee letras,
    prueba la página girada (escaneos de lado) y guarda el giro en `ocr_p<N>.json`; `p<N>.jpg` y `recorte.py`
    usan la página derecha. `--rehacer`: repite las páginas que ya pasaron por OCR y siguen sin texto.
+   **Desde el 23-10-2026** lee a ~7.000 px y en mosaico 2×2, y se queda con la lectura con más letras (a 300 ppp
+   leía basura: PUNTO 70 WP, 127 palabras contra 923). `--mejorar` repite con esa lectura las páginas OCR antiguas
+   (ya se hizo con todas las etiquetas en «texto»). No usarlo en etiquetas extraídas y sin cargar: sus citas salieron
+   del OCR anterior y dejarían de calzar.
 7. `lote.py --agentes 2 --por 4`: elige las siguientes etiquetas por prioridad y escribe el encargo de cada
    subagente (y el comando de carga). Salta las que tienen páginas sin OCR; una página que ya pasó por OCR y
    quedó sin texto (en blanco) no frena.
@@ -357,7 +361,8 @@ Auxiliares: `comun.py`, `expandir.py` (fila × cultivo y su carencia; «cereza (
 **Extracción:** cada subagente lee las instrucciones, `etiqueta.txt` y las imágenes `p<N>.jpg` (en el texto las
 celdas de varias líneas se descuadran; la imagen muestra qué dosis y carencia van con qué cultivo) y escribe un
 JSON por etiqueta, sin devolverlo. `verificar.py` busca cada cita en el texto de su página (orden de lectura,
--layout u OCR; sin distinguir mayúsculas, espacios ni guiones de corte): si no está, el dato se borra. Los números
+-layout u OCR; sin distinguir mayúsculas, espacios ni guiones de corte; en el OCR también acepta cifras leídas como
+letras, «O días» = 0 y «lOO» = 100, `verificar.ocr_digitos`): si no está, el dato se borra. Los números
 deben estar en la cita (una dosis armada «185 cc/hL» vale si «185» y «cc/hL» están en los fragmentos de la fila).
 Cultivos, objetivos, empresas e ingredientes deben estar escritos en la página. Se guarda en `extraction_runs`
 (versión `recopilador-sag-v1`, modelo y resumen de lo descartado).
@@ -397,7 +402,7 @@ uso mostró que lo caro era la conversación larga del orquestador, no Haiku.
    líneas al azar contra el PDF y la imagen, y reporta errores).
 6. Al final: `reporte.py`, actualizar «Estado del recopilador» aquí, commit y push, e informar a Cristóbal.
 
-**Estado del recopilador (22-10-2026, fin de la sesión 2):** ver el final de este archivo.
+**Estado del recopilador (23-10-2026, fin de la sesión 3):** ver el final de este archivo.
 
 ## Fase 2 — estado (hecha el 20-10-2026)
 
@@ -502,13 +507,37 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
 - Exigir que la dosis sea texto literal: en los cuadros la cifra está en la celda y la unidad en el
   encabezado; se verifica que cada número de la dosis esté en las citas de la fila.
 - Comparar números «sueltos» (sin separadores): «2 - 2,5» quedaba «225» y se perdían dosis. `verificar.numeros_de`.
+- Sacar con el OCR de Windows las cifras sueltas de los cuadros escaneados (23-10-2026, PUNTO 70 WP y la 343):
+  recortar a la zona con texto, 600–900 ppp, trozos de 1.000–3.500 px y quitar la marca de agua naranja
+  («USO EXCLUSIVO SAG», canal rojo) apenas suman palabras y siguen sin leer «Vides», «10-15» o «0,7-0,9».
+  Para eso hace falta otro lector (ver «Pendiente»).
 
-## Estado del recopilador (fin de la sesión 2, 22-10-2026)
+## Estado del recopilador (fin de la sesión 3, 23-10-2026)
 
 - Frase de Cristóbal para seguir: **«Sigue con el recopilador del SAG»** → hacer «Cómo seguir» (sección Recopilador).
-- Inventario: 1.634 filas; **1.463 en «texto» (listas para extraer)**, 24 cargadas, 59 versiones anteriores,
-  62 no son etiqueta, 14 sin PDF (13 sin link en el listado + 1 roto), 5 ilegibles, 5 duplicados, 2 ya en la base.
-  Todos los PDF bajados, con texto, imágenes y OCR.
+- Inventario: 1.634 filas; **1.415 en «texto» (listas para extraer)**, 68 cargadas, 7 diferencias (su N° SAG ya
+  estaba), 56 versiones anteriores, 62 no son etiqueta, 14 sin PDF, 5 ilegibles, 5 duplicados, 2 ya en la base.
+- Base: 219 productos (190 con N° SAG), 5.802 líneas; dosis 90,9 %, carencia 88,1 %; 38 MB.
+- Sesión 3 (22-10 en la noche y 23-10): 51 etiquetas (44 nuevas + 7 diferencias: ACRONIS, AMISTAR TOP, 271, 290,
+  416, 422, 401), lotes `2026-10-23-1` a `-5`, todas con Haiku, 2.206 líneas de 41 productos: dosis 84,8 %, carencia
+  84,3 %. **PUNTO 70 WP** (último producto del plan de Cristóbal) quedó cargado pero flojo: 50 líneas, 12 con dosis y
+  29 con carencia (el cuadro es escaneado, ver «No reintentar»). La primera tanda se cortó al cerrarse la app
+  (22-10, 18:20): se relanzó el 23-10; los JSON que alcanzaron a quedar sirvieron.
+- Arreglos de la sesión 3: OCR nuevo (`ocr.py`, a ~7.000 px y en mosaico; se releyeron las ~170 etiquetas escaneadas
+  en «texto», ~310 páginas, sin IA; aparecieron 5 N° SAG nuevos y 5 versiones anteriores); el verificador acepta
+  «O»/«lOO» del OCR como 0/100 y «no se consideran períodos de carencia» como «no aplica»; `textos.py` reconoce
+  «Ficha con Datos de Seguridad (FDS)» (solo para lo que se procese desde ahora: en 229, 303, 422 y 423 las
+  páginas de la FDS quedaron como etiqueta, sin efecto en las citas).
+- **Inventario 409 sin cargar a propósito:** su cuadro de usos es una imagen dentro de una página con texto, y
+  `ocr.py` solo lee páginas sin texto. Su JSON (sin usos) está en `sag/extraido/409.json`; `lote.py` lo salta porque
+  ya existe. Cargarlo así lo dejaría sin usos para siempre (`--completar` solo llena líneas existentes).
+- Uso, sesión 3: 51 etiquetas = 5 h de 0 a 76 % y semanal de 80 a 91 %; tandas de 3 subagentes × 4 etiquetas
+  (290–400 mil tokens cada uno) = ~15 % de la ventana de 5 h y ~2 % del semanal. Unas 60 etiquetas por ventana;
+  el semanal alcanza para ~450 por semana: faltan ~3–4 semanas.
+- Falta: el control al azar (`control.py`; van 75 cargadas), las diferencias de los productos que ya estaban
+  (incluido ACABAN, inventario 161) y, al terminar, el workflow mensual.
+
+Sesión 2 (22-10-2026), para la historia:
 - Cargadas: ANTRACOL 70 % WP y Alsystin 480 SC (piloto); lote `2026-10-22-1`: LUNA EXPERIENCE 400 SC, METALAXIL
   MZ 58 WP, MOSPILAN, MURALLA DELTA 190 OD, ABAMAX 1,8 % EC, PREVICUR ENERGY 840 SL, AZUFRE FLOABLE AN 600 y
   PUNTO 70 DS; lote `2026-10-22-2`: PUNTO 70 WG, RAYO 50 EC, BULLDOCK 125 SC, CITROLIV EMULSIBLE+, CITROLIV
@@ -532,8 +561,6 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
 - Uso: sesión 2 (nueva, contexto chico): 14 etiquetas con Haiku = ~24 % de la ventana de 5 h (57 → 81 %) y ~4 %
   del semanal (76 → 80 %); cada subagente de 3–4 etiquetas gastó 320–400 mil tokens. Unas 50 etiquetas por
   ventana de 5 h; el límite semanal deja ~250–350 por semana: la carga completa toma 4–6 semanas.
-- Falta: el control al azar (`control.py`, después de ~100 etiquetas; van 24), las diferencias de los 98
-  productos que ya estaban (incluido ACABAN, inventario 161) y, al terminar, el workflow mensual.
 
 ## Pendiente
 
@@ -556,8 +583,14 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   CITROLIV, BC-1000, ENTONEM, CONDOR SHIELD. Fertilizantes, bioestimulantes y coadyuvantes (SILWET,
   ZOBERAMINOL, CALCIO-BORO, DEFENDER MANGANESO, VITANICA RZ, SAGASTIM, FLOWER POWER, FRUTALIV, STIMULATE,
   ULTRASOL, MEZCLA 17-20-20) quedan como «fuera del catálogo». **22-10-2026:** el recopilador ya cargó todos los
-  plaguicidas de esta lista que están en el listado del SAG, salvo PUNTO 70 WP (primero en la cola); ver «Estado
-  del recopilador».
+  plaguicidas de esta lista que están en el listado del SAG; PUNTO 70 WP (23-10) quedó con pocas dosis (cuadro
+  escaneado); ver «Estado del recopilador».
+- **Cuadros escaneados (23-10-2026):** el OCR de Windows no lee las cifras sueltas de los cuadros (PUNTO 70 WP,
+  inventario 325, 343, 389, 410, 416: dosis que se ven en la imagen y no en el texto, y el verificador las borra).
+  Dos caminos, a decidir por Claude: (a) instalar Tesseract (winget, UB Mannheim) como segundo lector y sumar su
+  texto al de cada página OCR; (b) aceptar cifras leídas en la imagen solo si dos lecturas independientes (dos
+  modelos distintos) coinciden. Después: rehacer esas etiquetas y la 409 (cuadro en imagen dentro de una página
+  con texto: hacer que `ocr.py` lea también esas imágenes).
 - Revisión humana: para que una línea diga «Revisado» alguien tiene que compararla con la etiqueta
   (hoy solo las 56 de ACABAN). Quitar `noindex` lo decide Cristóbal.
 - TOPAS 200 EW no tiene grupo de modo de acción en los datos (penconazol sin grupo): revisar su etiqueta.

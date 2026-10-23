@@ -24,7 +24,20 @@ SIMBOLOS = str.maketrans({"º": "°", "˚": "°", "“": '"', "”": '"', "„":
                           "’": "'", "´": "'", "`": "'", "–": "-", "—": "-", "−": "-", "‐": "-", "‑": "-",
                           "­": "", " ": " ", "…": "...", "ﬁ": "fi", "ﬂ": "fl"})
 NO_APLICA = re.compile(r"no\s+corresponde|no\s+posee|sin\s+carencia|exent|no\s+aplica|no\s+tiene|no\s+requiere|"
-                       r"\bn\s*/\s*a\b|sin\s+restricci|no\s+hay\s+carencia|0\s*\(cero\)", re.I)
+                       r"\bn\s*/\s*a\b|sin\s+restricci|no\s+hay\s+carencia|0\s*\(cero\)|"
+                       r"no\s+se\s+consideran?\s+(?:los\s+)?per[ií]odos?\s+de\s+carencia", re.I)
+# En el OCR, cifras leídas como letras: «O días» (0), «lOO» (100). Solo palabras hechas de esas letras y
+# dígitos que tengan un dígito o una O/I mayúscula (así «lo» y «o» no cambian).
+CIFRA_OCR = re.compile(r"(?<![^\W\d_])[0-9OolI|](?:[0-9OolI|.,]*[0-9OolI|])?(?![^\W\d_])")
+
+
+def ocr_digitos(texto):
+    def cambiar(m):
+        s = m.group()
+        if not re.search(r"[0-9OI]", s):
+            return s
+        return s.translate(str.maketrans("OolI|", "00111"))
+    return CIFRA_OCR.sub(cambiar, texto or "")
 
 
 def plano(s):
@@ -136,7 +149,7 @@ class Documento:
             textos = [lectura[n - 1] if n <= len(lectura) else "", layout[n - 1] if n <= len(layout) else ""]
             ocr = leer_json(os.path.join(carpeta, f"ocr_p{n}.json"))
             if ocr:
-                textos.append(ocr.get("texto", ""))
+                textos += [ocr.get("texto", ""), ocr_digitos(ocr.get("texto", ""))]
             self.paginas[n] = {"plano": [plano(t) for t in textos], "suelto": "".join(suelto(t) + "|" for t in textos)}
 
     def en_pagina(self, fragmento, n):
