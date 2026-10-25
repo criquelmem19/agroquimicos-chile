@@ -1,6 +1,6 @@
 # Agroquímicos CRM — memoria del proyecto
 
-Leer completo antes de tocar algo. Última actualización: 23-10-2026.
+Leer completo antes de tocar algo. Última actualización: 25-10-2026.
 El sitio se llama **Agroquímicos CRM** (antes «Agroquímicos Chile»; el repo y la URL siguen siendo
 `agroquimicos-chile`). «CRM» es la marca de Cristóbal y va arriba, en el logo.
 
@@ -358,12 +358,20 @@ vigentes 1xxx, sin dato 2xxx, cancelados 3xxx; dentro, más nuevas primero. Lo n
    Releer una etiqueta ya cargada ya no le cambia el estado (`textos.anotar` no retrocede «cargado»/«diferencias»).
 7. `lote.py --agentes 2 --por 4`: elige las siguientes etiquetas por prioridad y escribe el encargo de cada
    subagente (y el comando de carga). Salta las que tienen páginas sin OCR; una página que ya pasó por OCR y
-   quedó sin texto (en blanco) no frena.
+   quedó sin texto (en blanco) no frena. `--empresa syngenta`: solo esa empresa (parte del nombre en el listado
+   del SAG; hay variantes como «Syngenta S.A»/«SYNGENTA S.A», el filtro las junta). `--nuevos`: sin las de productos
+   cuyo N° SAG ya está en el catálogo (esas solo agregan el documento y anotan diferencias). Ojo: una etiqueta que un
+   subagente todavía no termina no tiene JSON y `lote.py` la vuelve a ofrecer; no repetirla en otro encargo.
 8. `cargar.py <carpeta> --ids … --lote … --modelo …`: verifica (`verificar.py`) y carga, una transacción por
-   etiqueta. `--ensayo`: solo escribe el SQL. `--completar`: llena campos vacíos de lo ya cargado, sin reemplazar.
+   etiqueta. `--ensayo`: solo escribe el SQL. `--completar` (25-10-2026): con una extracción nueva de una etiqueta
+   ya «cargado», llena solo campos vacíos de las líneas que calzan en página, n.° de fila, cultivo y (si las dos
+   tienen) algún objetivo; nunca reemplaza un valor ni su cita, no agrega líneas y anota la corrida en
+   `extraction_runs` (`raw_output.completar`). Muestra antes → después por campo. Con `--ensayo` lo aplica en una
+   transacción que se deshace y cuenta los valores o citas que cambiarían (tiene que dar 0).
 9. `reporte.py`: números para el informe (inventario, cobertura, autorizados sin etiqueta, problemas).
 Auxiliares: `comun.py`, `expandir.py` (fila × cultivo y su carencia; «cereza (7)» calza con «Cerezo»),
-`recorte.py` (zoom de una zona para los subagentes), `base_pdf.py`, `comparar_piloto.py`,
+`recorte.py` (zoom de una zona para los subagentes), `calce.py` (extracción nueva contra líneas cargadas),
+`base_pdf.py`, `comparar_piloto.py`,
 `instrucciones_extraccion.md` (lo que leen los subagentes; esquema `recopilador-v1`).
 
 **Extracción:** cada subagente lee las instrucciones, `etiqueta.txt` y las imágenes `p<N>.jpg` (en el texto las
@@ -402,15 +410,17 @@ uso mostró que lo caro era la conversación larga del orquestador, no Haiku.
 **Cómo seguir (cada sesión, desde una sesión nueva):**
 1. `get_usage`: si la ventana de 5 h pasa ~80 % o el semanal ~95 %, no lanzar subagentes (solo scripts).
 2. Si hay filas «nuevo» o «descargado» (etiquetas nuevas del SAG): `descargar.py`, `textos.py`, `ocr.py`.
-3. `python -I scripts/recopilador/lote.py --agentes 2 --por 4` y lanzar 2 subagentes **Haiku** (`model: haiku`,
-   `general-purpose`) con esos encargos tal cual. Esperar sus avisos (no leer sus transcripciones).
+3. **Por empresa** (pedido de Cristóbal el 25-10-2026: «ir completando empresas más que ir picando de a poco»):
+   `python -I scripts/recopilador/lote.py --empresa <empresa> --nuevos --agentes 3 --por 4` y lanzar 3 subagentes
+   **Haiku** (`model: haiku`, `general-purpose`) con esos encargos tal cual. Esperar sus avisos (no leer sus
+   transcripciones). Empresa actual y la que sigue: ver «Estado del recopilador».
 4. `python -I scripts/recopilador/cargar.py "C:\Users\crisa\agroquimicos-datos\sag\extraido" --ids … --lote
    AAAA-MM-DD-n --modelo claude-haiku-5-5`. Un error de una etiqueta no frena las demás; revisar el mensaje.
 5. Repetir mientras alcance el uso. Cada ~100 etiquetas: control (un subagente Sonnet que no extrajo revisa 30
    líneas al azar contra el PDF y la imagen, y reporta errores).
 6. Al final: `reporte.py`, actualizar «Estado del recopilador» aquí, commit y push, e informar a Cristóbal.
 
-**Estado del recopilador (23-10-2026, fin de la sesión 3):** ver el final de este archivo.
+**Estado del recopilador (25-10-2026, fin de la sesión 4):** ver el final de este archivo.
 
 ## Fase 2 — estado (hecha el 20-10-2026)
 
@@ -519,14 +529,55 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   recortar a la zona con texto, 600–900 ppp, trozos de 1.000–3.500 px y quitar la marca de agua naranja
   («USO EXCLUSIVO SAG», canal rojo) apenas suman palabras y siguen sin leer «Vides», «10-15» o «0,7-0,9».
   Lo resolvió Tesseract en modo texto disperso (`--psm 11`); su modo normal (`--psm 3`) tampoco las lee.
+- Calzar las líneas de una extracción nueva con las ya cargadas solo por n.° de fila y cultivo (`--completar` antes
+  del 25-10-2026): otra extracción numera las filas distinto y podía poner la dosis de una fila en otra del mismo
+  cultivo. Ahora también exige la misma página y algún objetivo en común.
 
-## Estado del recopilador (fin de la sesión 3, 23-10-2026)
+## Estado del recopilador (fin de la sesión 4, 25-10-2026)
 
 - Frase de Cristóbal para seguir: **«Sigue con el recopilador del SAG»** → hacer «Cómo seguir» (sección Recopilador).
-- Inventario: 1.634 filas; **1.415 en «texto» (listas para extraer)**, 68 cargadas, 7 diferencias (su N° SAG ya
-  estaba), 56 versiones anteriores, 62 no son etiqueta, 14 sin PDF, 5 ilegibles, 5 duplicados, 2 ya en la base.
-- Base: 219 productos (190 con N° SAG), 5.802 líneas; dosis 90,9 %, carencia 88,1 %; 38 MB.
-- Sesión 3 (22-10 en la noche y 23-10): 51 etiquetas (44 nuevas + 7 diferencias: ACRONIS, AMISTAR TOP, 271, 290,
+- **Orden por empresa** (Cristóbal, 25-10-2026: «terminamos con Syngenta y empezamos con la segunda con más
+  cosas, creo que es UPL»). Syngenta: quedan **10 productos nuevos** (188, 1417, 1615, 962, 963, 1584, 1628, 843,
+  844, 1723: `lote.py --empresa syngenta --nuevos`). Después, la empresa que Cristóbal elija: por etiquetas
+  pendientes la más grande es **Anasac (206)** y luego **UPL (141)**; se le preguntó cuál (si no contesta, UPL, como
+  dijo). Las otras 72 etiquetas de Syngenta en «texto» son de productos que ya estaban en el catálogo (carga
+  original): solo agregarían el documento y anotarían diferencias; van después.
+- Inventario: 1.634 filas; **1.371 en «texto»**, 108 cargadas, 10 diferencias, 63 no son etiqueta, 56 versiones
+  anteriores, 14 sin PDF, 5 ilegibles, 5 duplicados, 2 ya en la base.
+- Base: 259 productos (230 con N° SAG), 6.611 líneas; dosis 92,3 %, carencia 88,3 %; 41 MB.
+- Sesión 4 (25-10-2026), todo con Haiku:
+  - **Etiquetas flojas** (cuadros escaneados, ahora con la segunda lectura de Tesseract): se volvieron a extraer
+    10 (1312 PUNTO 70 WP, 152 ABAMECTIN 18 EC, 163, 184, 325, 343, 370, 389, 410 y 485 CITROLIV EMULSIBLE+; los
+    JSON anteriores quedaron como `sag/extraido/<id>.sesion3.json`) y se completaron con `--completar` (lote
+    `2026-10-25-1`, solo en `extraction_runs`): **líneas con dosis 64 → 127 de 227**, sin cambiar ningún valor ni
+    cita (ensayo: 0). PUNTO 70 WP 12 → 19 de 50; ABAMECTIN 26 → 46 de 56; 163 1 → 11; 370 11 → 19 (todas);
+    389 2 → 7; 325 2 → 7; 485 5 → 8; 410 1 → 3 (todas); 343 0 → 2; 184 4 → 5. Carencia: igual (lo que falta no
+    tiene cita). **Queda más por ganar:** la extracción nueva numeró las filas distinto y muchas líneas no calzan
+    (PUNTO 70 WP: 38 de 59 líneas nuevas traen dosis, solo 28 calzan; 163: 14 nuevas con dosis sin calce; 184: 6;
+    152: 9; 370: 11; 325: 5; 485: 4). Para aprovecharlas habría que reemplazar las líneas de esas etiquetas (ocultar
+    las viejas con `rechazado` y cargar las nuevas): **se le preguntó a Cristóbal**; no hacerlo sin su «sí».
+    `calce.py <ids>` hace esa comparación (página, fila y cultivo). 185 (ACRONIS) y 416 (CALDO
+    BORDELÉS VALLÉS) están en «diferencias»: no se rehicieron (`--completar` no aplica, el producto ya estaba).
+  - **Syngenta:** 44 etiquetas (lotes `2026-10-25-2` a `-5`): 40 productos nuevos, 809 líneas, **dosis 94,1 %,
+    carencia 90,4 %** (ALTO 100 SL, AMISTAR 50 WG, ASTERUS UNO, BANVEL 480 SL, BONTIMA, CAMIX, CELEST XL 035 FS
+    COLOURLESS, CELEST 025 FS, CHAIRMAN, CHESS 50 WG, CRUISER 70 WS, DACONIL, DACONIL 500, DIVIDEND 030 FS,
+    ELESTAL, FORCE 3 GR, FORTENZA, GRASP 250 SC, INSEGAR 25 WG, INSPIRE SUPER, KARATE ZEON 050 CS, MAINSPRING FLORA,
+    NINJA, NIPACIDE P840 N, PAMONA, PICATINA FLORA, PLANET XTRA, REFLECT 125 EC, REVUS TOP, SOLVIT, STADIUM, STEREO,
+    SUNJET FLORA, SWITCH PREMIUM, THIOVIT JET, TILT PLUS, TOUCHDOWN IQ 500, VANGARD 50 WG, VERTIMEC FLORA,
+    VIBRANCE INTEGRAL); 3 diferencias (TILT 250 EC, CELEST XL 035 FS, SCORE BETA 475 EC: ya estaban); 1 no es
+    etiqueta (1756 «Zenit 400 EC» es la resolución del SAG; la etiqueta de ZENIT, N° SAG 2493, no está en el listado).
+  - Observado en los subagentes: el ícono de teléfono de las etiquetas Syngenta es un carácter privado (U+F028):
+    citan el teléfono en dos fragmentos y pasa. «no se indica por la naturaleza de la aplicación» y «sin
+    restricción» no cuentan como «no aplica» en el verificador (bien: no lo dicen). `recopilador_revision` ya tiene
+    108 empresas nuevas (Syngenta con planta: «Syngenta S.A. (Monthey)»…): revisar con Cristóbal.
+  - Uso: 5 h de 6 a 74 % y semanal de 1 a 10 % para 54 etiquetas (10 flojas + 44); 3 subagentes a la vez × 4
+    etiquetas (220–350 mil tokens cada uno, ~4 % de la ventana cada uno). Unas 55–60 etiquetas por ventana y ~500
+    por semana: con 1.371 en «texto» (parte son diferencias) faltan ~3 semanas.
+- Falta: el control al azar (`control.py`; van ~115 cargadas, toca hacerlo), las diferencias de los productos que
+  ya estaban (incluido ACABAN, inventario 161) y, al terminar, el workflow mensual.
+
+Sesión 3 (22-10 en la noche y 23-10), para la historia:
+- 51 etiquetas (44 nuevas + 7 diferencias: ACRONIS, AMISTAR TOP, 271, 290,
   416, 422, 401), lotes `2026-10-23-1` a `-5`, todas con Haiku, 2.206 líneas de 41 productos: dosis 84,8 %, carencia
   84,3 %. **PUNTO 70 WP** (último producto del plan de Cristóbal) quedó cargado pero flojo: 50 líneas, 12 con dosis y
   29 con carencia (el cuadro es escaneado, ver «No reintentar»). La primera tanda se cortó al cerrarse la app
@@ -545,8 +596,6 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
 - Uso, sesión 3: 51 etiquetas = 5 h de 0 a 76 % y semanal de 80 a 91 %; tandas de 3 subagentes × 4 etiquetas
   (290–400 mil tokens cada uno) = ~15 % de la ventana de 5 h y ~2 % del semanal. Unas 60 etiquetas por ventana;
   el semanal alcanza para ~450 por semana: faltan ~3–4 semanas.
-- Falta: el control al azar (`control.py`; van 75 cargadas), las diferencias de los productos que ya estaban
-  (incluido ACABAN, inventario 161) y, al terminar, el workflow mensual.
 
 Sesión 2 (22-10-2026), para la historia:
 - Cargadas: ANTRACOL 70 % WP y Alsystin 480 SC (piloto); lote `2026-10-22-1`: LUNA EXPERIENCE 400 SC, METALAXIL
@@ -596,12 +645,13 @@ Sesión 2 (22-10-2026), para la historia:
   ULTRASOL, MEZCLA 17-20-20) quedan como «fuera del catálogo». **22-10-2026:** el recopilador ya cargó todos los
   plaguicidas de esta lista que están en el listado del SAG; PUNTO 70 WP (23-10) quedó con pocas dosis (cuadro
   escaneado); ver «Estado del recopilador».
-- **Cuadros escaneados (23-10-2026):** resuelto con la segunda lectura de Tesseract (`ocr.py --tesseract`; en la
-  prueba leyó las dosis que faltaban en PUNTO 70 WP, 343, 389, 416 y 409). Falta **volver a extraer las etiquetas ya
-  cargadas que quedaron flojas** y completar sus líneas con `cargar.py --completar` (solo llena lo vacío): PUNTO 70
-  WP (inventario 1312), 163, 184, 185, 325, 343, 370, 389, 410 y 416; de la sesión 2, ABAMECTIN 18 EC y CITROLIV
-  EMULSIBLE+ (485). La 409 (BUMPER 25 % EC) no está cargada: su intento sin cuadro quedó como
-  `sag/extraido/409.sin_cuadro.json`, así que `lote.py` la vuelve a tomar.
+- **Cuadros escaneados (23-10-2026):** resuelto con la segunda lectura de Tesseract (`ocr.py --tesseract`). Las 10
+  etiquetas cargadas que quedaron flojas se volvieron a extraer y se completaron el 25-10-2026 (dosis 64 → 127 de 227
+  líneas; ver «Estado del recopilador»). Falta, **solo si Cristóbal dice que sí**, reemplazar las líneas de las que
+  numeraron las filas distinto (PUNTO 70 WP, 163, 184, 152, 370, 325, 485): ocultar las viejas (`rechazado`, se pueden
+  volver a mostrar) y cargar las de la extracción nueva, que ya está en `sag/extraido/<id>.json`. La 409 (BUMPER
+  25 % EC) no está cargada: su intento sin cuadro quedó como `sag/extraido/409.sin_cuadro.json`, así que `lote.py`
+  la vuelve a tomar cuando le toque a su empresa.
 - Revisión humana: para que una línea diga «Revisado» alguien tiene que compararla con la etiqueta
   (hoy solo las 56 de ACABAN). Quitar `noindex` lo decide Cristóbal.
 - TOPAS 200 EW no tiene grupo de modo de acción en los datos (penconazol sin grupo): revisar su etiqueta.

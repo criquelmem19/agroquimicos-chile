@@ -1,9 +1,11 @@
 """Arma el siguiente lote de extracción: elige etiquetas por prioridad y escribe el encargo de cada subagente.
 
-Uso:  python -I scripts/recopilador/lote.py [--agentes 2] [--por 4] [--ids 1,2,3]
+Uso:  python -I scripts/recopilador/lote.py [--agentes 2] [--por 4] [--ids 1,2,3] [--empresa syngenta] [--nuevos]
 
 - Toma filas en estado «texto» con páginas de etiqueta, sin JSON en <datos>/sag/extraido/, en orden de
   prioridad (vigentes en la planilla; insecticidas, fungicidas, herbicidas y acaricidas; más nuevas).
+  --empresa: solo las de esa empresa (parte del nombre en el listado del SAG). --nuevos: sin las de productos
+  cuyo N° SAG ya está en el catálogo (esas solo agregan el documento y anotan diferencias).
   Salta las que todavía tienen páginas sin texto (falta ocr.py).
 - Imprime un encargo por subagente (para pegar en la herramienta Agent) y al final el comando de carga.
 """
@@ -11,7 +13,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from comun import DATOS, consola_utf8, leer_json, sql  # noqa: E402
+from comun import DATOS, consola_utf8, leer_json, lit, sql  # noqa: E402
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PYV = os.path.join(DATOS, "venv", "Scripts", "python.exe")
@@ -55,9 +57,14 @@ def main():
     else:
         hechas = {int(f[:-5]) for f in os.listdir(os.path.join(DATOS, "sag", "extraido"))
                   if f.endswith(".json") and f[:-5].isdigit()} if os.path.isdir(os.path.join(DATOS, "sag", "extraido")) else set()
-        filas = sql("""select id from public.sag_inventario
-where estado = 'texto' and coalesce(array_length(paginas_etiqueta, 1), 0) > 0
-order by prioridad nulls last, id""", "lote")
+        filtro = ""
+        if "--empresa" in args:  # una empresa a la vez (pedido de Cristóbal, 25-10-2026)
+            filtro += f" and i.empresa ilike {lit('%' + args[args.index('--empresa') + 1] + '%')}"
+        if "--nuevos" in args:  # sin las de productos que ya están en el catálogo (esas solo anotan diferencias)
+            filtro += " and not exists (select 1 from public.products p where p.registration_number = i.registro_sag)"
+        filas = sql(f"""select i.id from public.sag_inventario i
+where i.estado = 'texto' and coalesce(array_length(i.paginas_etiqueta, 1), 0) > 0{filtro}
+order by i.prioridad nulls last, i.id""", "lote")
         elegidas = [f["id"] for f in filas if f["id"] not in hechas and not falta_ocr(f["id"])][:agentes * por]
     for a in range(agentes):
         grupo = elegidas[a * por:(a + 1) * por]

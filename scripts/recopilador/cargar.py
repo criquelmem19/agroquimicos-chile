@@ -12,6 +12,9 @@ Uso:  python -I scripts/recopilador/cargar.py <carpeta_json> [--ids 1,2,3] [--lo
 - Cultivos, objetivos, empresas e ingredientes se buscan primero en la base (nombre sin tildes ni
   mayúsculas, plural/singular; cultivos también por sus alias). Lo nuevo queda en recopilador_revision.
 - Inventario: «cargado» o «diferencias», con producto, documento, lote y versión del extractor.
+- --completar (etiquetas ya «cargado», con una extracción nueva): solo llena campos vacíos de las líneas que
+  calzan (página, fila, cultivo y objetivo); no agrega líneas ni reemplaza valores o citas. Muestra cuánto ganó.
+  Con --ensayo lo aplica en una transacción que se deshace y cuenta los valores que cambiarían (debe ser 0).
 """
 import csv
 import datetime
@@ -275,6 +278,7 @@ on conflict do nothing;""")
 
     def usos(self):
         filas, objetivos, vistos = [], [], set()
+        objetivos_completar = []  # (línea, objetivo, científico): para calzar líneas con --completar
         for l in expandir.lineas(self.ver):
             u = l["uso"]
             cultivo, es_nuevo = self.cat.cultivo(l["cultivo"])
@@ -334,14 +338,27 @@ on conflict do nothing;""")
 values ({lit(comun)}, {lit(cient)}, {lit(tipo)}) on conflict do nothing;""")
                     self.nuevo("objetivo", comun + (f" ({cient})" if cient else ""), "Objetivo nuevo")
                 objetivos.append(f"({lit(uid)}::uuid, {lit(comun)}, {lit(cient)})")
+                objetivos_completar.append((uid, comun, cient))
         columnas = """v(id, cultivo, codigo, dosis, dmin, dmax, unidad, base, mmin, mmax, metodo, momento,
   obs, dias, na, raw, maxap, imin, imax, pagina, fila, fuente, confianza, citas)"""
         if filas and self.completar_doc:
-            # Solo llena lo vacío de líneas ya cargadas de este documento; nunca reemplaza un valor.
+            # Solo llena lo vacío de líneas ya cargadas de este documento; nunca reemplaza un valor. La línea
+            # nueva calza con la cargada si coinciden página, n.° de fila y cultivo, y (si las dos tienen
+            # objetivos) al menos un objetivo: una extracción nueva puede numerar las filas de otra forma.
             vacia = "pu.withholding_period_days is null and not pu.withholding_not_applicable and pu.withholding_period_raw is null"
+            vacios = {  # cita nueva → solo si ese campo estaba vacío (si no, se queda la cita del valor que ya estaba)
+                "dosis": "btrim(coalesce(pu.dose_raw, '')) = ''",
+                "mojamiento": "pu.water_volume_min_l_ha is null and pu.water_volume_max_l_ha is null",
+                "intervalo": "pu.interval_min_days is null and pu.interval_max_days is null",
+                "metodo": "pu.application_method is null", "momento": "pu.application_timing is null",
+                "observaciones": "pu.observations is null", "max_aplicaciones": "pu.maximum_applications_per_season is null",
+                "carencia": vacia}
+            citas = ", ".join(f"'{k}', case when {cond} then v.citas::jsonb -> '{k}' end" for k, cond in vacios.items())
+            obj = ",".join(f"({lit(u)}::uuid, {lit(c)})" for u, c, _ in objetivos_completar) or "(null::uuid, null::text)"
             self.sql = [s for s in self.sql if not s.startswith(("insert into public.crops", "insert into public.targets"))]
-            self.sql.append(f"""update public.product_uses pu set
-  dose_raw = case when btrim(pu.dose_raw) = '' then v.dosis else pu.dose_raw end,
+            self.sql.append(f"""with o(u, comun) as (values {obj})
+update public.product_uses pu set
+  dose_raw = case when btrim(coalesce(pu.dose_raw, '')) = '' then v.dosis else pu.dose_raw end,
   dose_min = case when pu.dose_min is null and pu.dose_max is null then v.dmin else pu.dose_min end,
   dose_max = case when pu.dose_min is null and pu.dose_max is null then v.dmax else pu.dose_max end,
   dose_unit = coalesce(pu.dose_unit, v.unidad), dose_basis = coalesce(pu.dose_basis, v.base),
@@ -355,11 +372,17 @@ values ({lit(comun)}, {lit(cient)}, {lit(tipo)}) on conflict do nothing;""")
   maximum_applications_per_season = coalesce(pu.maximum_applications_per_season, v.maxap),
   interval_min_days = case when pu.interval_min_days is null and pu.interval_max_days is null then v.imin else pu.interval_min_days end,
   interval_max_days = case when pu.interval_min_days is null and pu.interval_max_days is null then v.imax else pu.interval_max_days end,
-  field_citations = v.citas || pu.field_citations, updated_at = now()
+  field_citations = (pu.field_citations - case when {vacia} and v.raw is not null then 'carencia_conflicto' else '' end)
+    || jsonb_strip_nulls(jsonb_build_object({citas})),
+  updated_at = now()
 from (values {','.join(filas)}) as {columnas}
 join public.crops c on c.name = v.cultivo
 where pu.source_document_id = {lit(self.completar_doc)}::uuid and pu.source_table_row = v.fila and pu.crop_id = c.id
-  and pu.review_status = 'pendiente';""")
+  and pu.source_page = v.pagina and pu.review_status = 'pendiente'
+  and (not exists (select 1 from o where o.u = v.id::uuid)
+       or not exists (select 1 from public.use_targets ut where ut.product_use_id = pu.id)
+       or exists (select 1 from o join public.targets t on t.common_name = o.comun
+                  join public.use_targets ut on ut.target_id = t.id and ut.product_use_id = pu.id where o.u = v.id::uuid));""")
             return len(filas)
         if filas:
             self.sql.append(f"""insert into public.product_uses (id, product_id, crop_id, source_use_code, dose_raw, dose_min, dose_max,
@@ -502,16 +525,63 @@ from public.sag_inventario where id in ({','.join(map(str, ids)) or '0'})""", "i
     total = {"cargadas": 0, "diferencias": 0, "no_etiqueta": 0, "omitidas": 0, "errores": 0, "lineas": 0}
     if "--completar" in args:
         # Etiquetas ya cargadas: con el verificador mejorado se llenan campos que quedaron vacíos.
+        # --ensayo: aplica dentro de una transacción que se deshace y muestra cómo quedaría (no toca la base).
         docs = {r["id"]: r for r in sql(f"select id, producto_id, documento_id from public.sag_inventario "
                                         f"where estado = 'cargado' and id in ({','.join(map(str, ids)) or '0'})")}
+        for i in ids:
+            if i not in docs:
+                print(f"{i}: se omite (no está «cargado»)")
+        campos = ("lineas", "dosis", "carencia", "mojamiento", "intervalo", "metodo")
+        # En el ensayo también cuenta las líneas en que cambiaría un valor o una cita que ya estaba (debe ser 0).
+        reemplazos = " or ".join([f"(a.{c} is not null and a.{c} is distinct from p.{c})" for c in (
+            "dose_min", "dose_max", "dose_unit", "dose_basis", "water_volume_min_l_ha", "water_volume_max_l_ha",
+            "application_method", "application_timing", "observations", "withholding_period_days",
+            "withholding_period_raw", "maximum_applications_per_season", "interval_min_days", "interval_max_days")] + [
+            "(btrim(coalesce(a.dose_raw, '')) <> '' and a.dose_raw is distinct from p.dose_raw)",
+            "(a.withholding_not_applicable and not p.withholding_not_applicable)",
+            "exists (select 1 from jsonb_object_keys(a.field_citations) k where k <> 'carencia_conflicto' "
+            "and a.field_citations -> k is distinct from p.field_citations -> k)"])
         for i, r in docs.items():
-            ver = verificar.verificar_archivo(os.path.join(carpeta, f"{i}.json"), os.path.dirname(ruta("sag", "verificado", "x")))
-            carga = Carga(cat, invs[i], ver, modelo, lote,
-                          leer_json(os.path.join(verificar.carpeta_texto(i), "paginas.json"), []))
-            carga.p_id, carga.d_id, carga.completar_doc = r["producto_id"], r["documento_id"], r["documento_id"]
-            n = carga.usos()
-            sql("begin;\n" + "\n".join(carga.sql) + "\ncommit;\n", f"completar_{i}")
-            print(f"{i}: revisadas {n} líneas (solo se llenó lo vacío)")
+            def medir(extra=""):
+                return f"""select count(*) as lineas,
+  count(*) filter (where btrim(coalesce(dose_raw, '')) <> '') as dosis,
+  count(*) filter (where withholding_period_days is not null or withholding_not_applicable or withholding_period_raw is not null) as carencia,
+  count(*) filter (where water_volume_min_l_ha is not null or water_volume_max_l_ha is not null) as mojamiento,
+  count(*) filter (where interval_min_days is not null or interval_max_days is not null) as intervalo,
+  count(*) filter (where application_method is not null) as metodo{extra}
+from public.product_uses where source_document_id = {lit(r['documento_id'])}::uuid;"""
+            try:
+                ver = verificar.verificar_archivo(os.path.join(carpeta, f"{i}.json"), os.path.dirname(ruta("sag", "verificado", "x")))
+                carga = Carga(cat, invs[i], ver, modelo, lote,
+                              leer_json(os.path.join(verificar.carpeta_texto(i), "paginas.json"), []))
+                carga.p_id, carga.d_id, carga.completar_doc = r["producto_id"], r["documento_id"], r["documento_id"]
+                n = carga.usos()
+                notas = ver.get("verificacion", [])
+                carga.sql.append(f"""insert into public.extraction_runs (document_id, status, extractor_version, model_name, raw_output,
+  started_at, finished_at)
+values ({lit(carga.d_id)}, 'validado', {lit(EXTRACTOR)}, {lit(modelo)}, {lit({
+                    "completar": True, "lote": lote, "usos": len(ver.get("usos", [])), "lineas": n,
+                    "descartados": sum(1 for x in notas if "descartado" in x["estado"]), "notas": notas[:60],
+                    "problemas": ver.get("problemas", [])[:20]})}, now(), now());""")
+                antes = sql(medir(), f"medir_{i}")[0]
+                texto_sql = "\n".join(carga.sql) + "\n"
+                with open(ruta("sag", "sql", f"completar_{i}.sql"), "w", encoding="utf-8") as f:
+                    f.write("begin;\n" + texto_sql + "commit;\n")
+                if ensayo:
+                    copia = (f"create temp table antes_c on commit drop as select * from public.product_uses "
+                             f"where source_document_id = {lit(r['documento_id'])}::uuid;\n")
+                    extra = f""",
+  (select count(*) from antes_c a join public.product_uses p using (id) where {reemplazos}) as reemplazados"""
+                    despues = sql("begin;\n" + copia + texto_sql + medir(extra) + "\nrollback;\n", f"ensayo_completar_{i}")[0]
+                else:
+                    sql("begin;\n" + texto_sql + "commit;\n", f"completar_{i}")
+                    despues = sql(medir(), f"medir_{i}")[0]
+                cambios = ", ".join(f"{c} {antes[c]}→{despues[c]}" for c in campos)
+                if ensayo:
+                    cambios += f"; valores o citas que ya estaban y cambiarían: {despues['reemplazados']}"
+                print(f"{i}: {'ENSAYO, ' if ensayo else ''}{n} líneas en la extracción nueva; {cambios}", flush=True)
+            except Exception as e:  # noqa: BLE001
+                print(f"{i}: ERROR al completar: {str(e)[:400]}", flush=True)
         return
     for i in ids:
         inv = invs.get(i)
