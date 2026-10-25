@@ -545,7 +545,8 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
 - **Orden por empresa** (Cristóbal, 25-10-2026: «terminamos con Syngenta y empezamos con la segunda con más
   cosas, creo que es UPL»). Syngenta: quedan **10 productos nuevos** (188, 1417, 1615, 962, 963, 1584, 1628, 843,
   844, 1723: `lote.py --empresa syngenta --nuevos`). **Después, Anasac** (Cristóbal, 25-10-2026: «después de
-  Syngenta sigue con Anasac, que es la que tiene más etiquetas»; 206 pendientes: `lote.py --empresa anasac --nuevos`)
+  Syngenta sigue con Anasac, que es la que tiene más etiquetas»; 206 pendientes, 197 de productos nuevos y todas con
+  texto listo, sin OCR pendiente: `lote.py --empresa anasac --nuevos`)
   y luego UPL (141). Las otras 72 etiquetas de Syngenta en «texto» son de productos que ya estaban en el catálogo (carga
   original): solo agregarían el documento y anotarían diferencias; van después.
 - Inventario: 1.634 filas; **1.371 en «texto»**, 108 cargadas, 10 diferencias, 63 no son etiqueta, 56 versiones
