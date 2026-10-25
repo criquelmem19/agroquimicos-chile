@@ -1,6 +1,7 @@
 """Paso 5 del recopilador: verifica y carga a la base las etiquetas extraídas. Sin IA.
 
 Uso:  python -I scripts/recopilador/cargar.py <carpeta_json> [--ids 1,2,3] [--lote NOMBRE] [--modelo MODELO] [--ensayo]
+                                             [--completar | --reemplazar [--forzar]]
 
 - Toma <carpeta_json>/<id>.json (lo que escribieron los subagentes), lo verifica (verificar.py) y lo carga
   en una transacción por etiqueta. --ensayo solo escribe el SQL en <datos>/sag/sql/ (no toca la base).
@@ -15,6 +16,10 @@ Uso:  python -I scripts/recopilador/cargar.py <carpeta_json> [--ids 1,2,3] [--lo
 - --completar (etiquetas ya «cargado», con una extracción nueva): solo llena campos vacíos de las líneas que
   calzan (página, fila, cultivo y objetivo); no agrega líneas ni reemplaza valores o citas. Muestra cuánto ganó.
   Con --ensayo lo aplica en una transacción que se deshace y cuenta los valores que cambiarían (debe ser 0).
+- --reemplazar (etiquetas ya «cargado», con una extracción nueva; solo con el «sí» de Cristóbal): oculta las líneas
+  «pendiente» del documento (review_status «rechazado», no se borran) y carga las de la extracción nueva. No lo hace
+  si quedarían menos líneas con dosis o con carencia (salvo --forzar). Con --ensayo muestra antes → después y los
+  cultivos que quedarían sin líneas.
 """
 import csv
 import datetime
@@ -427,11 +432,11 @@ values ({lit(self.p_id)}, {lit(self.d_id)}, {lit(reingreso)}::numeric, {lit(t('e
   {lit(t('incompatibilidad'))}, {lit(t('fitotoxicidad'))}, {lit(t('manejo_resistencia'))},
   array[{','.join(lit(a) for a in avisos)}]::text[], {lit(contactos)}, {lit(fc)});""")
 
-    def cierre(self, estado, extra=""):
+    def cierre(self, estado, extra="", **marcas):
         notas = self.ver.get("verificacion", [])
         resumen = {"usos": len(self.ver.get("usos", [])), "lineas": len(expandir.lineas(self.ver)),
                    "descartados": sum(1 for n in notas if "descartado" in n["estado"]),
-                   "notas": notas[:60], "problemas": self.ver.get("problemas", [])[:20]}
+                   "notas": notas[:60], "problemas": self.ver.get("problemas", [])[:20], **marcas}
         self.sql.append(f"""insert into public.extraction_runs (document_id, status, extractor_version, model_name, raw_output,
   started_at, finished_at)
 values ({lit(self.d_id)}, 'validado', {lit(EXTRACTOR)}, {lit(self.modelo)}, {lit(resumen)}, now(), now());""")
@@ -523,65 +528,92 @@ from public.sag_inventario where id in ({','.join(map(str, ids)) or '0'})""", "i
     cat = Catalogo()
     csv_dif = ruta("sag", "diferencias.csv")
     total = {"cargadas": 0, "diferencias": 0, "no_etiqueta": 0, "omitidas": 0, "errores": 0, "lineas": 0}
-    if "--completar" in args:
-        # Etiquetas ya cargadas: con el verificador mejorado se llenan campos que quedaron vacíos.
+    if "--completar" in args or "--reemplazar" in args:
+        # Etiquetas ya «cargado» con una extracción nueva. --completar: llena campos vacíos de las líneas que calzan.
+        # --reemplazar: oculta las líneas pendientes del documento («rechazado», no se borran) y carga las nuevas;
+        # no lo hace si quedarían menos líneas con dosis o con carencia (salvo --forzar).
         # --ensayo: aplica dentro de una transacción que se deshace y muestra cómo quedaría (no toca la base).
+        reemplazar = "--reemplazar" in args
+        modo = "reemplazar" if reemplazar else "completar"
         docs = {r["id"]: r for r in sql(f"select id, producto_id, documento_id from public.sag_inventario "
                                         f"where estado = 'cargado' and id in ({','.join(map(str, ids)) or '0'})")}
         for i in ids:
             if i not in docs:
                 print(f"{i}: se omite (no está «cargado»)")
         campos = ("lineas", "dosis", "carencia", "mojamiento", "intervalo", "metodo")
-        # En el ensayo también cuenta las líneas en que cambiaría un valor o una cita que ya estaba (debe ser 0).
-        reemplazos = " or ".join([f"(a.{c} is not null and a.{c} is distinct from p.{c})" for c in (
-            "dose_min", "dose_max", "dose_unit", "dose_basis", "water_volume_min_l_ha", "water_volume_max_l_ha",
-            "application_method", "application_timing", "observations", "withholding_period_days",
-            "withholding_period_raw", "maximum_applications_per_season", "interval_min_days", "interval_max_days")] + [
-            "(btrim(coalesce(a.dose_raw, '')) <> '' and a.dose_raw is distinct from p.dose_raw)",
-            "(a.withholding_not_applicable and not p.withholding_not_applicable)",
-            "exists (select 1 from jsonb_object_keys(a.field_citations) k where k <> 'carencia_conflicto' "
-            "and a.field_citations -> k is distinct from p.field_citations -> k)"])
+        if reemplazar:
+            # En el ensayo: cultivos que tenían líneas y quedarían sin ninguna visible.
+            extra = """,
+  (select string_agg(distinct c.name::text, ', ') from antes_c a join public.crops c on c.id = a.crop_id
+   where a.review_status = 'pendiente' and not exists (select 1 from public.product_uses p
+     where p.source_document_id = a.source_document_id and p.review_status <> 'rechazado' and p.crop_id = a.crop_id))
+  as cultivos_perdidos"""
+        else:
+            # En el ensayo: líneas en que cambiaría un valor o una cita que ya estaba (debe ser 0).
+            reemplazos = " or ".join([f"(a.{c} is not null and a.{c} is distinct from p.{c})" for c in (
+                "dose_min", "dose_max", "dose_unit", "dose_basis", "water_volume_min_l_ha", "water_volume_max_l_ha",
+                "application_method", "application_timing", "observations", "withholding_period_days",
+                "withholding_period_raw", "maximum_applications_per_season", "interval_min_days", "interval_max_days")] + [
+                "(btrim(coalesce(a.dose_raw, '')) <> '' and a.dose_raw is distinct from p.dose_raw)",
+                "(a.withholding_not_applicable and not p.withholding_not_applicable)",
+                "exists (select 1 from jsonb_object_keys(a.field_citations) k where k <> 'carencia_conflicto' "
+                "and a.field_citations -> k is distinct from p.field_citations -> k)"])
+            extra = f""",
+  (select count(*) from antes_c a join public.product_uses p using (id) where {reemplazos}) as reemplazados"""
         for i, r in docs.items():
-            def medir(extra=""):
+            def medir(extra=""):  # solo líneas visibles en el sitio
                 return f"""select count(*) as lineas,
   count(*) filter (where btrim(coalesce(dose_raw, '')) <> '') as dosis,
   count(*) filter (where withholding_period_days is not null or withholding_not_applicable or withholding_period_raw is not null) as carencia,
   count(*) filter (where water_volume_min_l_ha is not null or water_volume_max_l_ha is not null) as mojamiento,
   count(*) filter (where interval_min_days is not null or interval_max_days is not null) as intervalo,
   count(*) filter (where application_method is not null) as metodo{extra}
-from public.product_uses where source_document_id = {lit(r['documento_id'])}::uuid;"""
+from public.product_uses where source_document_id = {lit(r['documento_id'])}::uuid and review_status <> 'rechazado';"""
             try:
                 ver = verificar.verificar_archivo(os.path.join(carpeta, f"{i}.json"), os.path.dirname(ruta("sag", "verificado", "x")))
                 carga = Carga(cat, invs[i], ver, modelo, lote,
                               leer_json(os.path.join(verificar.carpeta_texto(i), "paginas.json"), []))
-                carga.p_id, carga.d_id, carga.completar_doc = r["producto_id"], r["documento_id"], r["documento_id"]
-                n = carga.usos()
-                notas = ver.get("verificacion", [])
-                carga.sql.append(f"""insert into public.extraction_runs (document_id, status, extractor_version, model_name, raw_output,
+                carga.p_id, carga.d_id = r["producto_id"], r["documento_id"]
+                if reemplazar:
+                    carga.sql.append(f"""update public.product_uses set review_status = 'rechazado',
+  reviewed_by = {lit(f'recopilador: reemplazada por una lectura nueva (lote {lote})')}, reviewed_at = now()
+where source_document_id = {lit(carga.d_id)}::uuid and review_status = 'pendiente';""")
+                    n = carga.usos()
+                    carga.cierre("cargado", "Líneas reemplazadas por una lectura nueva; las anteriores quedaron "
+                                            "«rechazado» (ocultas, no se borraron)", reemplazo=True)
+                else:
+                    carga.completar_doc = r["documento_id"]
+                    n = carga.usos()
+                    notas = ver.get("verificacion", [])
+                    carga.sql.append(f"""insert into public.extraction_runs (document_id, status, extractor_version, model_name, raw_output,
   started_at, finished_at)
 values ({lit(carga.d_id)}, 'validado', {lit(EXTRACTOR)}, {lit(modelo)}, {lit({
-                    "completar": True, "lote": lote, "usos": len(ver.get("usos", [])), "lineas": n,
-                    "descartados": sum(1 for x in notas if "descartado" in x["estado"]), "notas": notas[:60],
-                    "problemas": ver.get("problemas", [])[:20]})}, now(), now());""")
+                        "completar": True, "lote": lote, "usos": len(ver.get("usos", [])), "lineas": n,
+                        "descartados": sum(1 for x in notas if "descartado" in x["estado"]), "notas": notas[:60],
+                        "problemas": ver.get("problemas", [])[:20]})}, now(), now());""")
                 antes = sql(medir(), f"medir_{i}")[0]
                 texto_sql = "\n".join(carga.sql) + "\n"
-                with open(ruta("sag", "sql", f"completar_{i}.sql"), "w", encoding="utf-8") as f:
+                with open(ruta("sag", "sql", f"{modo}_{i}.sql"), "w", encoding="utf-8") as f:
                     f.write("begin;\n" + texto_sql + "commit;\n")
-                if ensayo:
-                    copia = (f"create temp table antes_c on commit drop as select * from public.product_uses "
-                             f"where source_document_id = {lit(r['documento_id'])}::uuid;\n")
-                    extra = f""",
-  (select count(*) from antes_c a join public.product_uses p using (id) where {reemplazos}) as reemplazados"""
-                    despues = sql("begin;\n" + copia + texto_sql + medir(extra) + "\nrollback;\n", f"ensayo_completar_{i}")[0]
+                copia = (f"create temp table antes_c on commit drop as select * from public.product_uses "
+                         f"where source_document_id = {lit(r['documento_id'])}::uuid;\n")
+                prueba = sql("begin;\n" + copia + texto_sql + medir(extra) + "\nrollback;\n", f"ensayo_{modo}_{i}")[0]
+                cambios = ", ".join(f"{c} {antes[c]}→{prueba[c]}" for c in campos)
+                if reemplazar:
+                    cambios += f"; cultivos que quedarían sin líneas: {prueba['cultivos_perdidos'] or 'ninguno'}"
+                    peor = prueba["dosis"] < antes["dosis"] or prueba["carencia"] < antes["carencia"]
+                    if peor and not ensayo and "--forzar" not in args:
+                        print(f"{i}: NO se reemplaza (quedarían menos líneas con dosis o con carencia); {cambios}", flush=True)
+                        continue
                 else:
-                    sql("begin;\n" + texto_sql + "commit;\n", f"completar_{i}")
+                    cambios += f"; valores o citas que ya estaban y cambiarían: {prueba['reemplazados']}"
+                if not ensayo:
+                    sql("begin;\n" + texto_sql + "commit;\n", f"{modo}_{i}")
                     despues = sql(medir(), f"medir_{i}")[0]
-                cambios = ", ".join(f"{c} {antes[c]}→{despues[c]}" for c in campos)
-                if ensayo:
-                    cambios += f"; valores o citas que ya estaban y cambiarían: {despues['reemplazados']}"
+                    cambios = ", ".join(f"{c} {antes[c]}→{despues[c]}" for c in campos)
                 print(f"{i}: {'ENSAYO, ' if ensayo else ''}{n} líneas en la extracción nueva; {cambios}", flush=True)
             except Exception as e:  # noqa: BLE001
-                print(f"{i}: ERROR al completar: {str(e)[:400]}", flush=True)
+                print(f"{i}: ERROR al {modo}: {str(e)[:400]}", flush=True)
         return
     for i in ids:
         inv = invs.get(i)

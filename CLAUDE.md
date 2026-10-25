@@ -154,7 +154,10 @@ recibe «permission denied» (verificado el 20-10-2026).
 - Bucket público `etiquetas`: 152 PDF (96 MB), ruta `<sha256>/<archivo>.pdf`. Sin políticas de
   escritura (solo se descarga). 3 archivos `*_1_.pdf` son copias de otros ya registrados.
 - `product_uses.review_status`: pendiente | revisado | aprobado | rechazado. El sitio oculta `rechazado`
-  y solo muestra «Revisado» para `aprobado`.
+  y solo muestra «Revisado» para `aprobado`. Desde el 25-10-2026 `rechazado` también marca las líneas reemplazadas
+  por una lectura nueva del recopilador (`reviewed_by` «recopilador: reemplazada…»; 127 líneas de 4 etiquetas): no se
+  borran. El índice único `product_uses_source_crop_ux` (documento, página, fila, cultivo) no cuenta las `rechazado`
+  (migración `usos_unicos_sin_rechazados`).
 - Extractor original: `rotulo-local-v3`, reglas locales **sin modelo de lenguaje** (`model_name = reglas-locales-sin-llm`).
 - Vistas antiguas (todas `security_invoker = true`): `v_agrochemical_crop_lines`, `v_products_summary`,
   `v_export_excel`, `vista_plana`.
@@ -367,7 +370,10 @@ vigentes 1xxx, sin dato 2xxx, cancelados 3xxx; dentro, más nuevas primero. Lo n
    ya «cargado», llena solo campos vacíos de las líneas que calzan en página, n.° de fila, cultivo y (si las dos
    tienen) algún objetivo; nunca reemplaza un valor ni su cita, no agrega líneas y anota la corrida en
    `extraction_runs` (`raw_output.completar`). Muestra antes → después por campo. Con `--ensayo` lo aplica en una
-   transacción que se deshace y cuenta los valores o citas que cambiarían (tiene que dar 0).
+   transacción que se deshace y cuenta los valores o citas que cambiarían (tiene que dar 0). `--reemplazar` (solo con
+   el «sí» de Cristóbal): oculta las líneas «pendiente» del documento (`rechazado`, no se borran) y carga las de la
+   extracción nueva; se niega si quedarían menos líneas con dosis o con carencia (salvo `--forzar`); con `--ensayo`
+   muestra antes → después y los cultivos que quedarían sin líneas.
 9. `reporte.py`: números para el informe (inventario, cobertura, autorizados sin etiqueta, problemas).
 Auxiliares: `comun.py`, `expandir.py` (fila × cultivo y su carencia; «cereza (7)» calza con «Cerezo»),
 `recorte.py` (zoom de una zona para los subagentes), `calce.py` (extracción nueva contra líneas cargadas),
@@ -544,7 +550,8 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   original): solo agregarían el documento y anotarían diferencias; van después.
 - Inventario: 1.634 filas; **1.371 en «texto»**, 108 cargadas, 10 diferencias, 63 no son etiqueta, 56 versiones
   anteriores, 14 sin PDF, 5 ilegibles, 5 duplicados, 2 ya en la base.
-- Base: 259 productos (230 con N° SAG), 6.611 líneas; dosis 92,3 %, carencia 88,3 %; 41 MB.
+- Base: 259 productos (230 con N° SAG), 6.624 líneas visibles (+ 127 ocultas por el reemplazo); dosis 92,6 %,
+  carencia 88,4 %; 42 MB.
 - Sesión 4 (25-10-2026), todo con Haiku:
   - **Etiquetas flojas** (cuadros escaneados, ahora con la segunda lectura de Tesseract): se volvieron a extraer
     10 (1312 PUNTO 70 WP, 152 ABAMECTIN 18 EC, 163, 184, 325, 343, 370, 389, 410 y 485 CITROLIV EMULSIBLE+; los
@@ -552,11 +559,15 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
     `2026-10-25-1`, solo en `extraction_runs`): **líneas con dosis 64 → 127 de 227**, sin cambiar ningún valor ni
     cita (ensayo: 0). PUNTO 70 WP 12 → 19 de 50; ABAMECTIN 26 → 46 de 56; 163 1 → 11; 370 11 → 19 (todas);
     389 2 → 7; 325 2 → 7; 485 5 → 8; 410 1 → 3 (todas); 343 0 → 2; 184 4 → 5. Carencia: igual (lo que falta no
-    tiene cita). **Queda más por ganar:** la extracción nueva numeró las filas distinto y muchas líneas no calzan
-    (PUNTO 70 WP: 38 de 59 líneas nuevas traen dosis, solo 28 calzan; 163: 14 nuevas con dosis sin calce; 184: 6;
-    152: 9; 370: 11; 325: 5; 485: 4). Para aprovecharlas habría que reemplazar las líneas de esas etiquetas (ocultar
-    las viejas con `rechazado` y cargar las nuevas): **se le preguntó a Cristóbal**; no hacerlo sin su «sí».
-    `calce.py <ids>` hace esa comparación (página, fila y cultivo). 185 (ACRONIS) y 416 (CALDO
+    tiene cita). La extracción nueva numeró las filas distinto en varias y muchas líneas no calzaban (`calce.py
+    <ids>` compara página, fila y cultivo). **Con el «sí» de Cristóbal (25-10-2026: «reemplaza las líneas viejas…
+    ocultas, no borradas») se reemplazaron** con `cargar.py --reemplazar` (lote `2026-10-25-6`) las 4 que mejoraban
+    sin perder cultivos: **PUNTO 70 WP** 50 → 59 líneas, dosis 19 → 38, carencia 29 → 38; **ABAMECTIN 18 EC** dosis
+    y carencia 46 → 55; **184** (Acrobat MZ) dosis 5 → 9; **325** (Basagran) dosis 7 → 12, carencia 12 → 17. Las 127
+    líneas viejas quedaron `rechazado` (ocultas, `reviewed_by` = «recopilador: reemplazada por una lectura nueva»),
+    no se borraron. Se pierde el método en varias (la lectura vieja lo sacaba del título del cuadro). No se
+    reemplazaron: 163 (Duraznero quedaba sin líneas), 485 (perdía las 28 carencias), 370 (sin ganancia); siguen
+    completadas. Comprobado en el sitio: la ficha de PUNTO 70 WP muestra solo las 59 nuevas. 185 (ACRONIS) y 416 (CALDO
     BORDELÉS VALLÉS) están en «diferencias»: no se rehicieron (`--completar` no aplica, el producto ya estaba).
   - **Syngenta:** 44 etiquetas (lotes `2026-10-25-2` a `-5`): 40 productos nuevos, 809 líneas, **dosis 94,1 %,
     carencia 90,4 %** (ALTO 100 SL, AMISTAR 50 WG, ASTERUS UNO, BANVEL 480 SL, BONTIMA, CAMIX, CELEST XL 035 FS
@@ -647,9 +658,9 @@ Sesión 2 (22-10-2026), para la historia:
   escaneado); ver «Estado del recopilador».
 - **Cuadros escaneados (23-10-2026):** resuelto con la segunda lectura de Tesseract (`ocr.py --tesseract`). Las 10
   etiquetas cargadas que quedaron flojas se volvieron a extraer y se completaron el 25-10-2026 (dosis 64 → 127 de 227
-  líneas; ver «Estado del recopilador»). Falta, **solo si Cristóbal dice que sí**, reemplazar las líneas de las que
-  numeraron las filas distinto (PUNTO 70 WP, 163, 184, 152, 370, 325, 485): ocultar las viejas (`rechazado`, se pueden
-  volver a mostrar) y cargar las de la extracción nueva, que ya está en `sag/extraido/<id>.json`. La 409 (BUMPER
+  líneas) y 4 se reemplazaron con su «sí» (PUNTO 70 WP, ABAMECTIN 18 EC, 184, 325; ver «Estado del recopilador»).
+  163 y 485 quedan con la carga vieja completada: para mejorarlas haría falta otra lectura (Sonnet) que no pierda
+  Duraznero (163) ni las carencias (485). La 409 (BUMPER
   25 % EC) no está cargada: su intento sin cuadro quedó como `sag/extraido/409.sin_cuadro.json`, así que `lote.py`
   la vuelve a tomar cuando le toque a su empresa.
 - Revisión humana: para que una línea diga «Revisado» alguien tiene que compararla con la etiqueta

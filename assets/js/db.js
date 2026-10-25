@@ -210,7 +210,7 @@ function conObjetivos(filas) {
   return filas;
 }
 
-// Las líneas 'rechazado' (marcadas como erróneas por una persona) no se muestran.
+// Las líneas 'rechazado' (marcadas como erróneas, o reemplazadas por una lectura nueva de la etiqueta) no se muestran.
 export function usosPorCultivo(cultivoId) {
   return recordar(`c:${cultivoId}`, async () => conObjetivos(await todas((c) =>
     c.from('product_uses').select(`${CAMPOS_USO},todos:use_targets(target_id)`)
