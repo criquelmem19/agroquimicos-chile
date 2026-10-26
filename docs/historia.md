@@ -97,6 +97,30 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
    que no la cumplen: al 20-10-2026 son 0).
 9. Medir cobertura antes y después. Meta: 80–90 % de las líneas con carencia resuelta y citada.
 
+## Recopilador: sesión 6 (26-10-2026, primera sesión automática)
+
+- 13:20–15:00. Uso al empezar: 5 h 1 %, semanal 25 %. 26 tandas de Haiku (máx. 3 a la vez, 4 etiquetas cada una,
+  160–275 mil tokens por subagente) + 1 reextracción con Sonnet (1337) + control al azar con Sonnet. 100 etiquetas
+  cargadas (lotes `2026-10-26-6a` a `-6z`), 3.987 líneas: Anasac completa y 11 de Bayer. Nada nuevo en el listado
+  del SAG; nada de Codex sin cargar. Uso al terminar: 5 h ~72 %, semanal ~35 % (~1 % semanal cada 10 etiquetas).
+- Correcciones del orquestador antes de cargar (el JSON original quedó como `<id>.antes.json.bak`):
+  1084 método «Aplicación terrestre» (deducido) → texto literal «Con equipos herbicidas de barra»; 821 GLIFOGLEX:
+  quitadas las dosis de Eucaliptos y Bordes de canales (asignadas por posición desde la tabla por maleza);
+  1042 MCPA 750 SL: la celda MALEZAS es una sola para todas las filas → lista completa en cada fila; 1129 NEXUS:
+  Vides «4,0 / 5,0» (dos dosis según forma de aplicar, no un rango).
+- Revisados y dejados como estaban (la etiqueta lo dice): KIMURA 300 SC arándano 170 días; SHIELD BRITE y CLIP
+  «350 - 1304 cc/100 L» (error de tipeo probable de la etiqueta); 490 mandarinos 130 días; 222 intervalos por fila;
+  858 HAZARD «Frutales (mencionados en el cuadro)»; 1622 «No corresponde por la naturaleza de la aplicación».
+- Al protocolo de cuadro en imagen (`.sin_cuadro.json` + `ocr.py --tesseract --forzar`): 591 y 542 (reextraídas y
+  cargadas en la misma sesión), 1059/1060 (METRICLAN 48 SC, etiqueta partida en dos PDF; quedan pendientes).
+  1337 (RANGO 480 SL) salió con 1 uso → `1337.incompleto.json` y Sonnet: 4 usos sin dosis (la tabla por maleza no
+  dice a qué uso va).
+- Control al azar (30 líneas de la sesión, Sonnet): 22 sin observaciones; 0 valores contrarios a la etiqueta; 5
+  carencias faltantes (N.C. sin leyenda en 1337 y 821; BELENUS tomate 3 días), 2 métodos deducidos («Al follaje»,
+  BELENUS), 2 líneas de GLIFOGLEX con dosis de un grupo de malezas sin el grupo, 1 mojamiento y 1 máximo faltantes.
+- `control.py`: archivos con fecha y hora (la muestra de la mañana `2026-10-26.json` se sobrescribió; su revisión
+  `2026-10-26_revision.json` está intacta) y `--lote` con patrón SQL (`%`).
+
 ## Recopilador: sesión 5 (26-10-2026)
 
 - Sesión 5 (26-10-2026), todo con Haiku (lotes `2026-10-26-1` a `-16`):

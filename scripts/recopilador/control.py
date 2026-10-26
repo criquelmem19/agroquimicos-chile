@@ -1,7 +1,7 @@
 """Control de calidad del recopilador: líneas al azar de lo cargado, para que un subagente que no extrajo
 las compare con la etiqueta (texto e imagen de la página). Sin IA en este script.
 
-Uso:  python -I scripts/recopilador/control.py [--n 30] [--lote LOTE]
+Uso:  python -I scripts/recopilador/control.py [--n 30] [--lote LOTE]   (LOTE con % = patrón, ej. 2026-10-26-6%)
       python -I scripts/recopilador/control.py --resumen <archivo_revision.json>
 
 - Elige N líneas al azar de documentos cargados por el recopilador (o de un lote) y escribe
@@ -41,13 +41,14 @@ def main():
 from public.product_uses pu
 join public.sag_inventario i on i.documento_id = pu.source_document_id and i.estado = 'cargado'
 join public.crops c on c.id = pu.crop_id join public.products p on p.id = pu.product_id
-where {('i.lote = ' + lit(lote)) if lote else 'true'}
+where {(('i.lote like ' if '%' in lote else 'i.lote = ') + lit(lote)) if lote else 'true'}
+  and pu.review_status <> 'rechazado'
 order by random() limit {n}""", "control")
     for f in filas:
         carpeta = os.path.join(DATOS, "sag", "texto", str(f["inventario"]))
         f["carpeta"] = carpeta
         f["imagen"] = os.path.join(carpeta, f"p{f['pagina']}.jpg")
-    fecha = datetime.date.today().isoformat()
+    fecha = datetime.datetime.now().strftime("%Y-%m-%d_%H%M")  # con hora: dos controles el mismo día no se pisan
     destino = ruta("sag", "control", f"{fecha}.json")
     escribir_json(destino, filas, indent=1)
     print(f"{len(filas)} líneas en {destino}\n")

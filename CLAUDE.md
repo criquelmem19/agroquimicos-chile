@@ -493,30 +493,37 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   del 25-10-2026): otra extracción numera las filas distinto y podía poner la dosis de una fila en otra del mismo
   cultivo. Ahora también exige la misma página y algún objetivo en común.
 
-## Estado del recopilador (26-10-2026, 10:30, después de la sesión 5)
+## Estado del recopilador (26-10-2026, 15:00, después de la sesión 6, la primera automática)
 
 - Frase de Cristóbal para seguir a mano: **«Sigue con el recopilador del SAG»** → «Cómo seguir». Ahora corre solo
   (ver «Sesiones automáticas»). El detalle de cada sesión va al final de `docs/historia.md`.
-- **Codex, primera tanda** (26-10, 11:31–11:47; se quedó sin uso): 5 etiquetas de UPL. 4 cargadas (CAPTAN PRIME
-  80 WG, CITRUS COBRE, CRATER GOLD MZ 72, CRATER MX 70 % WP; lote `2026-10-26-codex-1`, 154 líneas, 0 citas
-  descartadas). 426 (Captan 80 WP): cuadro sin texto → `426.sin_cuadro.json` y `ocr.py --tesseract --forzar` hecho.
-  Van 4 de las 20 de Codex antes de su control al azar. Reservas de Codex hasta las ~23:40: 426, 568, 573, 579.
-- **Empresa actual: Anasac** (92 vigentes de productos nuevos). Syngenta: terminada. **Codex: UPL** (118). Después: la
-  primera de `lote.py --empresas` (hoy: Bayer 66, BASF 58, Agrospec 55, Sumitomo 48, Corteva 48…).
-- **Cola:** 967 vigentes de productos nuevos; además ~110 de productos que ya estaban y 236 canceladas o que no
-  figuran en la planilla (van al final). Ritmo: ~65 por sesión de 5 h y ~600 por semana (límite semanal); Codex suma
-  aparte. Estimado sin Codex: ~9 de noviembre.
-- Inventario: 1.634 filas; 1.306 en «texto», 175 cargadas, 10 diferencias, 63 no son etiqueta, 54 versiones
+- **Sesión 6** (26-10, 13:20–15:00, automática): 100 etiquetas (Anasac completa y 11 de Bayer), 3.987 líneas, lotes
+  `2026-10-26-6a` a `-6z`. Uso: 5 h de 1 a ~72 %, semanal de 25 a ~35 %.
+- **Codex:** 4 de las 20 antes de su control al azar (lote `2026-10-26-codex-1`); en esta sesión no había nada suyo sin
+  cargar. **Codex: UPL** (110).
+- **Empresa actual: Bayer** (56 vigentes de productos nuevos). Anasac y Syngenta: terminadas (de Anasac quedan solo
+  1059/1060, METRICLAN 48 SC: la etiqueta viene partida en dos PDF —parte 1 sin cuadro, parte 2 con el cuadro en
+  imagen—; las dos como `.sin_cuadro.json` y la 1060 ya con la segunda lectura de Tesseract). Después: BASF 58,
+  Agrospec 55, Sumitomo 48, Corteva 48…
+- **Cola:** 857 vigentes de productos nuevos; además ~110 de productos que ya estaban y 236 canceladas o que no
+  figuran en la planilla. Ritmo: ~100 por sesión y ~650 por semana (límite semanal); Codex suma aparte. Estimado:
+  ~8 de noviembre.
+- Inventario: 1.634 filas; 1.206 en «texto», 279 cargadas, 10 diferencias, 63 no son etiqueta, 50 versiones
   anteriores, 14 sin PDF, 5 ilegibles, 5 duplicados, 2 ya en la base.
-- Base: 326 productos (296 con N° SAG), 9.816 líneas visibles (+ 127 ocultas por el reemplazo); dosis 94,8 %,
-  carencia 89,3 % (bajó por AQUILES 24 EC: 606 líneas, varias sin carencia citada); 52 MB.
-- Último control al azar: 26-10-2026, con 174 cargadas (0 valores equivocados en 30) → el siguiente con ~275.
-- Preguntas abiertas para Cristóbal: ACTELLIC AGRO (188) pone la carencia de «aplicación directa a los granos» en
-  la fila de granos ensacados; Agrocup (207) naranjo: máximo e intervalo de una celda que comparten tres
-  enfermedades; revisar `recopilador_revision` (108 empresas nuevas, cultivos y objetivos).
-- Etiquetas flojas: COLT 45 WP (515) sin carencia (los días solo están en la imagen); BACIFRUIT SC (315) 2 de 4 usos;
-  AQUILES 24 EC (261, cargada el 26-10 desde una extracción del 22-10) con Frutilla sin carencia (la etiqueta se
-  contradice: 30 días y «no corresponde»).
+- Base: 430 productos (400 con N° SAG), 13.957 líneas visibles; dosis 95,2 %, carencia 89,1 %; 60 MB.
+- Último control al azar: 26-10-2026 15:00, con 279 cargadas, 30 líneas de la sesión 6
+  (`sag/control/2026-10-26_1416_revision.json`): 22 sin observaciones, 0 valores que contradigan la etiqueta; faltan
+  datos (5 carencias, 1 mojamiento, 1 máximo) y 2 métodos «Al follaje» no escritos (BELENUS 30 WG). El siguiente con
+  ~380. Desde ahora `control.py` nombra los archivos con fecha y hora (el de la mañana se sobrescribió; su revisión
+  quedó) y `--lote` acepta patrón (`2026-10-26-6%`).
+- Preguntas abiertas para Cristóbal: **GLIFOGLEX 480 SL (821)**: la tabla de dosis por grupo de malezas quedó como 9
+  líneas por frutal, cada una con la dosis de un grupo pero sin decir cuál (el control lo marcó): ¿reemplazarlas
+  (`--reemplazar`) por líneas con el grupo de malezas como objetivo?; ACTELLIC AGRO (188); Agrocup (207); revisar
+  `recopilador_revision`.
+- Etiquetas flojas: COLT 45 WP (515); BACIFRUIT SC (315); AQUILES 24 EC (261); de la sesión 6: TOXIMOL (1620) tiene un
+  segundo cuadro en la pág. 4 sin cargar; 591 (3 de 6 cultivos: Zapallos, Pepino y Melón tuna solo en la imagen);
+  RANGO 480 SL (1337) sin dosis ni carencia («N.C.» sin leyenda); NEXUS 50 SL (1129) sin carencia («no se establecen
+  carencias»); 1717 (cebo para avispas) sin líneas; 542 (CPPU) sin carencia de Arándano y Cerezo.
 - Falta: las diferencias de los productos que ya estaban (incluido ACABAN, inventario 161) y, al terminar, el
   workflow mensual.
 
