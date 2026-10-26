@@ -547,6 +547,7 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   productos nuevos** (`lote.py --empresa anasac --nuevos`) y 10 de productos que ya estaban. Después UPL (141). Las 72
   etiquetas de Syngenta de productos que ya estaban (carga original) solo agregarían el documento y anotarían
   diferencias; van después.
+- **Quedan 1.306 etiquetas en la cola de `lote.py`** (1.197 de productos nuevos y 109 de productos que ya estaban).
 - Inventario: 1.634 filas; **1.307 en «texto»**, 174 cargadas, 10 diferencias, 63 no son etiqueta, 54 versiones
   anteriores, 14 sin PDF, 5 ilegibles, 5 duplicados, 2 ya en la base.
 - Base: 325 productos (295 con N° SAG), 9.210 líneas visibles (+ 127 ocultas por el reemplazo); **dosis 94,4 %,
@@ -559,9 +560,11 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   - **Control al azar** (`control.py --n 30`, revisor Sonnet, `sag/control/2026-10-26_revision.json`): **0 valores
     equivocados** en 30 líneas; 25 completas y 5 con un dato que la etiqueta trae y la base no («falta»: PUNTO 70 WP
     olivo sin dosis, mojamiento y máximo; AZUFRE FLOABLE AN 600 arveja sin mojamiento ni método; AGIL 100 EC máximo;
-    PUNTO 70 WG método; BONNUS 400 SC mojamiento). Dudosos, sin corregir (preguntar a Cristóbal): Assure Pro
-    (inventario 272, 9 líneas) guarda mojamiento 100–150 L/ha que en la etiqueta es «volumen mínimo» (100 con buena
-    pluviometría, 150 en zonas áridas); ACTELLIC AGRO (188) pone la carencia de «aplicación directa a los granos» en
+    PUNTO 70 WG método; BONNUS 400 SC mojamiento). **Assure Pro** (inventario 272) guardaba mojamiento 100–150 L/ha
+    que en la etiqueta es un «volumen mínimo» según la zona (100 con buena pluviometría, 150 en zonas áridas): **con el
+    «sí» de Cristóbal se vació en sus 812 líneas** (migración `correccion_mojamiento_assure_pro`; el valor anterior
+    quedó en `use_field_candidates.existing_value`, extractor `correccion-recopilador-v1`). Dudosos, sin corregir
+    (preguntar a Cristóbal): ACTELLIC AGRO (188) pone la carencia de «aplicación directa a los granos» en
     la fila de granos ensacados; Agrocup (207) naranjo: máximo e intervalo de una celda que comparten tres
     enfermedades. Se agregaron dos reglas a `instrucciones_extraccion.md` para que no se repitan.
   - **«N.C.»**: RANGO 75 WG quedó con 0 carencias porque el subagente citó solo «Carencia: N.C.» (el verificador no lo
