@@ -497,6 +497,10 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
 
 - Frase de Cristóbal para seguir a mano: **«Sigue con el recopilador del SAG»** → «Cómo seguir». Ahora corre solo
   (ver «Sesiones automáticas»). El detalle de cada sesión va al final de `docs/historia.md`.
+- **Codex, primera tanda** (26-10, 11:31–11:47; se quedó sin uso): 5 etiquetas de UPL. 4 cargadas (CAPTAN PRIME
+  80 WG, CITRUS COBRE, CRATER GOLD MZ 72, CRATER MX 70 % WP; lote `2026-10-26-codex-1`, 154 líneas, 0 citas
+  descartadas). 426 (Captan 80 WP): cuadro sin texto → `426.sin_cuadro.json` y `ocr.py --tesseract --forzar` hecho.
+  Van 4 de las 20 de Codex antes de su control al azar. Reservas de Codex hasta las ~23:40: 426, 568, 573, 579.
 - **Empresa actual: Anasac** (92 vigentes de productos nuevos). Syngenta: terminada. **Codex: UPL** (118). Después: la
   primera de `lote.py --empresas` (hoy: Bayer 66, BASF 58, Agrospec 55, Sumitomo 48, Corteva 48…).
 - **Cola:** 967 vigentes de productos nuevos; además ~110 de productos que ya estaban y 236 canceladas o que no
