@@ -12,9 +12,16 @@ la base. Trabaja con cuidado: la carencia decide si se puede cosechar.
 - Escribe **solo** en `C:\Users\crisa\agroquimicos-datos\sag\extraido_codex\` (un `<id>.json` por etiqueta) y en
   `C:\Users\crisa\agroquimicos-datos\sag\codex_verif\` (tu verificación). No modifiques ningún otro archivo, no
   uses la base de datos, no hagas commits ni push, no instales nada y no busques en internet.
-- Python: `C:\Users\crisa\AppData\Local\Programs\Python\Python312\python.exe -I …` (siempre con `-I`). Para recortes
-  de imagen: `C:\Users\crisa\agroquimicos-datos\venv\Scripts\python.exe -I …`.
-- Trabaja desde la carpeta `C:\Users\crisa\OneDrive\Escritorio\Proyectos\Agroquímicos Chile CRM`.
+- Para no chocar con Claude, que trabaja al mismo tiempo: pide las etiquetas **siempre** con `lote.py … --salida
+  extraido_codex` (las reserva para ti) y nunca elijas ids a mano; no ejecutes `cargar.py`, `ocr.py`, `textos.py`,
+  `descargar.py` ni `turno.py` (reescriben archivos que los subagentes de Claude están leyendo o tocan la base).
+  Solo puedes ejecutar `lote.py`, `verificar.py` y `recorte.py`.
+- Python: `C:\Users\crisa\AppData\Local\Programs\Python\Python312\python.exe -I …` (ruta completa y siempre con
+  `-I`; abajo se abrevia `python`). Para recortes de imagen: `C:\Users\crisa\agroquimicos-datos\venv\Scripts\python.exe -I …`.
+- Trabaja desde la carpeta `C:\Users\crisa\OneDrive\Escritorio\Proyectos\Agroquímicos Chile CRM` (la ruta tiene
+  espacios y tildes: ponla entre comillas).
+- Una tanda de 4 a la vez. Si se te acaba el uso a medias, para: lo que quedó sin JSON vuelve solo a la cola en
+  12 horas. La próxima vez, sigue desde el paso 1.
 
 ## Cómo trabajar (repetir mientras tengas uso)
 

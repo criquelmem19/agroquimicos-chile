@@ -436,11 +436,11 @@ contexto grande cada llamada cuesta mucho.
    `docs/historia.md`; commit y push; `turno.py soltar`; **correo a Cristóbal** (ver «Sesiones automáticas»).
 
 **Sesiones automáticas** (desde el 26-10-2026, pedido de Cristóbal: «deja todo programado para hacerlo de la forma
-más eficiente»): tarea programada `recopilador-sag` de la app de Claude (`C:\Users\crisa\.claude\scheduled-tasks\`;
-el 26-10 el modo automático no dejó crearla sin la confirmación de Cristóbal; su texto exacto está en
-`C:\Users\crisa\agroquimicos-datos\tarea_programada.txt`, fuera del repo porque trae su correo),
-4 veces al día a las 00:30, 06:30, 12:30 y 18:30 (hora de Chile): con 6 horas entre una y otra cada sesión parte
-con la ventana de 5 h renovada. Corre solo si el computador está prendido y la app de Claude abierta (si estaba
+más eficiente»; creada con su «sí» el 26-10-2026): tarea programada `recopilador-sag` de la app de Claude
+(`C:\Users\crisa\.claude\scheduled-tasks\recopilador-sag\SKILL.md`, en modo automático; copia del texto en
+`C:\Users\crisa\agroquimicos-datos\tarea_programada.txt`, fuera del repo porque trae su correo), 4 veces al día a
+las 01:20, 07:20, 13:20 y 19:20 (hora de Chile): con 6 horas entre una y otra cada sesión parte con la ventana de 5 h
+renovada. Corre solo si el computador está prendido y la app de Claude abierta (si estaba
 cerrada, corre al abrirla; `turno.py` evita que dos trabajen a la vez). Cada sesión es nueva (contexto chico).
 Al terminar manda un correo a Cristóbal con el conector de Gmail (su dirección está en la tarea, **no aquí: el repo
 es público**): corto, en español de Chile y sin jerga: etiquetas y productos de la sesión, cuántas quedan y fecha
