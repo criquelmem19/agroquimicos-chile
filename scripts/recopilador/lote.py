@@ -1,8 +1,8 @@
 """Arma el siguiente lote de extracción: elige etiquetas por prioridad y escribe el encargo de cada subagente.
 
 Uso:  python -I scripts/recopilador/lote.py [--agentes 2] [--por 4] [--ids 1,2,3] [--empresa syngenta] [--nuevos]
-          [--vigentes] [--salida extraido_codex] [--sin-reservar]
-      python -I scripts/recopilador/lote.py --empresas
+          [--vigentes] [--salida extraido_codex] [--sin-reservar] [--sin-base]
+      python -I scripts/recopilador/lote.py --empresas [--sin-base]
       python -I scripts/recopilador/lote.py --sin-cargar extraido_codex
 
 - Toma filas en estado «texto» con páginas de etiqueta, sin JSON en <datos>/sag/extraido/, en orden de
@@ -17,18 +17,22 @@ Uso:  python -I scripts/recopilador/lote.py [--agentes 2] [--por 4] [--ids 1,2,3
   nunca toman la misma (aunque trabajen a la vez). --ids no reserva ni mira reservas. --sin-reservar: solo mirar
   (para contar la cola sin apartar nada).
 - Imprime un encargo por subagente (para pegar en la herramienta Agent) y al final el comando de carga.
+- La cola se lee de la base y queda copiada en <datos>/sag/cola.json. --sin-base (Codex, que no tiene acceso a la
+  base) usa esa copia; también se usa sola si la CLI de Supabase no está.
 - --empresas: pendientes (vigentes, de productos nuevos, sin JSON ni reserva) por empresa, de más a menos.
 - --sin-cargar <carpeta>: ids con JSON en <datos>/sag/<carpeta> cuya etiqueta sigue en «texto» (para cargarlos).
 """
 import datetime
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from comun import DATOS, consola_utf8, escribir_json, leer_json, lit, sql  # noqa: E402
+from comun import DATOS, consola_utf8, escribir_json, leer_json, sql  # noqa: E402
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PYV = os.path.join(DATOS, "venv", "Scripts", "python.exe")
+COLA = os.path.join(DATOS, "sag", "cola.json")
 RESERVAS = os.path.join(DATOS, "sag", "reservas.json")
 DURA = datetime.timedelta(hours=12)
 
@@ -47,6 +51,31 @@ def reservar(ids, quien):
     for i in ids:
         vigentes[str(i)] = {"quien": quien, "desde": ahora.isoformat(timespec="seconds")}
     escribir_json(RESERVAS, vigentes)
+
+
+def cola(sin_base=False):
+    """Etiquetas en «texto» con páginas de etiqueta, en orden de prioridad. Se leen de la base y se guardan en
+    <datos>/sag/cola.json; sin acceso a la base (Codex, o si la CLI de Supabase no está) se usa esa copia: las que
+    se cargaron después ya tienen JSON y hechas() las deja fuera."""
+    if not sin_base:
+        try:
+            filas = sql("""select i.id, i.empresa, i.prioridad,
+  exists (select 1 from public.products p where p.registration_number = i.registro_sag) as en_catalogo
+from public.sag_inventario i
+where i.estado = 'texto' and coalesce(array_length(i.paginas_etiqueta, 1), 0) > 0
+order by i.prioridad nulls last, i.id""", "cola")
+            escribir_json(COLA, {"fecha": datetime.datetime.now().isoformat(timespec="seconds"), "filas": filas})
+            return filas
+        except Exception as e:  # sin la CLI de Supabase (p. ej., en Codex)
+            print(f"(Sin acceso a la base: {type(e).__name__}. Se usa la copia guardada de la cola.)", file=sys.stderr)
+    guardada = leer_json(COLA)
+    if not guardada:
+        sys.exit(f"No hay {COLA}: una sesión de Claude tiene que correr lote.py primero.")
+    return guardada["filas"]
+
+
+def vigente(f):
+    return f["prioridad"] is not None and f["prioridad"] < 2000
 
 
 def falta_ocr(i):
@@ -102,14 +131,11 @@ def main():
         return
     if "--empresas" in args:  # pendientes por empresa (vigentes y de productos nuevos), para elegir la siguiente
         listas = hechas()
-        filas = sql("""select i.id, lower(regexp_replace(coalesce(i.empresa, '(sin empresa)'), '[ .,]+(s\\.?a\\.?|ltda\\.?|spa)?[ .]*$', '', 'i')) as empresa
-from public.sag_inventario i
-where i.estado = 'texto' and i.prioridad < 2000 and coalesce(array_length(i.paginas_etiqueta, 1), 0) > 0
-  and not exists (select 1 from public.products p where p.registration_number = i.registro_sag)""", "empresas")
         conteo = {}
-        for f in filas:
-            if f["id"] not in listas:
-                conteo[f["empresa"]] = conteo.get(f["empresa"], 0) + 1
+        for f in cola("--sin-base" in args):
+            if f["id"] not in listas and vigente(f) and not f["en_catalogo"]:
+                empresa = re.sub(r"[ .,]+(s\.?a\.?|ltda\.?|spa)?[ .]*$", "", (f["empresa"] or "(sin empresa)").lower())
+                conteo[empresa] = conteo.get(empresa, 0) + 1
         for empresa, n in sorted(conteo.items(), key=lambda x: -x[1]):
             print(f"{n:5d}  {empresa}")
         return
@@ -117,16 +143,11 @@ where i.estado = 'texto' and i.prioridad < 2000 and coalesce(array_length(i.pagi
         elegidas = [int(x) for x in args[args.index("--ids") + 1].split(",")]
     else:
         listas = hechas()
-        filtro = ""
-        if "--empresa" in args:  # una empresa a la vez (pedido de Cristóbal, 25-10-2026)
-            filtro += f" and i.empresa ilike {lit('%' + args[args.index('--empresa') + 1] + '%')}"
-        if "--nuevos" in args:  # sin las de productos que ya están en el catálogo (esas solo anotan diferencias)
-            filtro += " and not exists (select 1 from public.products p where p.registration_number = i.registro_sag)"
-        if "--vigentes" in args:  # cancelados (3xxx) y sin dato en la planilla (2xxx) al final (Cristóbal, 26-10-2026)
-            filtro += " and i.prioridad < 2000"
-        filas = sql(f"""select i.id from public.sag_inventario i
-where i.estado = 'texto' and coalesce(array_length(i.paginas_etiqueta, 1), 0) > 0{filtro}
-order by i.prioridad nulls last, i.id""", "lote")
+        empresa = args[args.index("--empresa") + 1].lower() if "--empresa" in args else ""
+        filas = [f for f in cola("--sin-base" in args)
+                 if empresa in (f["empresa"] or "").lower()  # una empresa a la vez (Cristóbal, 25-10-2026)
+                 and not ("--nuevos" in args and f["en_catalogo"])  # las de productos que ya estaban solo anotan diferencias
+                 and not ("--vigentes" in args and not vigente(f))]  # canceladas y sin planilla al final (26-10-2026)
         elegidas = [f["id"] for f in filas if f["id"] not in listas and not falta_ocr(f["id"])][:agentes * por]
         if "--sin-reservar" not in args:
             reservar(elegidas, salida)

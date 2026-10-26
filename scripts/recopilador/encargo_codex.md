@@ -26,9 +26,12 @@ la base. Trabaja con cuidado: la carencia decide si se puede cosechar.
 ## Cómo trabajar (repetir mientras tengas uso)
 
 1. Pide las siguientes 4 etiquetas (quedan reservadas para ti 12 horas; Claude no las toma):
-   `python -I scripts\recopilador\lote.py --empresa upl --nuevos --vigentes --agentes 1 --por 4 --salida extraido_codex`
-   Si no entrega ninguna, UPL está terminada: mira `python -I scripts\recopilador\lote.py --empresas` y usa
-   `--empresa <la primera de la lista>` en vez de `upl`.
+   `python -I scripts\recopilador\lote.py --empresa upl --nuevos --vigentes --agentes 1 --por 4 --salida extraido_codex --sin-base`
+   (`--sin-base`: tú no tienes acceso a la base de datos y no lo necesitas; `lote.py` usa la lista de pendientes
+   que Claude deja en `sag\cola.json` y anota tu reserva en `sag\reservas.json`. Esos dos archivos los escribe el
+   script, no tú.) Si no entrega ninguna, UPL está terminada: mira
+   `python -I scripts\recopilador\lote.py --empresas --sin-base` y usa `--empresa <la primera de la lista>`.
+   Si dice que no hay `cola.json`, para y avísale a Cristóbal.
 2. El encargo que imprime dice qué carpeta leer y dónde escribir cada JSON. Para cada etiqueta lee `etiqueta.txt`
    y **mira las imágenes `p<N>.jpg`** de su carpeta: en el texto las celdas de los cuadros se descuadran y la imagen
    muestra qué dosis y qué carencia van con qué cultivo. Si la letra es chica, usa `recorte.py` (el encargo dice cómo).

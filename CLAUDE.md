@@ -448,8 +448,10 @@ estimada, uso, y las preguntas que necesitan su «sí». Sin conector: dejar el 
 
 **Codex (ChatGPT) en paralelo** (desde el 26-10-2026, idea de Cristóbal para terminar antes): Codex tiene su propio
 límite. Cristóbal le pega: «Lee y sigue `scripts\recopilador\encargo_codex.md`». Codex toma UPL (`--salida
-extraido_codex`; luego la primera de `--empresas`), escribe solo JSON en `sag/extraido_codex/` y se verifica con
-`verificar.py`; Claude carga lo suyo en el paso 3 con la misma verificación.
+extraido_codex --sin-base`; luego la primera de `--empresas`), escribe solo JSON en `sag/extraido_codex/` y se
+verifica con `verificar.py`; Claude carga lo suyo en el paso 3 con la misma verificación. Codex **no tiene acceso
+a la base** (en su entorno no está `LOCALAPPDATA` y la CLI de Supabase no aparece: 26-10-2026, `FileNotFoundError`):
+`lote.py` lee la cola de la copia `sag/cola.json`, que se renueva cada vez que Claude corre `lote.py`.
 
 **Estado del recopilador:** ver el final de este archivo.
 
