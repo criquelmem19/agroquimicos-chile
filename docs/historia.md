@@ -99,7 +99,7 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
 
 ## Recopilador: sesión 6 (26-10-2026, primera sesión automática)
 
-- 13:20–15:00. Uso al empezar: 5 h 1 %, semanal 25 %. 26 tandas de Haiku (máx. 3 a la vez, 4 etiquetas cada una,
+- 13:20–14:20. Uso al empezar: 5 h 1 %, semanal 25 %. 26 tandas de Haiku (máx. 3 a la vez, 4 etiquetas cada una,
   160–275 mil tokens por subagente) + 1 reextracción con Sonnet (1337) + control al azar con Sonnet. 100 etiquetas
   cargadas (lotes `2026-10-26-6a` a `-6z`), 3.987 líneas: Anasac completa y 11 de Bayer. Nada nuevo en el listado
   del SAG; nada de Codex sin cargar. Uso al terminar: 5 h ~72 %, semanal ~35 % (~1 % semanal cada 10 etiquetas).

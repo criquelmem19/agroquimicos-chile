@@ -493,11 +493,11 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   del 25-10-2026): otra extracción numera las filas distinto y podía poner la dosis de una fila en otra del mismo
   cultivo. Ahora también exige la misma página y algún objetivo en común.
 
-## Estado del recopilador (26-10-2026, 15:00, después de la sesión 6, la primera automática)
+## Estado del recopilador (26-10-2026, 14:20, después de la sesión 6, la primera automática)
 
 - Frase de Cristóbal para seguir a mano: **«Sigue con el recopilador del SAG»** → «Cómo seguir». Ahora corre solo
   (ver «Sesiones automáticas»). El detalle de cada sesión va al final de `docs/historia.md`.
-- **Sesión 6** (26-10, 13:20–15:00, automática): 100 etiquetas (Anasac completa y 11 de Bayer), 3.987 líneas, lotes
+- **Sesión 6** (26-10, 13:20–14:20, automática): 100 etiquetas (Anasac completa y 11 de Bayer), 3.987 líneas, lotes
   `2026-10-26-6a` a `-6z`. Uso: 5 h de 1 a ~72 %, semanal de 25 a ~35 %.
 - **Codex:** 4 de las 20 antes de su control al azar (lote `2026-10-26-codex-1`); en esta sesión no había nada suyo sin
   cargar. **Codex: UPL** (110).
@@ -511,7 +511,7 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
 - Inventario: 1.634 filas; 1.206 en «texto», 279 cargadas, 10 diferencias, 63 no son etiqueta, 50 versiones
   anteriores, 14 sin PDF, 5 ilegibles, 5 duplicados, 2 ya en la base.
 - Base: 430 productos (400 con N° SAG), 13.957 líneas visibles; dosis 95,2 %, carencia 89,1 %; 60 MB.
-- Último control al azar: 26-10-2026 15:00, con 279 cargadas, 30 líneas de la sesión 6
+- Último control al azar: 26-10-2026 14:15, con 279 cargadas, 30 líneas de la sesión 6
   (`sag/control/2026-10-26_1416_revision.json`): 22 sin observaciones, 0 valores que contradigan la etiqueta; faltan
   datos (5 carencias, 1 mojamiento, 1 máximo) y 2 métodos «Al follaje» no escritos (BELENUS 30 WG). El siguiente con
   ~380. Desde ahora `control.py` nombra los archivos con fecha y hora (el de la mañana se sobrescribió; su revisión
