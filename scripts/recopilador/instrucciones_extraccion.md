@@ -47,10 +47,16 @@ No leas otros archivos ni busques en internet. No uses lo que sabes de agronomí
 - **Carencia:** casi nunca en la fila de la dosis. Suele ser una columna «Carencia (días)» o «P.C.», un
   cuadro aparte por cultivo o un párrafo: «período de carencia», «carencia», «días a cosecha», «tiempo de
   espera», «no aplicar dentro de los N días antes de la cosecha». «No corresponde», «no posee», «sin
-  carencia», «exento», «no aplica» → `"no_aplica": true`. Si el valor depende de algo que la fila no dice
+  carencia», «exento», «no aplica» → `"no_aplica": true`. Si la celda dice solo «N.C.» o «N/C», cita también
+  la leyenda de la misma página que lo explica (`"c": ["Carencia: N.C.", "N.C.: No corresponde"]`): sin ella el
+  verificador descarta la carencia. Si el valor depende de algo que la fila no dice
   (uva de mesa o vinífera, dosis alta o baja, aplicación foliar o al suelo…), `"condicional": true` sin días.
+  Si la carencia se declara para un modo de aplicación («aplicación directa a los granos»), ponla solo en las
+  filas de ese modo, no en las de otro (granos ensacados, bodegas).
 - **Mojamiento:** «mojamiento», «volumen de agua», «L/ha» (a veces en preparación de la mezcla u
   observaciones). Si depende del sistema (espaldera/parronal), no pongas número: queda en observaciones.
+  Un «volumen mínimo» que cambia según la zona o el riego (100 L/ha con buena pluviometría y 150 L/ha en
+  zonas áridas) no es un rango de mojamiento: no pongas número.
 - **Intervalo y máximo de aplicaciones:** «repetir cada», «intervalo», «aplicaciones por temporada»,
   «número máximo de aplicaciones».
 - **Reingreso:** «tiempo de reingreso», «no reingresar», en horas (si dice días, 1 día = 24 h; la cita debe

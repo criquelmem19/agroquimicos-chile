@@ -1,4 +1,4 @@
-# Archivos locales que no van al repositorio público
+﻿# Archivos locales que no van al repositorio público
 pdfs/
 trabajo/
 *.pdf
@@ -14,4 +14,4 @@ desktop.ini
 .claude/
 
 # Estado local de la CLI de Supabase
-supabase/.temp/
+**/supabase/.temp/

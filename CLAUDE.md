@@ -1,6 +1,6 @@
 # Agroquímicos CRM — memoria del proyecto
 
-Leer completo antes de tocar algo. Última actualización: 25-10-2026.
+Leer completo antes de tocar algo. Última actualización: 26-10-2026.
 El sitio se llama **Agroquímicos CRM** (antes «Agroquímicos Chile»; el repo y la URL siguen siendo
 `agroquimicos-chile`). «CRM» es la marca de Cristóbal y va arriba, en el logo.
 
@@ -426,7 +426,7 @@ uso mostró que lo caro era la conversación larga del orquestador, no Haiku.
    líneas al azar contra el PDF y la imagen, y reporta errores).
 6. Al final: `reporte.py`, actualizar «Estado del recopilador» aquí, commit y push, e informar a Cristóbal.
 
-**Estado del recopilador (25-10-2026, fin de la sesión 4):** ver el final de este archivo.
+**Estado del recopilador (26-10-2026, fin de la sesión 5):** ver el final de este archivo.
 
 ## Fase 2 — estado (hecha el 20-10-2026)
 
@@ -539,21 +539,51 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   del 25-10-2026): otra extracción numera las filas distinto y podía poner la dosis de una fila en otra del mismo
   cultivo. Ahora también exige la misma página y algún objetivo en común.
 
-## Estado del recopilador (fin de la sesión 4, 25-10-2026)
+## Estado del recopilador (fin de la sesión 5, 26-10-2026)
 
 - Frase de Cristóbal para seguir: **«Sigue con el recopilador del SAG»** → hacer «Cómo seguir» (sección Recopilador).
-- **Orden por empresa** (Cristóbal, 25-10-2026: «terminamos con Syngenta y empezamos con la segunda con más
-  cosas, creo que es UPL»). Syngenta: quedan **10 productos nuevos** (188, 1417, 1615, 962, 963, 1584, 1628, 843,
-  844, 1723: `lote.py --empresa syngenta --nuevos`). **Después, Anasac** (Cristóbal, 25-10-2026: «después de
-  Syngenta sigue con Anasac, que es la que tiene más etiquetas»; 206 pendientes, 197 de productos nuevos y todas con
-  texto listo, sin OCR pendiente: `lote.py --empresa anasac --nuevos`)
-  y luego UPL (141). Las otras 72 etiquetas de Syngenta en «texto» son de productos que ya estaban en el catálogo (carga
-  original): solo agregarían el documento y anotarían diferencias; van después.
-- Inventario: 1.634 filas; **1.371 en «texto»**, 108 cargadas, 10 diferencias, 63 no son etiqueta, 56 versiones
+- **Orden por empresa** (Cristóbal, 25-10-2026). **Syngenta: terminados todos los productos nuevos.** **Ahora Anasac**
+  (Cristóbal, 25-10-2026: «después de Syngenta sigue con Anasac, que es la que tiene más etiquetas»): quedan **140 de
+  productos nuevos** (`lote.py --empresa anasac --nuevos`) y 10 de productos que ya estaban. Después UPL (141). Las 72
+  etiquetas de Syngenta de productos que ya estaban (carga original) solo agregarían el documento y anotarían
+  diferencias; van después.
+- Inventario: 1.634 filas; **1.307 en «texto»**, 174 cargadas, 10 diferencias, 63 no son etiqueta, 54 versiones
   anteriores, 14 sin PDF, 5 ilegibles, 5 duplicados, 2 ya en la base.
-- Base: 259 productos (230 con N° SAG), 6.624 líneas visibles (+ 127 ocultas por el reemplazo); dosis 92,6 %,
-  carencia 88,4 %; 42 MB.
-- Sesión 4 (25-10-2026), todo con Haiku:
+- Base: 325 productos (295 con N° SAG), 9.210 líneas visibles (+ 127 ocultas por el reemplazo); **dosis 94,4 %,
+  carencia 91,4 %**; 52 MB.
+- Sesión 5 (26-10-2026), todo con Haiku (lotes `2026-10-26-1` a `-16`):
+  - **66 etiquetas, 66 productos nuevos, 2.586 líneas**, 0 errores de carga: los 10 últimos de Syngenta (ACTELLIC
+    AGRO, SCHOLAR 50 WP, TOUCHDOWN IQ, KLERAT MINIBLOQUES y PELLETS, TERVIGO, TREFINTI, GRO-STOP FOG y 300 EC,
+    VIBRANCE PREMIUM) y 56 de Anasac. RANGO 75 WG (1.047 líneas) y RANGO FULL (482) son glifosatos: la dosis cambia
+    por grupo de malezas y se repite en cada cultivo. Comprobado en el sitio: la ficha de RANGO 75 WG carga las 1.047.
+  - **Control al azar** (`control.py --n 30`, revisor Sonnet, `sag/control/2026-10-26_revision.json`): **0 valores
+    equivocados** en 30 líneas; 25 completas y 5 con un dato que la etiqueta trae y la base no («falta»: PUNTO 70 WP
+    olivo sin dosis, mojamiento y máximo; AZUFRE FLOABLE AN 600 arveja sin mojamiento ni método; AGIL 100 EC máximo;
+    PUNTO 70 WG método; BONNUS 400 SC mojamiento). Dudosos, sin corregir (preguntar a Cristóbal): Assure Pro
+    (inventario 272, 9 líneas) guarda mojamiento 100–150 L/ha que en la etiqueta es «volumen mínimo» (100 con buena
+    pluviometría, 150 en zonas áridas); ACTELLIC AGRO (188) pone la carencia de «aplicación directa a los granos» en
+    la fila de granos ensacados; Agrocup (207) naranjo: máximo e intervalo de una celda que comparten tres
+    enfermedades. Se agregaron dos reglas a `instrucciones_extraccion.md` para que no se repitan.
+  - **«N.C.»**: RANGO 75 WG quedó con 0 carencias porque el subagente citó solo «Carencia: N.C.» (el verificador no lo
+    acepta, bien). La leyenda «N.C.: No corresponde» está en la misma página: se agregó a las citas
+    (`sag/extraido/1339.json`; el original quedó como `1339.sin_leyenda.json`) y `--completar` llenó las 1.047 (ensayo:
+    0 valores cambiados). Igual con PINOGARD 75 DF (1220): «Tiempo de carencia: sin restricción.» (general, pág. 2) →
+    6 líneas «no aplica» (`1220.sin_carencia.json`). Las instrucciones ahora piden citar la leyenda junto a «N.C.».
+  - **Cuadros que son imagen en páginas con texto** (como la 409): 515 COLT 45 WP y 315 BACIFRUIT SC. Se les hizo
+    `ocr.py --tesseract --forzar --ids …` y se volvieron a extraer (los intentos sin cuadro: `<id>.sin_cuadro.json`).
+    COLT quedó con 3 líneas con dosis pero **sin carencia** (los días solo se ven en la imagen); BACIFRUIT con 2 de 4
+    usos (la celda «Vid de mesa, vid vinífera, vid pisquera» no pasó). No se detectan antes: el subagente avisa con
+    «0 usos». Una medición de imágenes con pypdfium2 no los encontró (el cuadro no es una imagen simple).
+  - 791 FUROR 75 DF: se quitó un «máximo 2 aplicaciones» que el subagente dedujo de «dosis parcializada en dos
+    aplicaciones» (no es un máximo de la etiqueta).
+  - Sin carencia, y está bien: KLERAT MINIBLOQUES («no se indican por la naturaleza de la aplicación»), GRO-STOP
+    (condicional por dosis).
+  - Uso: 5 h de 2 a 76 % y semanal de 12 a 22 % para 66 etiquetas + el control; 3 subagentes a la vez × 4 etiquetas
+    (230–360 mil tokens cada uno, ~4 % de la ventana cada uno). Se lanzó uno nuevo cada vez que otro terminaba.
+- Falta: siguiente control al azar cuando haya ~270 cargadas; las diferencias de los productos que ya estaban
+  (incluido ACABAN, inventario 161) y, al terminar, el workflow mensual.
+
+Sesión 4 (25-10-2026), para la historia, todo con Haiku:
   - **Etiquetas flojas** (cuadros escaneados, ahora con la segunda lectura de Tesseract): se volvieron a extraer
     10 (1312 PUNTO 70 WP, 152 ABAMECTIN 18 EC, 163, 184, 325, 343, 370, 389, 410 y 485 CITROLIV EMULSIBLE+; los
     JSON anteriores quedaron como `sag/extraido/<id>.sesion3.json`) y se completaron con `--completar` (lote
@@ -585,8 +615,6 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   - Uso: 5 h de 6 a 74 % y semanal de 1 a 10 % para 54 etiquetas (10 flojas + 44); 3 subagentes a la vez × 4
     etiquetas (220–350 mil tokens cada uno, ~4 % de la ventana cada uno). Unas 55–60 etiquetas por ventana y ~500
     por semana: con 1.371 en «texto» (parte son diferencias) faltan ~3 semanas.
-- Falta: el control al azar (`control.py`; van ~115 cargadas, toca hacerlo), las diferencias de los productos que
-  ya estaban (incluido ACABAN, inventario 161) y, al terminar, el workflow mensual.
 
 Sesión 3 (22-10 en la noche y 23-10), para la historia:
 - 51 etiquetas (44 nuevas + 7 diferencias: ACRONIS, AMISTAR TOP, 271, 290,
