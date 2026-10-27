@@ -136,6 +136,7 @@ recibe «permission denied» (verificado el 20-10-2026).
 | `sag_inventario` | 1.634 (22-10) | Proceso, privada: cada PDF del listado del SAG y su estado en el recopilador |
 | `recopilador_revision` | — | Proceso, privada: cultivos, objetivos, ingredientes, empresas y categorías que creó el recopilador (revisar) |
 
+- `moa_equivalencias` (27-10-2026, 61 filas, lectura pública): código antiguo → actual de FRAC y HRAC (ver «El sitio»).
 - **Recopilador (22-10-2026):** `field_citations` (mismo formato que en `product_uses`) también en `products`,
   `product_active_ingredients`, `product_companies`, `product_safety_profiles` y `active_ingredients` (grupo de modo
   de acción leído de una etiqueta, con `documento`). `documents.source_url` (URL oficial). En `products`:
@@ -243,10 +244,8 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     **Orden (27-10-2026):** tocar el título de una columna ordena por ella y tocarlo de nuevo invierte (`inv=1`); en el
     celular, un selector y un botón ▲/▼. Por defecto, **agrupados por modo de acción**: los productos con la misma
     combinación de grupos («FRAC 7 + FRAC 11») van juntos, bajo un título con el grupo, el grupo químico y cuántos son,
-    y con una franja del color del sistema; los sin grupo al final. Solo se agrupa lo que está escrito igual
-    (`claveMoa` unifica «M3» = «M03»). **Pendiente con Cristóbal:** el mismo modo de acción aparece con código nuevo y
-    antiguo («HRAC 1» / «HRAC A», «FRAC 3» / «FRAC G1» / «FRAC G»); unirlos usaría la tabla oficial FRAC/HRAC/IRAC (no
-    sale de las etiquetas, regla 5) y además hay errores de lectura (penconazol quedó en «G3»): no hacerlo sin su «sí».
+    y con una franja del color del sistema; los sin grupo al final. Se agrupa por **código actual y familia**: ver
+    «Códigos de modo de acción» más abajo.
   - `#/trivia?tipo=mezcla|tipo|moa|ing&tema=<id de categoría>` **Trivia** (27-10-2026, idea de Cristóbal, «tipo
     JetPunk»; `assets/js/vistas/trivia.js`): 10 preguntas de 4 alternativas sobre el catálogo: tipo de producto, grupo
     de modo de acción, ingrediente activo y «¿qué producto tiene tal ingrediente?», con filtro por fungicidas,
@@ -278,6 +277,20 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
       etiquetas; tolera errores de tipeo); fertilizantes, bioestimulantes y coadyuvantes no tienen grupo.
       Aparecen antes de agregar y en un aviso emergente (`notificar` en `ui.js`).
     - Exporta a CSV para Excel (`;`, UTF-8 con BOM) e imprime la lista.
+- **Códigos de modo de acción unidos (27-10-2026, con el «sí, únelos» de Cristóbal):** las etiquetas traen el mismo
+  grupo con el código actual o con el antiguo (FRAC «G1» = 3, «C2» = 7, «C3» = 11…; HRAC «A» = 1, «B» = 2, «K3» = 15…).
+  Tabla `moa_equivalencias` (sistema, código de la etiqueta, código actual, `ingrediente_id` si vale solo para un
+  ingrediente, nota), sacada de la FRAC Code List y de la clasificación HRAC 2020; migración `moa_equivalencias`.
+  `active_ingredients.mechanism_group` **no se toca** (sigue con lo que dice la etiqueta). `db.js` pone en cada
+  ingrediente `moa` = código actual, `moaEtiqueta` y `moaNota`; los chips muestran «HRAC 1 (A)» (actual y, entre
+  paréntesis, el de la etiqueta) y la ficha lo explica. Por ingrediente: tebuconazol «G» → FRAC 3 (su etiqueta dice
+  «Grupo G, Clase 1»), fenhexamida «G3» → 17, etofumesato y molinato «N» → 15, aclonifeno «F3» → 32 (N y F3 se
+  repartieron en varios grupos nuevos). **Penconazol queda «FRAC G3»** sin convertir: la etiqueta de CANDADO 200 EW
+  dice «grupo G3 (Triazoles)» y los triazoles son G1 (= FRAC 3); se le preguntó a Cristóbal si lo corrige.
+  **Familias:** en IRAC el modo de acción es el número («IRAC 4A» y «4D» son el grupo 4; «IRAC 3» = «3A»):
+  `familiaMoa`/`familias` en `db.js`. La tabla agrupa y filtra por familia, y las alertas de rotación del plan
+  comparan familias (antes «HRAC A» seguido de «HRAC 1» o «IRAC 4A» de «4D» no avisaban). Etiqueta nueva con un
+  código antiguo que no está en la tabla: queda como viene (agregar la fila si corresponde, con su fuente).
 - **Empresa (nombre corto):** `db.js → nombreCorto()`: marcas conocidas («Syngenta», «Bayer», «UPL»…) y, si no, el
   nombre sin «S.A.», «Ltda.», «Chile», rubro, etc. (una o dos palabras). Se usa la primera empresa del producto
   (orden de `rango_rol_empresa`: titular, registrante, distribuidor, importador…).
@@ -593,7 +606,8 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   la vuelve a tomar cuando le toque a su empresa.
 - Revisión humana: para que una línea diga «Revisado» alguien tiene que compararla con la etiqueta
   (hoy solo las 56 de ACABAN). Quitar `noindex` lo decide Cristóbal.
-- TOPAS 200 EW no tiene grupo de modo de acción en los datos (penconazol sin grupo): revisar su etiqueta.
+- Penconazol (CANDADO 200 EW, SOLVIT): la etiqueta de CANDADO dice «grupo G3 (Triazoles)», pero los triazoles son G1
+  (FRAC 3). Quedó «FRAC G3» sin convertir; se le preguntó a Cristóbal (27-10-2026) si se muestra como FRAC 3.
 - Limpieza de datos (con su visto bueno): cultivos-frase, duplicados de cultivos, objetivos y productos,
   ingredientes basura, métodos antiguos con basura.
 - Mejoras posibles: modo sin conexión completo (service worker), imagen para compartir por WhatsApp,

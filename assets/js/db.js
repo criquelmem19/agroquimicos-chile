@@ -45,15 +45,16 @@ async function todas(construir) {
 
 // ---------- Catálogo (listas chicas) ----------
 
-const CLAVE_CACHE = 'catalogo-v2';
+const CLAVE_CACHE = 'catalogo-v3';
 
 async function descargarCatalogo() {
   const db = await cliente();
-  const [productos, resumen, categorias, ingredientes, empresas, cultivos, objetivos, perfiles, estado] = await Promise.all([
+  const [productos, resumen, categorias, ingredientes, equivalencias, empresas, cultivos, objetivos, perfiles, estado] = await Promise.all([
     todas((c) => c.from('v_sitio_productos').select('*').order('id')),
     todas((c) => c.from('v_sitio_resumen_productos').select('id,cultivos,n_lineas,n_aprobadas,n_baja_confianza,dosis').order('id')),
     todas((c) => c.from('categories').select('id,name').order('id')),
     todas((c) => c.from('active_ingredients').select('id,common_name,chemical_group,mechanism_group,mechanism_system').order('id')),
+    todas((c) => c.from('moa_equivalencias').select('id,sistema,codigo,codigo_actual,ingrediente_id,nota').order('id')),
     todas((c) => c.from('companies').select('id,legal_name').order('id')),
     todas((c) => c.from('v_sitio_cultivos').select('id,nombre,aliases,n_lineas,n_productos').order('id')),
     todas((c) => c.from('v_sitio_objetivos').select('id,nombre,cientifico,n_lineas,n_productos').order('id')),
@@ -62,7 +63,7 @@ async function descargarCatalogo() {
   ]);
   if (estado.error) throw estado.error;
   return {
-    productos, resumen, categorias, ingredientes, empresas, cultivos, objetivos, perfiles,
+    productos, resumen, categorias, ingredientes, equivalencias, empresas, cultivos, objetivos, perfiles,
     actualizado: estado.data ? estado.data.ultima_actualizacion : null,
   };
 }
@@ -70,6 +71,7 @@ async function descargarCatalogo() {
 function guardarCache(crudo) {
   try {
     localStorage.removeItem('catalogo-v1');
+    localStorage.removeItem('catalogo-v2');
     localStorage.setItem(CLAVE_CACHE, JSON.stringify({ t: Date.now(), crudo }));
   } catch (e) { /* sin espacio o bloqueado */ }
 }
@@ -87,6 +89,16 @@ export function claveMoa(sistema, grupo) {
   if (!grupo) return null;
   const g = String(grupo).trim().toUpperCase().replace(/^M(\d)$/, 'M0$1');
   return sistema ? `${sistema} ${g}` : g;
+}
+
+// Familia del grupo, para agrupar y para las alertas de rotación: en IRAC el modo de acción es el número y la
+// letra es el subgrupo químico («IRAC 4A» e «IRAC 4D» son el grupo 4; «IRAC 3» = «IRAC 3A»).
+export function familiaMoa(clave) {
+  return String(clave).replace(/^(IRAC \d+)[A-Z]$/, '$1');
+}
+
+export function familias(claves) {
+  return [...new Set(claves.map(familiaMoa))];
 }
 
 // Orden natural: FRAC, IRAC, HRAC y luego por número de grupo.
@@ -137,15 +149,29 @@ export function nombreCorto(nombre) {
 
 function armarCatalogo(crudo, fechaCache) {
   const categorias = new Map(crudo.categorias.map((x) => [x.id, { id: x.id, nombre: x.name }]));
-  const ingredientes = new Map(crudo.ingredientes.map((x) => [x.id, {
-    id: x.id,
-    nombre: x.common_name,
-    grupoQuimico: x.chemical_group,
-    sistema: x.mechanism_system,
-    grupo: x.mechanism_group,
-    moa: claveMoa(x.mechanism_system, x.mechanism_group),
-    productos: [],
-  }]));
+  // Equivalencias código antiguo → actual (tabla moa_equivalencias, de las tablas oficiales FRAC y HRAC). Las que
+  // traen ingrediente valen solo para él. El código de la etiqueta se guarda aparte para mostrarlo.
+  const equivalencias = new Map();
+  for (const e of crudo.equivalencias || []) {
+    const k = claveMoa(e.sistema, e.codigo);
+    equivalencias.set(e.ingrediente_id ? `${e.ingrediente_id}|${k}` : k, e);
+  }
+  const ingredientes = new Map(crudo.ingredientes.map((x) => {
+    const enEtiqueta = claveMoa(x.mechanism_system, x.mechanism_group);
+    const eq = enEtiqueta && (equivalencias.get(`${x.id}|${enEtiqueta}`) || equivalencias.get(enEtiqueta));
+    return [x.id, {
+      id: x.id,
+      nombre: x.common_name,
+      grupoQuimico: x.chemical_group,
+      sistema: x.mechanism_system,
+      grupo: x.mechanism_group,
+      moa: eq ? claveMoa(eq.sistema, eq.codigo_actual) : enEtiqueta,
+      // Solo si la etiqueta lo escribe con el código antiguo: cómo viene en la etiqueta y de dónde sale el actual.
+      moaEtiqueta: eq ? enEtiqueta : null,
+      moaNota: eq ? eq.nota : null,
+      productos: [],
+    }];
+  }));
   const empresas = new Map(crudo.empresas.map((x) => [x.id, { id: x.id, nombre: x.legal_name, productos: [] }]));
   const reingreso = new Map(crudo.perfiles.map((x) => [x.product_id, x.reentry_hours]));
   const resumen = new Map((crudo.resumen || []).map((x) => [x.id, x]));
@@ -160,6 +186,11 @@ function armarCatalogo(crudo, fechaCache) {
       .map((x) => ({ conc: x.conc, ing: ingredientes.get(x.id) }))
       .filter((x) => x.ing);
     const moa = [...new Set(ings.map((x) => x.ing.moa).filter(Boolean))].sort(compararMoa);
+    // Código actual → cómo viene escrito en la etiqueta (solo los que cambian).
+    const moaEtiqueta = new Map();
+    for (const x of ings) {
+      if (x.ing.moaEtiqueta) moaEtiqueta.set(x.ing.moa, [...new Set([...(moaEtiqueta.get(x.ing.moa) || []), x.ing.moaEtiqueta])]);
+    }
     const roles = new Map();
     for (const e of p.empresas || []) {
       if (!empresas.has(e.id)) continue;
@@ -176,6 +207,8 @@ function armarCatalogo(crudo, fechaCache) {
       categorias: (p.categorias || []).map((id) => categorias.get(id)).filter(Boolean),
       ings,
       moa,
+      moaEtiqueta,
+      familias: familias(moa),
       empresas: [...roles].map(([id, rs]) => ({ empresa: empresas.get(id), roles: rs })),
       documentos: p.documentos || [],
       etiqueta: (p.documentos || []).find((d) => d.url) || null,

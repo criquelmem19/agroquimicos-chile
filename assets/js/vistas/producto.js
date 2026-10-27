@@ -181,7 +181,7 @@ export async function render(main, ctx) {
           p.formulacion ? `${p.formulacion}${p.formulacionCodigo ? ` (${p.formulacionCodigo})` : ''}` : p.formulacionCodigo].filter(Boolean).join(' · ')),
       h('div', { class: 'chips' },
         p.clasificacion ? h('span', { class: 'etiqueta etq-neutra', title: 'Palabra de advertencia en la etiqueta' }, p.clasificacion) : null,
-        chipsMoa(p.moa)),
+        chipsMoa(p.moa, p.moaEtiqueta)),
       h('div', { class: 'acciones' },
         p.etiqueta
           ? h('a', { class: 'boton boton-primario', href: p.etiqueta.url, target: '_blank', rel: 'noopener' }, icono('pdf'), 'Abrir etiqueta oficial (PDF)')
@@ -196,7 +196,11 @@ export async function render(main, ctx) {
           h('td', { 'data-etiqueta': 'Ingrediente' }, h('a', { href: ruta('', { ing: x.ing.id }), title: 'Ver otros productos con este ingrediente' }, x.ing.nombre)),
           h('td', { 'data-etiqueta': 'Concentración' }, textoOSinDato(x.conc)),
           h('td', { 'data-etiqueta': 'Grupo químico' }, textoOSinDato(x.ing.grupoQuimico)),
-          h('td', { 'data-etiqueta': 'Modo de acción' }, x.ing.moa ? chipsMoa([x.ing.moa]) : h('span', { class: 'tenue chico' }, 'Sin grupo informado')))))))
+          h('td', { 'data-etiqueta': 'Modo de acción' }, x.ing.moa
+            ? [chipsMoa([x.ing.moa]), x.ing.moaEtiqueta
+              ? h('span', { class: 'cita' }, `En la etiqueta: ${x.ing.moaEtiqueta}. ${x.ing.moaNota || ''} (tabla oficial ${x.ing.sistema}).`)
+              : null]
+            : h('span', { class: 'tenue chico' }, 'Sin grupo informado')))))))
       : h('p', { class: 'nota nota-info' }, 'Sin ingrediente activo registrado en los datos.'),
 
     h('h2', { class: 'titulo-seccion' }, 'Empresas'),

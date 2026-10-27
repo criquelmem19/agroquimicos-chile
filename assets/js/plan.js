@@ -4,6 +4,7 @@
 // (fuera del catálogo, con los datos de la planilla). Las alertas comparan el plan con lo que dice la
 // etiqueta (grupo de modo de acción, máximo por temporada, intervalo, carencia); no agregan recomendaciones.
 import { normalizar } from './buscador.js';
+import { familias } from './db.js';
 
 const CLAVE = 'planes-v1';
 
@@ -331,18 +332,20 @@ export function calcularAlertas(plan, cat, { usosCultivo = null } = {}) {
       mismoDia = [];
       diaActual = clave;
     }
-    const moa = gruposDe(cat, a);
+    // Familias de grupo (en IRAC el número: «IRAC 4A» y «IRAC 4D» son el mismo modo de acción).
+    const moa = familias(gruposDe(cat, a));
+    const fam = (x) => familias(gruposDe(cat, x));
     const u = a.linea;
     const nombreAp = nombre(a);
 
     // Grupo de modo de acción repetido: en la misma mezcla, en la aplicación anterior o antes en el plan.
     for (const x of mismoDia) {
-      const comunes = moa.filter((k) => gruposDe(cat, x).includes(k));
+      const comunes = moa.filter((k) => fam(x).includes(k));
       if (comunes.length) add('alerta', 'moa-mezcla', `${comunes.join(' y ')} también va en esta mezcla (${nombre(x)}).`);
     }
-    const anteriores = diaAnterior.filter((x) => moa.some((k) => gruposDe(cat, x).includes(k)));
+    const anteriores = diaAnterior.filter((x) => moa.some((k) => fam(x).includes(k)));
     for (const x of anteriores) {
-      const comunes = moa.filter((k) => gruposDe(cat, x).includes(k));
+      const comunes = moa.filter((k) => fam(x).includes(k));
       add('alerta', 'moa-seguido', `Repite ${comunes.join(' y ')} con la aplicación anterior (${nombre(x)}, ${cuando(plan, x)}).`);
     }
     for (const k of moa) {

@@ -4,7 +4,7 @@
 // Parámetros: cultivo=<id>, objetivo=<id>, oq=<texto de objetivo>, cat=<id>, q=<texto>, empresa=<nombre corto>,
 // moa=<clave>|sin, ing=<id>, orden=moa|nombre|empresa|tipo|ing|registro|cultivos, inv=1 (orden al revés),
 // todos=1 (incluye los que no se usan en Chile)
-import { usosPorCultivo, usosPorObjetivos, compararMoa, nombreCorto } from '../db.js';
+import { usosPorCultivo, usosPorObjetivos, compararMoa, nombreCorto, familiaMoa } from '../db.js';
 import { filtrar, palabras, puntaje, normalizar } from '../buscador.js';
 import {
   h, icono, ruta, plural, recortar, limpio, vaciar, cargando, retrasar,
@@ -65,7 +65,8 @@ function valorOrden(clave, p, info) {
 const comparaTexto = (a, b) => String(a).localeCompare(String(b), 'es', { numeric: true, ignorePunctuation: true });
 
 // Grupos de modo de acción de un producto como una sola clave («FRAC 7 + FRAC 11»): los que tienen la misma son lo mismo.
-const claveGrupo = (p) => p.moa.join(' + ');
+// Se usan las familias (en IRAC, el número sin la letra del subgrupo) y los códigos actuales.
+const claveGrupo = (p) => p.familias.join(' + ');
 
 function compararGrupos(a, b) {
   if (!a.length || !b.length) return !a.length - !b.length;
@@ -152,7 +153,7 @@ function fila(p, info, op) {
       p.noDisponible ? h('span', { class: 'etiqueta etq-peligro', title: p.noDisponible }, 'No se usa en Chile') : null),
     h('td', { class: vacia('c-empresa', p.marca), 'data-etiqueta': 'Empresa', title: principal ? principal.empresa.nombre : null }, p.marca || '—'),
     h('td', { class: vacia('c-moa', p.moa.length), 'data-etiqueta': 'Modo de acción' },
-      chipsMoa(p.moa) || h('span', { class: 'tenue', title: 'Sin grupo de modo de acción informado' }, '—')),
+      chipsMoa(p.moa, p.moaEtiqueta) || h('span', { class: 'tenue', title: 'Sin grupo de modo de acción informado' }, '—')),
     h('td', { class: vacia('c-tipo', tipo), 'data-etiqueta': 'Tipo', title: p.formulacion || null }, tipo || '—'),
     h('td', { class: 'c-ing', 'data-etiqueta': 'Ingrediente activo', title: ingredientesTexto(p) },
       p.ings.length ? p.ings.map((x) => x.ing.nombre).join(' + ') : h('span', { class: 'tenue' }, 'Sin ingrediente registrado')),
@@ -205,7 +206,7 @@ export async function render(main, ctx) {
     cat: params.get('cat') || '',
     q: limpio(params.get('q')),
     empresa: params.get('empresa') || '',
-    moa: params.get('moa') || '',
+    moa: params.get('moa') && params.get('moa') !== 'sin' ? familiaMoa(params.get('moa')) : params.get('moa') || '',
     ing: params.get('ing') || '',
     orden: ORDENES[params.get('orden')] ? params.get('orden') : 'moa',
     inv: params.get('inv') === '1',
@@ -294,9 +295,11 @@ export async function render(main, ctx) {
     [...cat.marcas.values()].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
       .map((m) => h('option', { value: m.nombre, selected: m.nombre === estado.empresa }, `${m.nombre} (${m.productos.length})`)));
   const sinGrupo = [...cat.productos.values()].filter((p) => !p.moa.length).length;
+  const porFamilia = new Map();
+  for (const p of cat.productos.values()) for (const k of p.familias) porFamilia.set(k, (porFamilia.get(k) || 0) + 1);
   const selMoa = h('select', { class: 'selector', id: 'f-moa' },
     h('option', { value: '' }, 'Todos'),
-    [...cat.gruposMoa.keys()].sort(compararMoa).map((k) => h('option', { value: k, selected: k === estado.moa }, `${k} (${cat.gruposMoa.get(k).productos.length})`)),
+    [...porFamilia.keys()].sort(compararMoa).map((k) => h('option', { value: k, selected: k === estado.moa }, `${k} (${porFamilia.get(k)})`)),
     sinGrupo ? h('option', { value: 'sin', selected: estado.moa === 'sin' }, `Sin grupo informado (${sinGrupo})`) : null);
 
   panel.append(
@@ -362,7 +365,7 @@ export async function render(main, ctx) {
       if (estado.cat && !p.categorias.some((c) => String(c.id) === estado.cat)) return false;
       if (estado.empresa && p.marca !== estado.empresa) return false;
       if (estado.moa === 'sin' && p.moa.length) return false;
-      if (estado.moa && estado.moa !== 'sin' && !p.moa.includes(estado.moa)) return false;
+      if (estado.moa && estado.moa !== 'sin' && !p.familias.includes(estado.moa)) return false;
       if (ing && !p.ings.some((x) => x.ing === ing)) return false;
       if (q.length && !puntaje(q, p.palabrasTodas)) return false;
       return true;
@@ -376,7 +379,7 @@ export async function render(main, ctx) {
     visibles.sort((a, b) => {
       if (estado.orden === 'moa') {
         // Los sin grupo siempre al final; dentro de cada grupo, por nombre.
-        const d = compararGrupos(a.moa, b.moa);
+        const d = compararGrupos(a.familias, b.familias);
         return (a.moa.length && b.moa.length ? d * signo : d) || nombre(a, b);
       }
       const va = valorOrden(estado.orden, a, infos.get(a));

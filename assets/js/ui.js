@@ -304,9 +304,16 @@ export function claseMoa(clave) {
   return s === 'FRAC' ? 'moa moa-frac' : s === 'IRAC' ? 'moa moa-irac' : s === 'HRAC' ? 'moa moa-hrac' : 'moa moa-otro';
 }
 
-export function chipsMoa(lista) {
+// etiquetas (opcional): Map código actual → cómo viene escrito en la etiqueta (código antiguo, ej. «HRAC A»).
+export function chipsMoa(lista, etiquetas) {
   if (!lista || !lista.length) return null;
-  return h('span', { class: 'lista-moa' }, lista.map((k) => h('span', { class: claseMoa(k), title: 'Grupo de modo de acción' }, k)));
+  return h('span', { class: 'lista-moa' }, lista.map((k) => {
+    const antes = etiquetas && etiquetas.get(k);
+    return h('span', {
+      class: claseMoa(k),
+      title: antes ? `Grupo ${k}. En la etiqueta: ${antes.join(', ')} (código antiguo; equivalencia de la tabla oficial)` : 'Grupo de modo de acción',
+    }, k, antes ? h('small', { class: 'moa-antes' }, `(${antes.map((x) => x.split(' ')[1]).join('/')})`) : null);
+  }));
 }
 
 export function ingredientesTexto(p) {

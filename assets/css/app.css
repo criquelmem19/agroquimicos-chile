@@ -363,6 +363,8 @@ body { padding-bottom: calc(var(--alto-nav-inf) + env(safe-area-inset-bottom)); 
 .moa-hrac { color: var(--hrac); background: var(--hrac-fondo); }
 .moa-otro { color: var(--otro); background: var(--otro-fondo); }
 .lista-moa { display: inline-flex; flex-wrap: wrap; gap: .3rem; vertical-align: middle; }
+/* Código antiguo con que viene en la etiqueta, al lado del actual: «HRAC 1 (A)». */
+.moa-antes { margin-left: .3em; font-size: .78em; font-weight: 500; opacity: .75; }
 
 .boton {
   display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
