@@ -53,6 +53,7 @@ const ICONOS = {
   imprimir: '<path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/>',
   descargar: '<path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/>',
   cerrar: '<path d="M6 6l12 12M18 6 6 18"/>',
+  casa: '<path d="M4 10.5 12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H5.5A1.5 1.5 0 0 1 4 19z"/>',
 };
 
 export function icono(nombre) {
@@ -123,6 +124,83 @@ export function dosis(u) {
   return h('div', { class: 'valor' },
     texto ? h('span', { class: 'valor-texto' }, texto) : h('span', { class: 'sin-dato' }, 'Sin dato, verificar etiqueta'),
     estadoRevision(u));
+}
+
+// ---------- Dosis «desde – hasta» (tabla del inicio) ----------
+// Se arma con los números leídos de la etiqueta (dose_min/dose_max), agrupados por unidad: nunca se
+// mezclan unidades ni se convierten. Las dosis sin unidad clara («g» sin decir por qué) no entran al rango.
+
+const BASES_DOSIS = { por_ha: '/ha', por_100_l: '/100 L', por_l: '/L', por_100_kg_semilla: '/100 kg semilla' };
+const UNIDADES = { k: 'kg', kg: 'kg', g: 'g', mg: 'mg', l: 'L', ml: 'mL', cc: 'cc' };
+
+function unidadDosis(unidad, base) {
+  const u = limpio(unidad);
+  if (base === 'porcentaje') return !u || u === '%' ? '%' : null;
+  if (!u) return null;
+  const conocida = UNIDADES[u.toLowerCase()];
+  if (conocida) return BASES_DOSIS[base] ? `${conocida}${BASES_DOSIS[base]}` : null;
+  // Unidades que ya traen la base: «cc/hL», «g/m2».
+  if (u.includes('/')) return base === 'por_100_l' ? u.replace(/\/hl$/i, '/100 L') : u;
+  return null;
+}
+
+const NBSP = '\u00a0';
+
+// grupos: [{u, b, min, max, n}] (de la vista o de resumenDosis). Une los que quedan con la misma unidad.
+function rangosDosis(grupos) {
+  const m = new Map();
+  for (const g of grupos) {
+    const unidad = unidadDosis(g.u, g.b);
+    if (!unidad || g.min == null) continue;
+    const x = m.get(unidad);
+    if (x) { x.min = Math.min(x.min, g.min); x.max = Math.max(x.max, g.max); x.n += g.n; } else m.set(unidad, { unidad, min: Number(g.min), max: Number(g.max), n: g.n });
+  }
+  return [...m.values()].sort((a, b) => b.n - a.n)
+    // Espacios que no se cortan entre las cifras y la unidad («100 – 150 cc/100 L» queda en una línea).
+    .map((r) => `${r.min === r.max ? num(r.min) : `${num(r.min)}${NBSP}–${NBSP}${num(r.max)}`}${NBSP}${r.unidad.replace(/ (L|kg)\b/, `${NBSP}$1`)}`);
+}
+
+// Resumen de un grupo de líneas de uso: dosis por unidad y su estado de revisión.
+export function resumenDosis(lineas) {
+  const m = new Map();
+  let aprobadas = 0;
+  let baja = 0;
+  for (const u of lineas) {
+    if (u.review_status === 'aprobado') aprobadas += 1;
+    if (u.confidence_score != null && Number(u.confidence_score) < UMBRAL_CONFIANZA) baja += 1;
+    const a = u.dose_min ?? u.dose_max;
+    const b = u.dose_max ?? u.dose_min;
+    if (a == null) continue;
+    const clave = `${u.dose_unit}|${u.dose_basis}`;
+    const x = m.get(clave);
+    if (x) { x.min = Math.min(x.min, a); x.max = Math.max(x.max, b); x.n += 1; } else m.set(clave, { u: u.dose_unit, b: u.dose_basis, min: Number(a), max: Number(b), n: 1 });
+  }
+  return { grupos: [...m.values()], n: lineas.length, aprobadas, baja };
+}
+
+// Regla 1 en una dosis resumida: «Revisado» solo si todas sus líneas fueron revisadas por una persona.
+export function estadoResumen(r) {
+  const partes = [];
+  if (r.n && r.aprobadas === r.n) {
+    partes.push(h('span', { class: 'etiqueta etq-ok', title: 'Una persona la comparó con la etiqueta' }, icono('check'), 'Revisado'));
+  } else {
+    partes.push(h('span', { class: 'etiqueta etq-auto', title: 'Leído de la etiqueta por un programa. Nadie lo ha revisado todavía.' }, 'Extraído automáticamente'));
+  }
+  if (r.baja) {
+    partes.push(h('span', { class: 'etiqueta etq-alerta', title: `${plural(r.baja, 'línea', 'líneas')} con confianza del extractor bajo ${num(UMBRAL_CONFIANZA)}` },
+      icono('alerta'), 'Confianza baja: revisa la etiqueta'));
+  }
+  return h('span', { class: 'estado-linea' }, partes);
+}
+
+export function dosisRango(r, max = 2) {
+  if (!r || !r.n) return h('span', { class: 'tenue' }, 'Sin usos registrados');
+  const rangos = rangosDosis(r.grupos);
+  const textos = rangos.slice(0, max).map((t) => h('span', { class: 'rango' }, t));
+  return h('div', { class: 'valor' },
+    textos.length ? h('span', { class: 'rangos' }, textos) : h('span', { class: 'sin-dato' }, 'Ver en la etiqueta'),
+    rangos.length > max ? h('span', { class: 'chico tenue' }, `y ${plural(rangos.length - max, 'unidad más', 'unidades más')}`) : null,
+    estadoResumen(r));
 }
 
 // Cita guardada en field_citations (Fase 2): texto literal de la etiqueta y su página.

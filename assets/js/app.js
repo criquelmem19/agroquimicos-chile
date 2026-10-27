@@ -1,10 +1,7 @@
 // Arranque del sitio y navegación entre secciones (rutas con # para que funcione en GitHub Pages).
 import { cargarCatalogo } from './db.js';
-import { construirIndice } from './buscador.js';
 import { h, icono, vaciar, fecha, mensajeError } from './ui.js';
-import * as vistaBuscar from './vistas/buscar.js';
-import * as vistaAplicar from './vistas/aplicar.js';
-import * as vistaProductos from './vistas/productos.js';
+import * as vistaInicio from './vistas/inicio.js';
 import * as vistaProducto from './vistas/producto.js';
 import * as vistaPlan from './vistas/plan.js';
 
@@ -13,18 +10,19 @@ const NOMBRE_SITIO = 'Agroquímicos CRM';
 // Secciones del menú (titulo: el de la página; menu: el del menú de arriba; corto: el de la barra del celular).
 // Para la Fase 3 (foro, cuenta) basta sumarlas aquí.
 const SECCIONES = [
-  { camino: '', titulo: 'Buscar', menu: 'Buscar', corto: 'Buscar', icono: 'buscar', vista: vistaBuscar },
-  { camino: 'aplicar', titulo: '¿Qué aplico?', menu: '¿Qué aplico?', corto: 'Qué aplico', icono: 'brote', vista: vistaAplicar },
-  { camino: 'plan', titulo: 'Plan de aplicaciones', menu: 'Plan', corto: 'Plan', icono: 'calendario', vista: vistaPlan },
-  { camino: 'productos', titulo: 'Productos', menu: 'Productos', corto: 'Productos', icono: 'frasco', vista: vistaProductos },
+  { camino: '', titulo: '', menu: 'Inicio', corto: 'Inicio', icono: 'casa', vista: vistaInicio },
+  { camino: 'plan', titulo: 'Plan de aplicaciones', menu: 'Plan de aplicaciones', corto: 'Plan', icono: 'calendario', vista: vistaPlan },
 ];
 // Rutas que no van en el menú.
 const OTRAS = { producto: vistaProducto };
+// Secciones antiguas que ahora son el inicio (links guardados o compartidos): se abren ahí con sus filtros.
+const ANTIGUAS = ['aplicar', 'productos', 'buscar'];
 
 const principal = document.getElementById('vista');
 let catalogo = null;
-let indice = null;
 let caminoAnterior = null;
+// Última dirección de la tabla del inicio (con sus filtros), para el botón «Volver» de la ficha.
+let ultimoInicio = null;
 let turno = 0;
 
 function leerRuta() {
@@ -56,7 +54,15 @@ function pintarPie() {
   }
 }
 
-async function mostrar() {
+async function mostrar(evento) {
+  if (evento && evento.oldURL) {
+    const antes = evento.oldURL.slice(evento.oldURL.indexOf('#') + 1 || evento.oldURL.length);
+    if (/^\/?(\?|$)/.test(antes)) ultimoInicio = `#${antes}`;
+  }
+  if (ANTIGUAS.includes(leerRuta().partes[0])) {
+    const consulta = leerRuta().params.toString();
+    history.replaceState(null, '', `#/${consulta ? `?${consulta}` : ''}`);
+  }
   const { partes, params } = leerRuta();
   const clave = partes[0] || '';
   const seccion = SECCIONES.find((s) => s.camino === clave);
@@ -66,8 +72,9 @@ async function mostrar() {
   const cambioDePagina = caminoNuevo !== caminoAnterior;
   caminoAnterior = caminoNuevo;
 
-  pintarMenus(seccion ? seccion.camino : clave === 'producto' ? 'productos' : null);
+  pintarMenus(seccion ? seccion.camino : clave === 'producto' ? '' : null);
   vaciar(principal);
+  principal.classList.toggle('vista-ancha', Boolean(vista && vista.ANCHA));
 
   if (catalogo.fechaCache) {
     principal.append(h('div', { class: 'nota nota-alerta', role: 'status' },
@@ -77,15 +84,15 @@ async function mostrar() {
   if (!vista) {
     document.title = `Página no encontrada · ${NOMBRE_SITIO}`;
     principal.append(h('div', { class: 'vacio' }, h('h1', null, 'No encontramos esa página'),
-      h('p', null, h('a', { href: '#/' }, 'Volver al buscador'))));
+      h('p', null, h('a', { href: '#/' }, 'Volver al inicio'))));
     return;
   }
 
   const contexto = {
     cat: catalogo,
-    indice,
     partes,
     params,
+    volverInicio: ultimoInicio,
     vigente: () => miTurno === turno,
     // Cambia los parámetros de la dirección sin recargar la vista (para compartir el link tal cual).
     cambiarParams: (nuevos) => {
@@ -116,7 +123,6 @@ async function iniciar() {
   pintarMenus(leerRuta().partes[0] || '');
   try {
     catalogo = await cargarCatalogo();
-    indice = construirIndice(catalogo);
   } catch (err) {
     console.error(err);
     vaciar(principal).append(mensajeError(err));

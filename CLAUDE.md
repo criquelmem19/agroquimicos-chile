@@ -61,8 +61,9 @@ rechazo en destino o residuos sobre la tolerancia.
 - **Sin modo noche** (Cristóbal lo pidió quitar el 21-10-2026: «está muy de más»). Solo modo claro.
 - Marca: logo «CRM» (píldora negra con letras blancas y un punto verde) arriba a la izquierda, junto a
   «Agroquímicos CRM». Ícono de la pestaña: `assets/img/icono.svg` con la misma marca.
-- Se mantienen: letra de 17 px y alto contraste (se usa al sol), barra inferior en celular (Buscar,
-  Qué aplico, Plan, Productos).
+- Se mantienen: letra de 17 px y alto contraste (se usa al sol), barra inferior en celular (Inicio y Plan).
+- **Menú simple y tabla ancha (pedido del 27-10-2026):** solo «Inicio» y «Plan de aplicaciones». El inicio usa todo el
+  ancho de la pantalla (`--ancho-max` 1600 px; `ANCHA = true` en la vista); el resto de las páginas, 1180 px.
 - Grupos de modo de acción con color propio: FRAC azul, IRAC verde, HRAC tierra.
 
 ## Arquitectura (decidida el 19-10-2026; no cambiarla sin avisar a Cristóbal)
@@ -163,6 +164,8 @@ recibe «permission denied» (verificado el 20-10-2026).
   `v_export_excel`, `vista_plana`.
 - **Vistas del sitio** (creadas el 20-10-2026, `security_invoker`, solo SELECT):
   `v_sitio_productos` (producto con categorías, ingredientes, empresas y documentos en JSON),
+  `v_sitio_resumen_productos` (27-10-2026: por producto, cultivos con líneas, dosis mín.–máx. por unidad y base,
+  n.° de líneas aprobadas y con confianza < 0,80; alimenta la tabla del inicio),
   `v_sitio_cultivos`, `v_sitio_objetivos` (con conteos de líneas y productos), `v_estado_datos`
   (indicadores de completitud, una fila).
 - Extensiones `citext` y `pg_trgm` movidas al esquema `extensions` (advisor de seguridad). Probado:
@@ -225,14 +228,22 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
 
 ## El sitio
 
-- `index.html`: una sola página, `noindex`, aviso permanente, carga supabase-js y `assets/js/app.js`.
+- `index.html`: una sola página, `noindex`, carga supabase-js y `assets/js/app.js`.
 - Rutas con `#` (funcionan en GitHub Pages sin configuración):
-  - `#/` buscador único (productos, ingredientes, cultivos+alias, objetivos, empresas; sin tildes ni mayúsculas).
-  - `#/aplicar?cultivo=<id>&objetivo=<id>|todos&oq=<texto>&usados=FRAC 3,IRAC 4A&orden=moa|producto|carencia`
-    «¿Qué puedo aplicar?»: tabla con ingrediente, grupo de modo de acción, dosis+estado, carencia,
-    reingreso; herramienta para rotar (marcar grupos ya usados). También parte por objetivo sin cultivo.
-  - `#/productos?cat=&moa=&empresa=&ing=&q=` lista con filtros por categoría, modo de acción y empresa.
-  - `#/producto/<id>` ficha: ingredientes, empresas y roles, líneas de uso por cultivo, seguridad, documentos.
+  - `#/?cultivo=<id>&objetivo=<id>&oq=<texto>&cat=<id>&q=<texto>&empresa=<nombre corto>&moa=<clave>|sin&ing=<id>&orden=nombre|empresa|moa|cultivos&todos=1`
+    **Inicio = «¿Qué aplico?»** (rehecho el 27-10-2026 a pedido de Cristóbal; vista `assets/js/vistas/inicio.js`):
+    filtros arriba (cultivo y plaga/enfermedad/maleza con sugerencias; tipo de producto; texto; en «Más filtros»
+    empresa y modo de acción) y una tabla con **una fila por producto**: Producto (+ categoría), Empresa (nombre corto),
+    Modo de acción, Tipo (código de formulación: WP, SC…), Ingrediente activo (solo nombres), Etiqueta (PDF),
+    Reg. SAG, Cultivos (3 y un botón «+X» que muestra el resto) y Dosis «desde – hasta», más un botón al plan.
+    **Sin carencia ni reingreso en esta tabla** (pidió sacarlos; siguen en la ficha y en el plan). Con cultivo u
+    objetivo, cultivos y dosis salen solo de las líneas que calzan (Enter en el objetivo = «Todos los que dicen…»).
+    Los productos que no se usan en Chile quedan ocultos con un botón para mostrarlos. Debajo de 1.100 px la tabla se
+    vuelve tarjetas (dos por fila en tablet). Ya no existen la rotación de grupos ni el buscador general.
+  - `#/aplicar?…`, `#/productos?…` y `#/buscar` (links antiguos) se abren en el inicio con los mismos filtros
+    (`ANTIGUAS` en `app.js`; `empresa=<id>` antiguo se traduce al nombre corto).
+  - `#/producto/<id>?cultivo=<id>` ficha: ingredientes, empresas y roles, líneas de uso por cultivo (el cultivo que se
+    venía mirando va primero y abierto), seguridad, documentos. «Volver a la tabla» vuelve con los filtros puestos.
   - `#/plan?producto=<id>&uso=<id>` / `#/plan?abrir=<clave>` «Plan de aplicaciones»: calendario del mes +
     lista por día (cada día = una mezcla: n.° de aplicación, etapa, equipo y sus productos). Los botones
     «Al plan» de «¿Qué aplico?» y «Agregar al plan» de la ficha llegan con el producto y el uso elegidos.
@@ -252,6 +263,13 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
       etiquetas; tolera errores de tipeo); fertilizantes, bioestimulantes y coadyuvantes no tienen grupo.
       Aparecen antes de agregar y en un aviso emergente (`notificar` en `ui.js`).
     - Exporta a CSV para Excel (`;`, UTF-8 con BOM) e imprime la lista.
+- **Empresa (nombre corto):** `db.js → nombreCorto()`: marcas conocidas («Syngenta», «Bayer», «UPL»…) y, si no, el
+  nombre sin «S.A.», «Ltda.», «Chile», rubro, etc. (una o dos palabras). Se usa la primera empresa del producto
+  (orden de `rango_rol_empresa`: titular, registrante, distribuidor, importador…).
+- **Dosis «desde – hasta»** (`ui.js → dosisRango`, `resumenDosis`): mínimo y máximo de `dose_min`/`dose_max` por unidad
+  y base (L/ha, cc/100 L, kg/ha, %…), sin mezclar ni convertir unidades; las dosis con base «otro» o sin unidad no
+  entran al rango («Ver en la etiqueta» si no queda ninguna). Regla 1: «Revisado» solo si todas las líneas del
+  resumen están aprobadas; si alguna tiene confianza < 0,80, alerta.
 - Datos: al abrir se cargan las listas chicas (vistas `v_sitio_*`, `categories`, `active_ingredients`,
   `companies`, reingreso de `product_safety_profiles`); las líneas de uso se piden por cultivo, objetivo o
   producto. Todo paginado de a 1.000 filas (límite de la API) en `db.js → todas()`.
@@ -260,7 +278,8 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
   `carencia`, `reingreso`, `linkPdf`, `urlDeLinea`). Usarlas siempre; no mostrar dosis ni carencia «a mano».
   `carencia`, `mojamiento`, `intervalo` y `metodo` muestran el valor con su cita «…» (pág. N) desde
   `field_citations` (`citaDe`); carencia condicionada → «Depende: ver condición en la etiqueta» + cita.
-- La dosis se muestra **como texto de la etiqueta** (`dose_raw`), no los números interpretados.
+- En la ficha y en el plan la dosis se muestra **como texto de la etiqueta** (`dose_raw`); en la tabla del inicio,
+  «desde – hasta» con los números leídos (pedido de Cristóbal, 27-10-2026).
 - Seguridad del código: los textos de la base nunca se insertan como HTML (`h()` en `ui.js`).
 - Diseño: ver «Reglas de estética». La página «Estado de los datos» se eliminó (la vista
   `v_estado_datos` sigue en la base: el pie usa su fecha de última actualización).

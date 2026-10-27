@@ -2,7 +2,7 @@
 // Las listas chicas (productos, cultivos, objetivos, ingredientes, empresas) se cargan
 // una vez al abrir el sitio. Las líneas de uso se piden cuando se necesitan.
 import { SUPABASE_URL, SUPABASE_KEY, FILAS_POR_PAGINA } from './config.js';
-import { palabras } from './buscador.js';
+import { palabras, normalizar } from './buscador.js';
 
 let promesaCliente = null;
 
@@ -45,12 +45,13 @@ async function todas(construir) {
 
 // ---------- Catálogo (listas chicas) ----------
 
-const CLAVE_CACHE = 'catalogo-v1';
+const CLAVE_CACHE = 'catalogo-v2';
 
 async function descargarCatalogo() {
   const db = await cliente();
-  const [productos, categorias, ingredientes, empresas, cultivos, objetivos, perfiles, estado] = await Promise.all([
+  const [productos, resumen, categorias, ingredientes, empresas, cultivos, objetivos, perfiles, estado] = await Promise.all([
     todas((c) => c.from('v_sitio_productos').select('*').order('id')),
+    todas((c) => c.from('v_sitio_resumen_productos').select('id,cultivos,n_lineas,n_aprobadas,n_baja_confianza,dosis').order('id')),
     todas((c) => c.from('categories').select('id,name').order('id')),
     todas((c) => c.from('active_ingredients').select('id,common_name,chemical_group,mechanism_group,mechanism_system').order('id')),
     todas((c) => c.from('companies').select('id,legal_name').order('id')),
@@ -61,13 +62,16 @@ async function descargarCatalogo() {
   ]);
   if (estado.error) throw estado.error;
   return {
-    productos, categorias, ingredientes, empresas, cultivos, objetivos, perfiles,
+    productos, resumen, categorias, ingredientes, empresas, cultivos, objetivos, perfiles,
     actualizado: estado.data ? estado.data.ultima_actualizacion : null,
   };
 }
 
 function guardarCache(crudo) {
-  try { localStorage.setItem(CLAVE_CACHE, JSON.stringify({ t: Date.now(), crudo })); } catch (e) { /* sin espacio o bloqueado */ }
+  try {
+    localStorage.removeItem('catalogo-v1');
+    localStorage.setItem(CLAVE_CACHE, JSON.stringify({ t: Date.now(), crudo }));
+  } catch (e) { /* sin espacio o bloqueado */ }
 }
 
 function leerCache() {
@@ -93,6 +97,42 @@ export function compararMoa(a, b) {
   return ga.localeCompare(gb, 'es', { numeric: true });
 }
 
+// Nombre corto de la empresa para las tablas: «UPL Chile S.A.» → «UPL», «QUIMETAL INDUSTRIAL S.A.» → «Quimetal».
+const MARCAS = [
+  ['syngenta', 'Syngenta'], ['sygenta', 'Syngenta'], ['bayer', 'Bayer'], ['basf', 'BASF'], ['anasac', 'Anasac'],
+  ['agricola nacional', 'Anasac'], ['corteva', 'Corteva'], ['du pont', 'DuPont'], ['dupont', 'DuPont'], ['upl', 'UPL'],
+  ['adama', 'Adama'], ['quimetal', 'Quimetal'], ['agrospec', 'Agrospec'], ['sumitomo', 'Sumitomo'], ['nufarm', 'Nufarm'],
+  ['gowan', 'Gowan'], ['fmc', 'FMC'], ['arysta', 'Arysta'], ['sipcam', 'Sipcam'], ['albaugh', 'Albaugh'],
+  ['agrofresh', 'AgroFresh'], ['nichino', 'Nichino'], ['rizobacter', 'Rizobacter'], ['point', 'Point'], ['certis', 'Certis'],
+  ['nutrien', 'Nutrien'], ['kwizda', 'Kwizda'], ['exwold', 'Exwold'], ['solfotecnica', 'Solfotecnica'], ['iqv', 'IQV'],
+  ['industrias quimicas del valles', 'IQV'], ['monsanto', 'Monsanto'], ['ipanema', 'Ipanema'], ['binab', 'Binab'],
+  ['ypf', 'YPF'], ['schirm', 'Schirm'], ['schrim', 'Schirm'], ['sintesis quimica', 'Síntesis Química'], ['h marks', 'A.H. Marks'],
+];
+// Palabras que no ayudan a reconocer la empresa: tipo de sociedad, país y rubro.
+const PALABRAS_SOBRAN = new Set(('sa sac saic sas spa ltda ltd lmtd limitada limited llc lp inc gmbh ag srl slu sl bv nv scl '
+  + 'co cia company corporation corp plc pty pvt cv rl sociedad anonima comercial industrial industria industries industry '
+  + 'chemical chemicals international internacional chile agrochemical agrochemicals biochemical biotechnology technology '
+  + 'pesticide factory protection trading crop science sciences sciencies compounds group modern agriculture exports logistics').split(' '));
+const CONECTORES = new Set(['de', 'del', 'y', '&']);
+
+export function nombreCorto(nombre) {
+  const n = ` ${normalizar(nombre)} `;
+  for (const [clave, marca] of MARCAS) if (n.includes(` ${clave} `)) return marca;
+  const base = String(nombre || '').split(/[,(]/)[0].replace(/[®™]/g, ' ');
+  const quedan = base.split(/\s+/).filter((w) => {
+    const k = normalizar(w).replace(/ /g, '');
+    if (w === '&' || k === 'y' || k === 'de' || k === 'del') return true;
+    return k.length > 1 && !PALABRAS_SOBRAN.has(k);
+  });
+  // Una o dos palabras; tres si la segunda es «de», «y» o «&» («Martínez & Valdivieso»).
+  let corto = quedan.slice(0, CONECTORES.has(normalizar(quedan[1] || '') || quedan[1]) && quedan[2] ? 3 : 2);
+  while (corto.length && CONECTORES.has(normalizar(corto[corto.length - 1]) || corto[corto.length - 1])) corto = corto.slice(0, -1);
+  // Las siglas cortas se mantienen (IQV); lo que viene en MAYÚSCULAS pasa a «Nombre».
+  const texto = corto.map((w, i) => (i && CONECTORES.has(normalizar(w)) ? w.toLowerCase()
+    : w === w.toUpperCase() && w.length > 3 ? w.charAt(0) + w.slice(1).toLowerCase() : w)).join(' ');
+  return texto || String(nombre || '').trim();
+}
+
 function armarCatalogo(crudo, fechaCache) {
   const categorias = new Map(crudo.categorias.map((x) => [x.id, { id: x.id, nombre: x.name }]));
   const ingredientes = new Map(crudo.ingredientes.map((x) => [x.id, {
@@ -106,6 +146,8 @@ function armarCatalogo(crudo, fechaCache) {
   }]));
   const empresas = new Map(crudo.empresas.map((x) => [x.id, { id: x.id, nombre: x.legal_name, productos: [] }]));
   const reingreso = new Map(crudo.perfiles.map((x) => [x.product_id, x.reentry_hours]));
+  const resumen = new Map((crudo.resumen || []).map((x) => [x.id, x]));
+  const marcas = new Map();
   const documentos = new Map();
   const productos = new Map();
   const gruposMoa = new Map();
@@ -142,6 +184,17 @@ function armarCatalogo(crudo, fechaCache) {
       noDisponible: p.no_disponible || null,
       toxicidadAbejas: p.toxicidad_abejas || null,
     };
+    // Resumen de sus líneas de uso (para la tabla del inicio): cultivos y dosis desde-hasta por unidad.
+    const r = resumen.get(p.id);
+    prod.cultivoIds = (r && r.cultivos) || [];
+    prod.resumenDosis = {
+      grupos: (r && r.dosis) || [], n: r ? r.n_lineas : 0, aprobadas: r ? r.n_aprobadas : 0, baja: r ? r.n_baja_confianza : 0,
+    };
+    prod.marca = prod.empresas.length ? nombreCorto(prod.empresas[0].empresa.nombre) : null;
+    if (prod.marca) {
+      if (!marcas.has(prod.marca)) marcas.set(prod.marca, { nombre: prod.marca, productos: [] });
+      marcas.get(prod.marca).productos.push(prod);
+    }
     productos.set(p.id, prod);
     for (const x of ings) if (!x.ing.productos.includes(prod)) x.ing.productos.push(prod);
     for (const e of prod.empresas) e.empresa.productos.push(prod);
@@ -162,12 +215,16 @@ function armarCatalogo(crudo, fechaCache) {
   }]));
 
   // Palabras normalizadas, para buscar sin tildes ni mayúsculas.
-  for (const p of productos.values()) p.palabras = palabras(`${p.nombre} ${p.registro || ''}`);
+  for (const p of productos.values()) {
+    p.palabras = palabras(`${p.nombre} ${p.registro || ''}`);
+    // Para el buscador de la tabla: nombre, registro, ingredientes y empresa.
+    p.palabrasTodas = palabras(`${p.nombre} ${p.registro || ''} ${p.ings.map((x) => x.ing.nombre).join(' ')} ${p.marca || ''}`);
+  }
   for (const c of cultivos.values()) c.palabras = palabras(`${c.nombre} ${c.alias.join(' ')}`);
   for (const o of objetivos.values()) o.palabras = palabras(`${o.nombre} ${o.cientifico || ''}`);
 
   return {
-    productos, categorias, ingredientes, empresas, cultivos, objetivos, documentos, gruposMoa,
+    productos, categorias, ingredientes, empresas, marcas, cultivos, objetivos, documentos, gruposMoa,
     actualizado: crudo.actualizado,
     fechaCache, // null si los datos vienen en vivo; fecha si vienen guardados (sin conexión)
   };

@@ -1,6 +1,6 @@
 // Ficha de producto: ingredientes, categoría, empresas, todas sus líneas de uso,
 // perfil de seguridad y documentos (etiqueta PDF).
-import { usosPorProducto, detalleProducto } from '../db.js';
+import { usosPorProducto, detalleProducto, nombreCorto } from '../db.js';
 import { palabras, puntaje } from '../buscador.js';
 import {
   h, agregar, icono, ruta, plural, fecha, limpio, recortar, vaciar, cargando, retrasar, mensajeError,
@@ -45,7 +45,8 @@ function lineaUso(cat, u) {
       h('a', { class: 'boton boton-chico', href: ruta('plan', { producto: u.product_id, uso: u.id }) }, icono('calendario'), 'Agregar al plan')));
 }
 
-function seccionUsos(cat, p, lineas, contenedor) {
+// cultivoId: el cultivo que se venía mirando en la tabla del inicio; va primero y abierto.
+function seccionUsos(cat, p, lineas, contenedor, cultivoId) {
   vaciar(contenedor);
   if (!lineas.length) {
     contenedor.append(h('div', { class: 'nota nota-info' },
@@ -60,7 +61,8 @@ function seccionUsos(cat, p, lineas, contenedor) {
   }
   const grupos = [...porCultivo].map(([id, us]) => ({ cultivo: cat.cultivos.get(id), us }))
     .filter((g) => g.cultivo)
-    .sort((a, b) => b.us.length - a.us.length || a.cultivo.nombre.localeCompare(b.cultivo.nombre, 'es'));
+    .sort((a, b) => (b.cultivo.id === cultivoId) - (a.cultivo.id === cultivoId) || b.us.length - a.us.length
+      || a.cultivo.nombre.localeCompare(b.cultivo.nombre, 'es'));
 
   contenedor.append(h('div', { class: 'resumen' },
     h('span', null, h('strong', null, plural(lineas.length, 'línea de uso', 'líneas de uso'))),
@@ -80,10 +82,10 @@ function seccionUsos(cat, p, lineas, contenedor) {
       }
       if (!us.length) return;
       visibles += 1;
-      listado.append(h('details', { class: 'cultivo-grupo', open: grupos.length <= 3 || (q.length > 0 && i < 6) },
+      listado.append(h('details', { class: 'cultivo-grupo', open: grupos.length <= 3 || (q.length > 0 && i < 6) || g.cultivo.id === cultivoId },
         h('summary', null, recortar(g.cultivo.nombre, 80), h('small', null, plural(us.length, 'línea', 'líneas'))),
         h('div', { class: 'linea-uso' },
-          h('a', { href: ruta('aplicar', { cultivo: g.cultivo.id }) }, 'Comparar con otros productos para este cultivo →')),
+          h('a', { href: ruta('', { cultivo: g.cultivo.id }) }, 'Comparar con otros productos para este cultivo →')),
         us.map((u) => lineaUso(cat, u))));
     });
     if (!visibles) listado.append(h('p', { class: 'vacio' }, 'Ningún cultivo u objetivo coincide.'));
@@ -154,7 +156,7 @@ export async function render(main, ctx) {
   const p = cat.productos.get(partes[1]);
   if (!p) {
     main.append(h('div', { class: 'vacio' }, h('h1', null, 'Producto no encontrado'),
-      h('p', null, 'Puede que el link esté incompleto. ', h('a', { href: '#/productos' }, 'Ver todos los productos'))));
+      h('p', null, 'Puede que el link esté incompleto. ', h('a', { href: '#/' }, 'Ver todos los productos'))));
     return;
   }
   ctx.titulo(p.nombre);
@@ -169,7 +171,7 @@ export async function render(main, ctx) {
   const zonaSeguridad = h('div', null, cargando('Cargando el perfil de seguridad…'));
 
   main.append(
-    h('a', { class: 'volver', href: '#/productos' }, icono('flecha'), 'Todos los productos'),
+    h('a', { class: 'volver', href: ctx.volverInicio || '#/' }, icono('flecha'), 'Volver a la tabla'),
     h('header', { class: 'ficha-cabeza' },
       p.categorias.length ? h('div', { class: 'chips' }, etiquetasCategoria(p)) : null,
       h('h1', null, p.nombre),
@@ -191,7 +193,7 @@ export async function render(main, ctx) {
       ? h('div', { class: 'tarjeta' }, h('table', { class: 'tabla-simple' },
         h('thead', null, h('tr', null, ['Ingrediente', 'Concentración', 'Grupo químico', 'Modo de acción'].map((t) => h('th', { scope: 'col' }, t)))),
         h('tbody', null, p.ings.map((x) => h('tr', null,
-          h('td', { 'data-etiqueta': 'Ingrediente' }, h('a', { href: ruta('productos', { ing: x.ing.id }), title: 'Ver otros productos con este ingrediente' }, x.ing.nombre)),
+          h('td', { 'data-etiqueta': 'Ingrediente' }, h('a', { href: ruta('', { ing: x.ing.id }), title: 'Ver otros productos con este ingrediente' }, x.ing.nombre)),
           h('td', { 'data-etiqueta': 'Concentración' }, textoOSinDato(x.conc)),
           h('td', { 'data-etiqueta': 'Grupo químico' }, textoOSinDato(x.ing.grupoQuimico)),
           h('td', { 'data-etiqueta': 'Modo de acción' }, x.ing.moa ? chipsMoa([x.ing.moa]) : h('span', { class: 'tenue chico' }, 'Sin grupo informado')))))))
@@ -200,7 +202,7 @@ export async function render(main, ctx) {
     h('h2', { class: 'titulo-seccion' }, 'Empresas'),
     p.empresas.length
       ? h('div', { class: 'tarjeta' }, h('ul', { class: 'lista-simple' }, p.empresas.map((e) => h('li', null,
-        h('a', { href: ruta('productos', { empresa: e.empresa.id }) }, e.empresa.nombre), ` — ${[...new Set(e.roles)].join(', ')}`))))
+        h('a', { href: ruta('', { empresa: nombreCorto(e.empresa.nombre) }), title: 'Ver los productos de esta empresa' }, e.empresa.nombre), ` — ${[...new Set(e.roles)].join(', ')}`))))
       : h('p', { class: 'tenue' }, 'Sin empresas registradas en los datos.'),
 
     h('h2', { class: 'titulo-seccion' }, 'Usos registrados'),
@@ -215,7 +217,7 @@ export async function render(main, ctx) {
   const [usos, detalle] = await Promise.allSettled([usosPorProducto(p.id), detalleProducto(p.id)]);
   if (!ctx.vigente()) return;
 
-  if (usos.status === 'fulfilled') seccionUsos(cat, p, usos.value, zonaUsos);
+  if (usos.status === 'fulfilled') seccionUsos(cat, p, usos.value, zonaUsos, ctx.params.get('cultivo'));
   else vaciar(zonaUsos).append(mensajeError(usos.reason));
 
   if (detalle.status === 'fulfilled') {
