@@ -1,6 +1,6 @@
 # Agroquímicos CRM — memoria del proyecto
 
-Leer completo antes de tocar algo. Última actualización: 26-10-2026.
+Leer completo antes de tocar algo. Última actualización: 27-10-2026.
 El sitio se llama **Agroquímicos CRM** (antes «Agroquímicos Chile»; el repo y la URL siguen siendo
 `agroquimicos-chile`). «CRM» es la marca de Cristóbal y va arriba, en el logo.
 
@@ -512,24 +512,24 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   del 25-10-2026): otra extracción numera las filas distinto y podía poner la dosis de una fila en otra del mismo
   cultivo. Ahora también exige la misma página y algún objetivo en común.
 
-## Estado del recopilador (26-10-2026, 14:20, después de la sesión 6, la primera automática)
+## Estado del recopilador (27-10-2026, ~14:00, después de la sesión 7)
 
 - Frase de Cristóbal para seguir a mano: **«Sigue con el recopilador del SAG»** → «Cómo seguir». Ahora corre solo
-  (ver «Sesiones automáticas»). El detalle de cada sesión va al final de `docs/historia.md`.
-- **Sesión 6** (26-10, 13:20–14:20, automática): 100 etiquetas (Anasac completa y 11 de Bayer), 3.987 líneas, lotes
-  `2026-10-26-6a` a `-6z`. Uso: 5 h de 1 a ~72 %, semanal de 25 a ~35 %.
-- **Codex:** 4 de las 20 antes de su control al azar (lote `2026-10-26-codex-1`); en esta sesión no había nada suyo sin
-  cargar. **Codex: UPL** (110).
-- **Empresa actual: Bayer** (56 vigentes de productos nuevos). Anasac y Syngenta: terminadas (de Anasac quedan solo
-  1059/1060, METRICLAN 48 SC: la etiqueta viene partida en dos PDF —parte 1 sin cuadro, parte 2 con el cuadro en
-  imagen—; las dos como `.sin_cuadro.json` y la 1060 ya con la segunda lectura de Tesseract). Después: BASF 58,
-  Agrospec 55, Sumitomo 48, Corteva 48…
-- **Cola:** 857 vigentes de productos nuevos; además ~110 de productos que ya estaban y 236 canceladas o que no
-  figuran en la planilla. Ritmo: ~100 por sesión y ~650 por semana (límite semanal); Codex suma aparte. Estimado:
-  ~8 de noviembre.
-- Inventario: 1.634 filas; 1.206 en «texto», 279 cargadas, 10 diferencias, 63 no son etiqueta, 50 versiones
+  (ver «Sesiones automáticas»). El detalle de cada sesión va al final de `docs/historia.md` (la más nueva arriba).
+- **Sesión 7** (27-10, 12:57–~14:00, automática): 81 etiquetas (Bayer terminada y 25 de BASF), 798 líneas, lotes
+  `2026-10-27-7a` a `-7u`. Uso: 5 h de 2 a ~75 %, semanal de 40 a ~50 %. Las 3 sesiones anteriores no corrieron.
+- **Codex:** 4 de las 20 antes de su control al azar (lote `2026-10-26-codex-1`); nada suyo sin cargar. **Codex: UPL** (114).
+- **Empresa actual: BASF** (quedan ~29 vigentes de productos nuevos). Anasac, Syngenta y Bayer: terminadas (de Bayer
+  queda 932 JANUS 480 FS, `932.pagina_hds.json`: su cuadro está en la pág. 19, que `textos.py` marcó como HDS; de
+  Anasac, 1059/1060 METRICLAN). Apartadas con `.sin_cuadro.json`: 739 FASTAC 100 EC (ya con Tesseract) y 860 HERBADOX
+  45 CS (Tesseract no leyó: necesita Sonnet con imágenes). Después: Agrospec 55, Sumitomo 48, Corteva 48, ADAMA 38…
+- **Cola:** 779 vigentes de productos nuevos; además ~110 de productos que ya estaban y 236 canceladas o que no
+  figuran en la planilla. Ritmo: ~80–100 por sesión y ~650 por semana (límite semanal); Codex suma aparte. Estimado:
+  ~10 de noviembre.
+- Inventario: 1.634 filas; 1.125 en «texto», 359 cargadas, 11 diferencias, 63 no son etiqueta, 50 versiones
   anteriores, 14 sin PDF, 5 ilegibles, 5 duplicados, 2 ya en la base.
-- Base: 430 productos (400 con N° SAG), 13.957 líneas visibles; dosis 95,2 %, carencia 89,1 %; 60 MB.
+- Base: 510 productos (480 con N° SAG), 14.755 líneas visibles; dosis 95,3 %, carencia 89,1 %; 63 MB.
+- **Control al azar pendiente:** van ~91 cargadas desde el último; hacerlo al empezar la próxima sesión.
 - Último control al azar: 26-10-2026 14:15, con 279 cargadas, 30 líneas de la sesión 6
   (`sag/control/2026-10-26_1416_revision.json`): 22 sin observaciones, 0 valores que contradigan la etiqueta; faltan
   datos (5 carencias, 1 mojamiento, 1 máximo) y 2 métodos «Al follaje» no escritos (BELENUS 30 WG). El siguiente con

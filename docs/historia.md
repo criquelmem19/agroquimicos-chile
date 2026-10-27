@@ -97,6 +97,26 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
    que no la cumplen: al 20-10-2026 son 0).
 9. Medir cobertura antes y después. Meta: 80–90 % de las líneas con carencia resuelta y citada.
 
+## Recopilador: sesión 7 (27-10-2026, automática)
+
+- 12:57–~14:00. Uso al empezar: 5 h 2 %, semanal 40 % (las sesiones de 19:20, 01:20 y 07:20 no corrieron: no hay
+  commits ni avisos entre la 6 y esta). 21 tandas de Haiku (máx. 3 a la vez, 4 etiquetas, 190–285 mil tokens cada
+  una). **81 etiquetas** (lotes `2026-10-27-7a` a `-7u`): 80 productos nuevos y 1 «diferencias» (516 COMET, ya estaba);
+  798 líneas. Bayer terminada (salvo 932) y 25 de BASF. Nada nuevo en el listado del SAG; nada de Codex sin cargar.
+  Uso al terminar: 5 h ~75 %, semanal ~50 % (~1,2 % semanal cada 10 etiquetas). Sin control al azar (91 desde el
+  último; toca en la próxima).
+- Correcciones antes de cargar (JSON original como `<id>.original.txt`): 1698 VAYEGO papa: quitado el intervalo
+  «7–21» (la etiqueta da dos intervalos según la presión, 7–14 y 14–21; el subagente los juntó); 936: quitado el
+  máximo 2 de la fila Trigo/Cebada/Triticale/Centeno (la etiqueta dice máximo 1 en cebada).
+- Apartadas: **932 JANUS 480 FS** (`932.pagina_hds.json`): el cuadro está en la pág. 19 y `textos.py` la marcó como HDS
+  (está entre páginas de etiqueta; el PDF trae la HDS delante); hace falta reclasificarla. **739 FASTAC 100 EC**
+  (cuadro en imagen, 0 usos) → `.sin_cuadro.json` y segunda lectura de Tesseract hecha (3 páginas). **860 HERBADOX 45
+  CS** (2 de ~17 filas: cuadros de las págs. 2 y 3 ilegibles) → `.sin_cuadro.json`; `ocr.py --tesseract --forzar` no
+  leyó ninguna página (tienen capa de texto): falta otra lectura (Sonnet con las imágenes).
+- Flojas: 900 (coadyuvante, cuadro sin cultivo: 0 líneas); 516 COMET, 1729 VIVARUS, 358 BETRATON y 1066 MIBELYA con
+  dosis que solo están en la imagen (sin dosis en algunas filas); 530 y 636 (concentración por ingrediente dudosa por
+  OCR); 1415 SCENIC (concentraciones sin confirmar con la imagen).
+
 ## Recopilador: sesión 6 (26-10-2026, primera sesión automática)
 
 - 13:20–14:20. Uso al empezar: 5 h 1 %, semanal 25 %. 26 tandas de Haiku (máx. 3 a la vez, 4 etiquetas cada una,
