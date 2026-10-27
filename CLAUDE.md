@@ -61,8 +61,8 @@ rechazo en destino o residuos sobre la tolerancia.
 - **Sin modo noche** (Cristóbal lo pidió quitar el 21-10-2026: «está muy de más»). Solo modo claro.
 - Marca: logo «CRM» (píldora negra con letras blancas y un punto verde) arriba a la izquierda, junto a
   «Agroquímicos CRM». Ícono de la pestaña: `assets/img/icono.svg` con la misma marca.
-- Se mantienen: letra de 17 px y alto contraste (se usa al sol), barra inferior en celular (Inicio y Plan).
-- **Menú simple y tabla ancha (pedido del 27-10-2026):** solo «Inicio» y «Plan de aplicaciones». El inicio usa todo el
+- Se mantienen: letra de 17 px y alto contraste (se usa al sol), barra inferior en celular (Inicio, Plan y Trivia).
+- **Menú simple y tabla ancha (pedido del 27-10-2026):** «Inicio», «Plan de aplicaciones» y «Trivia». El inicio usa todo el
   ancho de la pantalla (`--ancho-max` 1600 px; `ANCHA = true` en la vista); el resto de las páginas, 1180 px.
 - Grupos de modo de acción con color propio: FRAC azul, IRAC verde, HRAC tierra.
 
@@ -230,7 +230,7 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
 
 - `index.html`: una sola página, `noindex`, carga supabase-js y `assets/js/app.js`.
 - Rutas con `#` (funcionan en GitHub Pages sin configuración):
-  - `#/?cultivo=<id>&objetivo=<id>&oq=<texto>&cat=<id>&q=<texto>&empresa=<nombre corto>&moa=<clave>|sin&ing=<id>&orden=nombre|empresa|moa|cultivos&todos=1`
+  - `#/?cultivo=<id>&objetivo=<id>&oq=<texto>&cat=<id>&q=<texto>&empresa=<nombre corto>&moa=<clave>|sin&ing=<id>&orden=moa|nombre|empresa|tipo|ing|registro|cultivos&inv=1&todos=1`
     **Inicio = «¿Qué aplico?»** (rehecho el 27-10-2026 a pedido de Cristóbal; vista `assets/js/vistas/inicio.js`):
     filtros arriba (cultivo y plaga/enfermedad/maleza con sugerencias; tipo de producto; texto; en «Más filtros»
     empresa y modo de acción) y una tabla con **una fila por producto**: Producto (+ categoría), Empresa (nombre corto),
@@ -240,6 +240,21 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     objetivo, cultivos y dosis salen solo de las líneas que calzan (Enter en el objetivo = «Todos los que dicen…»).
     Los productos que no se usan en Chile quedan ocultos con un botón para mostrarlos. Debajo de 1.100 px la tabla se
     vuelve tarjetas (dos por fila en tablet). Ya no existen la rotación de grupos ni el buscador general.
+    **Orden (27-10-2026):** tocar el título de una columna ordena por ella y tocarlo de nuevo invierte (`inv=1`); en el
+    celular, un selector y un botón ▲/▼. Por defecto, **agrupados por modo de acción**: los productos con la misma
+    combinación de grupos («FRAC 7 + FRAC 11») van juntos, bajo un título con el grupo, el grupo químico y cuántos son,
+    y con una franja del color del sistema; los sin grupo al final. Solo se agrupa lo que está escrito igual
+    (`claveMoa` unifica «M3» = «M03»). **Pendiente con Cristóbal:** el mismo modo de acción aparece con código nuevo y
+    antiguo («HRAC 1» / «HRAC A», «FRAC 3» / «FRAC G1» / «FRAC G»); unirlos usaría la tabla oficial FRAC/HRAC/IRAC (no
+    sale de las etiquetas, regla 5) y además hay errores de lectura (penconazol quedó en «G3»): no hacerlo sin su «sí».
+  - `#/trivia?tipo=mezcla|tipo|moa|ing&tema=<id de categoría>` **Trivia** (27-10-2026, idea de Cristóbal, «tipo
+    JetPunk»; `assets/js/vistas/trivia.js`): 10 preguntas de 4 alternativas sobre el catálogo: tipo de producto, grupo
+    de modo de acción, ingrediente activo y «¿qué producto tiene tal ingrediente?», con filtro por fungicidas,
+    insecticidas, herbicidas o acaricidas. Reloj, puntaje, repaso al final y récord por modalidad en el equipo
+    (`localStorage` `trivia-v1`). Para no tener dos respuestas correctas: las preguntas de grupo usan solo códigos
+    actuales (números, «M03», «4A»; no «G1» ni «HRAC A») y tratan «IRAC 3» = «IRAC 3A»; los ingredientes se comparan
+    por sus primeras 6 letras («Pidiflumetofen» = «Pidiflumetofeno»); productos con nombre de archivo («20241202…») y
+    con ingredientes sin grupo ni grupo químico (lecturas basura) no entran.
   - `#/aplicar?…`, `#/productos?…` y `#/buscar` (links antiguos) se abren en el inicio con los mismos filtros
     (`ANTIGUAS` en `app.js`; `empresa=<id>` antiguo se traduce al nombre corto).
   - `#/producto/<id>?cultivo=<id>` ficha: ingredientes, empresas y roles, líneas de uso por cultivo (el cultivo que se

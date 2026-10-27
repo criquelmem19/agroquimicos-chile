@@ -4,6 +4,7 @@ import { h, icono, vaciar, fecha, mensajeError } from './ui.js';
 import * as vistaInicio from './vistas/inicio.js';
 import * as vistaProducto from './vistas/producto.js';
 import * as vistaPlan from './vistas/plan.js';
+import * as vistaTrivia from './vistas/trivia.js';
 
 const NOMBRE_SITIO = 'Agroquímicos CRM';
 
@@ -12,6 +13,7 @@ const NOMBRE_SITIO = 'Agroquímicos CRM';
 const SECCIONES = [
   { camino: '', titulo: '', menu: 'Inicio', corto: 'Inicio', icono: 'casa', vista: vistaInicio },
   { camino: 'plan', titulo: 'Plan de aplicaciones', menu: 'Plan de aplicaciones', corto: 'Plan', icono: 'calendario', vista: vistaPlan },
+  { camino: 'trivia', titulo: 'Trivia', menu: 'Trivia', corto: 'Trivia', icono: 'trofeo', vista: vistaTrivia },
 ];
 // Rutas que no van en el menú.
 const OTRAS = { producto: vistaProducto };

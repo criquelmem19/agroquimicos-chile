@@ -2,7 +2,8 @@
 // tipo de producto, texto, empresa y modo de acción. Es también «¿Qué aplico?»: con cultivo u objetivo,
 // los cultivos y la dosis de cada fila salen solo de las líneas de uso que calzan.
 // Parámetros: cultivo=<id>, objetivo=<id>, oq=<texto de objetivo>, cat=<id>, q=<texto>, empresa=<nombre corto>,
-// moa=<clave>|sin, ing=<id>, orden=nombre|empresa|moa|cultivos, todos=1 (incluye los que no se usan en Chile)
+// moa=<clave>|sin, ing=<id>, orden=moa|nombre|empresa|tipo|ing|registro|cultivos, inv=1 (orden al revés),
+// todos=1 (incluye los que no se usan en Chile)
 import { usosPorCultivo, usosPorObjetivos, compararMoa, nombreCorto } from '../db.js';
 import { filtrar, palabras, puntaje, normalizar } from '../buscador.js';
 import {
@@ -16,7 +17,24 @@ export const ANCHA = true;
 const POR_PAGINA = 100;
 const VISIBLES_CULTIVOS = 3;
 const MAX_OBJETIVOS_TEXTO = 300;
-const ORDENES = [['nombre', 'Producto (A–Z)'], ['empresa', 'Empresa'], ['moa', 'Modo de acción'], ['cultivos', 'Más cultivos primero']];
+// Columnas que se ordenan al tocar su título (otro toque invierte el orden). Por defecto, agrupados por modo de acción.
+// mayorPrimero: el primer toque ordena de mayor a menor.
+const ORDENES = {
+  moa: 'Modo de acción (agrupados)',
+  nombre: 'Producto',
+  empresa: 'Empresa',
+  tipo: 'Tipo (WP, SC…)',
+  ing: 'Ingrediente activo',
+  registro: 'Registro SAG',
+  cultivos: 'Cantidad de cultivos',
+};
+const MAYOR_PRIMERO = new Set(['cultivos']);
+// Columnas de la tabla y con qué orden se asocia cada una (null: no se ordena).
+const COLUMNAS = [
+  ['Producto', 'nombre'], ['Empresa', 'empresa'], ['Modo de acción', 'moa'], ['Tipo', 'tipo'], ['Ingrediente activo', 'ing'],
+  ['Etiqueta', null], ['Reg. SAG', 'registro'], ['Cultivos', 'cultivos'], ['Dosis', null], ['', null],
+];
+const SIN_GRUPO = 'Sin grupo de modo de acción informado';
 
 function ir(params) { location.hash = ruta('', params); }
 
@@ -32,6 +50,30 @@ function tipoDe(p) {
   if (p.formulacionCodigo) return p.formulacionCodigo;
   const m = String(p.nombre).match(/\b(SC|EC|WP|SL|WG|WDG|DP|FS|EW|CS|OD|SG|SE|SP|GR|ZC|ME|DC|TB|RB|GB|UL|WS|DS)\b/);
   return m ? m[1] : null;
+}
+
+function valorOrden(clave, p, info) {
+  if (clave === 'nombre') return p.nombre;
+  if (clave === 'empresa') return p.marca;
+  if (clave === 'tipo') return tipoDe(p);
+  if (clave === 'ing') return p.ings.length ? p.ings.map((x) => x.ing.nombre).join(' + ') : null;
+  if (clave === 'registro') return p.registro ? String(p.registro) : null;
+  if (clave === 'cultivos') return info.cultivos.length;
+  return null;
+}
+
+const comparaTexto = (a, b) => String(a).localeCompare(String(b), 'es', { numeric: true, ignorePunctuation: true });
+
+// Grupos de modo de acción de un producto como una sola clave («FRAC 7 + FRAC 11»): los que tienen la misma son lo mismo.
+const claveGrupo = (p) => p.moa.join(' + ');
+
+function compararGrupos(a, b) {
+  if (!a.length || !b.length) return !a.length - !b.length;
+  for (let i = 0; i < Math.min(a.length, b.length); i += 1) {
+    const d = compararMoa(a[i], b[i]);
+    if (d) return d;
+  }
+  return a.length - b.length;
 }
 
 // ---------- Campo con sugerencias (cultivo, objetivo) ----------
@@ -102,7 +144,8 @@ function fila(p, info, op) {
   const url = p.etiqueta && p.etiqueta.url;
   const principal = p.empresas[0];
   const tipo = tipoDe(p);
-  return h('tr', null,
+  const sistema = op.agrupar && p.moa.length ? String(p.moa[0]).split(' ')[0].toLowerCase() : null;
+  return h('tr', { class: op.agrupar ? `en-grupo ${sistema ? `grupo-${sistema}` : 'grupo-sin'}` : null },
     h('td', { class: 'c-producto' },
       h('a', { href: ruta(`producto/${p.id}`, { cultivo: op.cultivoId }) }, p.nombre),
       p.categorias.length ? h('span', { class: 'c-cat' }, p.categorias.map((c) => c.nombre).join(' · ')) : null,
@@ -124,11 +167,31 @@ function fila(p, info, op) {
     }, icono('calendario'))));
 }
 
-function tabla(filas) {
-  const cabeceras = ['Producto', 'Empresa', 'Modo de acción', 'Tipo', 'Ingrediente activo', 'Etiqueta', 'Reg. SAG', 'Cultivos', 'Dosis', ''];
+// Título de un grupo de productos con el mismo modo de acción.
+function filaGrupo(clave, productos) {
+  const moa = clave ? clave.split(' + ') : [];
+  const quimicos = [...new Set(productos.flatMap((p) => p.ings.filter((x) => x.ing.moa).map((x) => x.ing.grupoQuimico)).filter(Boolean))];
+  return h('tr', { class: 'fila-grupo' }, h('td', { colspan: String(COLUMNAS.length) },
+    h('div', { class: 'grupo-titulo' },
+      moa.length ? chipsMoa(moa) : h('strong', null, SIN_GRUPO),
+      quimicos.length ? h('span', { class: 'grupo-quimico' }, recortar(quimicos.join(' · '), 90)) : null,
+      h('span', { class: 'grupo-cuenta' }, plural(productos.length, 'producto', 'productos')))));
+}
+
+// alOrdenar(clave): tocar el título de una columna.
+function tabla(orden, alOrdenar) {
   return h('table', { class: 'tabla-productos' },
-    h('thead', null, h('tr', null, cabeceras.map((c, i) => h('th', { scope: 'col', 'aria-label': c || 'Agregar al plan', class: i === 9 ? 'c-plan' : null }, c)))),
-    h('tbody', null, filas));
+    h('thead', null, h('tr', null, COLUMNAS.map(([titulo, clave]) => {
+      if (!clave) return h('th', { scope: 'col', 'aria-label': titulo || 'Agregar al plan', class: titulo ? null : 'c-plan' }, titulo);
+      const activa = orden.clave === clave;
+      const flecha = activa ? (orden.descendente ? '▼' : '▲') : '↕';
+      return h('th', { scope: 'col', 'aria-sort': activa ? (orden.descendente ? 'descending' : 'ascending') : 'none' },
+        h('button', {
+          type: 'button', class: `orden-col${activa ? ' activa' : ''}`, onclick: () => alOrdenar(clave),
+          title: activa ? 'Tocar para invertir el orden' : `Ordenar por ${titulo.toLowerCase()}`,
+        }, titulo, h('span', { class: 'flecha', 'aria-hidden': 'true' }, flecha)));
+    }))),
+    h('tbody'));
 }
 
 // ---------- Vista ----------
@@ -144,7 +207,8 @@ export async function render(main, ctx) {
     empresa: params.get('empresa') || '',
     moa: params.get('moa') || '',
     ing: params.get('ing') || '',
-    orden: ORDENES.some(([v]) => v === params.get('orden')) ? params.get('orden') : 'nombre',
+    orden: ORDENES[params.get('orden')] ? params.get('orden') : 'moa',
+    inv: params.get('inv') === '1',
     todos: params.get('todos') === '1',
   };
   // Links antiguos: empresa por id (#/productos?empresa=<id>).
@@ -154,7 +218,7 @@ export async function render(main, ctx) {
   const objetivo = estado.objetivo ? cat.objetivos.get(estado.objetivo) : null;
   const ing = estado.ing ? cat.ingredientes.get(estado.ing) : null;
   const conLineas = Boolean(cultivo || objetivo || estado.oq);
-  const base = () => ({ cultivo: estado.cultivo, objetivo: estado.objetivo, oq: estado.oq, cat: estado.cat, q: estado.q, empresa: estado.empresa, moa: estado.moa, ing: estado.ing, orden: estado.orden === 'nombre' ? '' : estado.orden, todos: estado.todos ? '1' : '' });
+  const base = () => ({ cultivo: estado.cultivo, objetivo: estado.objetivo, oq: estado.oq, cat: estado.cat, q: estado.q, empresa: estado.empresa, moa: estado.moa, ing: estado.ing, orden: estado.orden === 'moa' ? '' : estado.orden, inv: estado.inv ? '1' : '', todos: estado.todos ? '1' : '' });
 
   main.append(h('h1', { class: 'titulo-inicio' }, '¿Qué aplico?'));
   if ((estado.cultivo && !cultivo) || (estado.objetivo && !objetivo)) {
@@ -306,28 +370,45 @@ export async function render(main, ctx) {
     const noDisponibles = candidatos.filter((p) => p.noDisponible).length;
     const visibles = estado.todos ? candidatos : candidatos.filter((p) => !p.noDisponible);
     const infos = new Map(visibles.map((p) => [p, infoDe(p)]));
-    const nombre = (a, b) => a.nombre.localeCompare(b.nombre, 'es', { ignorePunctuation: true });
+    const nombre = (a, b) => comparaTexto(a.nombre, b.nombre);
+    const descendente = MAYOR_PRIMERO.has(estado.orden) !== estado.inv;
+    const signo = descendente ? -1 : 1;
     visibles.sort((a, b) => {
-      if (estado.orden === 'empresa') return (a.marca || '~').localeCompare(b.marca || '~', 'es') || nombre(a, b);
       if (estado.orden === 'moa') {
-        if (!a.moa.length || !b.moa.length) return (!a.moa.length - !b.moa.length) || nombre(a, b);
-        return compararMoa(a.moa[0], b.moa[0]) || nombre(a, b);
+        // Los sin grupo siempre al final; dentro de cada grupo, por nombre.
+        const d = compararGrupos(a.moa, b.moa);
+        return (a.moa.length && b.moa.length ? d * signo : d) || nombre(a, b);
       }
-      if (estado.orden === 'cultivos') return infos.get(b).cultivos.length - infos.get(a).cultivos.length || nombre(a, b);
-      return nombre(a, b);
+      const va = valorOrden(estado.orden, a, infos.get(a));
+      const vb = valorOrden(estado.orden, b, infos.get(b));
+      const faltaA = va == null || va === '';
+      const faltaB = vb == null || vb === '';
+      if (faltaA || faltaB) return (faltaA - faltaB) || nombre(a, b);
+      const d = typeof va === 'number' && typeof vb === 'number' ? va - vb : comparaTexto(va, vb);
+      return d * signo || nombre(a, b);
     });
+    const ordenar = (clave) => {
+      if (estado.orden === clave) estado.inv = !estado.inv;
+      else { estado.orden = clave; estado.inv = false; }
+      pintar();
+    };
 
-    // Barra: cantidad, ingrediente elegido (desde la ficha), los que no se usan en Chile y el orden.
+    // Barra: cantidad, ingrediente elegido (desde la ficha), los que no se usan en Chile y el orden (en el celular,
+    // donde no se ven los títulos de las columnas).
     const orden = h('select', { class: 'selector', 'aria-label': 'Ordenar' },
-      ORDENES.map(([v, t]) => h('option', { value: v, selected: v === estado.orden }, t)));
-    orden.addEventListener('change', () => { estado.orden = orden.value; pintar(); });
+      Object.entries(ORDENES).map(([v, t]) => h('option', { value: v, selected: v === estado.orden }, t)));
+    orden.addEventListener('change', () => { estado.orden = orden.value; estado.inv = false; pintar(); });
     zona.append(h('div', { class: 'barra-tabla' },
       h('p', { class: 'cuenta', 'aria-live': 'polite' }, h('strong', null, plural(visibles.length, 'producto', 'productos'))),
       ing ? h('a', { class: 'chip', 'aria-pressed': 'true', href: ruta('', { ...base(), ing: '' }), title: 'Quitar este filtro' }, `Ingrediente: ${ing.nombre}`, h('small', null, '✕')) : null,
       noDisponibles ? h('button', { type: 'button', class: 'boton-texto chico', onclick: () => { estado.todos = !estado.todos; pintar(); } },
         estado.todos ? `Ocultar ${noDisponibles === 1 ? 'el que no se usa' : `los ${noDisponibles} que no se usan`} en Chile`
           : `Mostrar también ${noDisponibles === 1 ? 'el producto que no se usa' : `los ${noDisponibles} productos que no se usan`} en Chile`) : null,
-      h('label', { class: 'orden' }, 'Ordenar por', orden)));
+      h('div', { class: 'orden' }, h('label', null, 'Orden', orden),
+        h('button', {
+          type: 'button', class: 'boton-redondo', onclick: () => ordenar(estado.orden),
+          title: 'Invertir el orden', 'aria-label': `Invertir el orden (ahora ${descendente ? 'de mayor a menor' : 'de menor a mayor'})`,
+        }, descendente ? '▼' : '▲'))));
 
     // Si lo escrito es un cultivo o una plaga, ofrecer ese filtro.
     if (estado.q.length >= 3) {
@@ -349,13 +430,29 @@ export async function render(main, ctx) {
         h('a', { class: 'boton', href: '#/' }, 'Quitar filtros')));
       return;
     }
-    const cuerpo = tabla([]);
+    const cuerpo = tabla({ clave: estado.orden, descendente }, ordenar);
     const tbody = cuerpo.querySelector('tbody');
     const masZona = h('div', { class: 'ver-mas-zona' });
     let mostrados = 0;
-    const op = { cultivoId: estado.cultivo || null };
+    const op = { cultivoId: estado.cultivo || null, agrupar: estado.orden === 'moa' };
+    // Agrupados por modo de acción: un título antes del primer producto de cada grupo.
+    const porGrupo = new Map();
+    if (op.agrupar) {
+      for (const p of visibles) {
+        const k = claveGrupo(p);
+        if (!porGrupo.has(k)) porGrupo.set(k, []);
+        porGrupo.get(k).push(p);
+      }
+    }
+    let grupoAnterior = null;
     const mostrarMas = () => {
-      tbody.append(...visibles.slice(mostrados, mostrados + POR_PAGINA).map((p) => fila(p, infos.get(p), op)));
+      for (const p of visibles.slice(mostrados, mostrados + POR_PAGINA)) {
+        if (op.agrupar && claveGrupo(p) !== grupoAnterior) {
+          grupoAnterior = claveGrupo(p);
+          tbody.append(filaGrupo(grupoAnterior, porGrupo.get(grupoAnterior)));
+        }
+        tbody.append(fila(p, infos.get(p), op));
+      }
       mostrados += POR_PAGINA;
       vaciar(masZona);
       if (mostrados < visibles.length) {

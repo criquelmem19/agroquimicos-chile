@@ -223,8 +223,11 @@ body { padding-bottom: calc(var(--alto-nav-inf) + env(safe-area-inset-bottom)); 
 @media (min-width: 1100px) { .mas-filtros .filtros-principales { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .barra-tabla { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; margin: 0 0 .7rem; }
 .barra-tabla .cuenta { margin: 0; font-size: 1.05rem; }
-.barra-tabla .orden { margin-left: auto; display: flex; align-items: center; gap: .45rem; font-size: .9rem; color: var(--tinta-2); }
-.barra-tabla .orden .selector { min-height: 40px; }
+.barra-tabla .orden { margin-left: auto; display: flex; align-items: center; gap: .45rem; }
+.barra-tabla .orden label { display: flex; align-items: center; gap: .45rem; font-size: .9rem; color: var(--tinta-2); }
+.barra-tabla .orden .selector { min-height: 40px; max-width: 13.5rem; }
+/* En la tabla se ordena tocando los títulos; el selector queda para el celular. */
+@media (min-width: 1100px) { .barra-tabla .orden { display: none; } }
 .sugerencias { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; margin: 0 0 .9rem; }
 .ver-mas-zona { display: flex; justify-content: center; margin-top: 1rem; }
 
@@ -235,6 +238,13 @@ body { padding-bottom: calc(var(--alto-nav-inf) + env(safe-area-inset-bottom)); 
   font-size: .72rem; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--tinta-3);
   background: var(--superficie-2); padding: .65rem .5rem; border-bottom: 1px solid var(--linea-fuerte);
 }
+.orden-col {
+  display: inline-flex; align-items: center; gap: .3rem; padding: 0; border: 0; background: none; cursor: pointer;
+  font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; text-align: left;
+}
+.orden-col:hover, .orden-col.activa { color: var(--tinta); }
+.orden-col .flecha { font-size: .7rem; opacity: .45; }
+.orden-col.activa .flecha { opacity: 1; color: var(--verde-fuerte); }
 .tabla-productos th:first-child { border-top-left-radius: 14px; }
 .tabla-productos th:last-child { border-top-right-radius: 14px; }
 .tabla-productos td { padding: .7rem .5rem; border-bottom: 1px solid var(--linea); vertical-align: top; }
@@ -260,6 +270,17 @@ body { padding-bottom: calc(var(--alto-nav-inf) + env(safe-area-inset-bottom)); 
   padding: 0 .5rem; font-size: .8rem; font-weight: 600; line-height: 1.6; cursor: pointer; white-space: nowrap;
 }
 .mas-cultivos:hover { border-color: var(--tinta); }
+
+/* Agrupados por modo de acción: un título por grupo y una franja del color del sistema (FRAC, IRAC, HRAC). */
+.tabla-productos .fila-grupo td { background: var(--superficie-2); padding: .55rem .6rem; border-top: 1px solid var(--linea-fuerte); }
+.tabla-productos tbody .fila-grupo:hover td { background: var(--superficie-2); }
+.grupo-titulo { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .7rem; }
+.grupo-quimico { font-size: .88rem; color: var(--tinta-2); }
+.grupo-cuenta { margin-left: auto; font-size: .82rem; color: var(--tinta-3); white-space: nowrap; }
+.en-grupo > td:first-child { box-shadow: inset 4px 0 0 var(--otro-fondo); }
+.grupo-frac > td:first-child { box-shadow: inset 4px 0 0 var(--frac); }
+.grupo-irac > td:first-child { box-shadow: inset 4px 0 0 var(--irac); }
+.grupo-hrac > td:first-child { box-shadow: inset 4px 0 0 var(--hrac); }
 
 /* En celular y tablet cada producto es una tarjeta compacta. */
 @media (max-width: 1099px) {
@@ -291,11 +312,19 @@ body { padding-bottom: calc(var(--alto-nav-inf) + env(safe-area-inset-bottom)); 
     font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--tinta-3);
   }
   .c-plan { position: absolute; top: .7rem; right: .7rem; width: auto; }
+  .tabla-productos .fila-grupo { display: block; padding: 0; margin: 1.1rem 0 .5rem; background: none; border: 0; }
+  .tabla-productos .fila-grupo td { display: block; padding: 0; background: none; border: 0; }
+  .en-grupo > td:first-child, .grupo-frac > td:first-child, .grupo-irac > td:first-child, .grupo-hrac > td:first-child { box-shadow: none; }
+  .tabla-productos .en-grupo { border-left: 5px solid var(--otro-fondo); }
+  .tabla-productos .grupo-frac { border-left-color: var(--frac); }
+  .tabla-productos .grupo-irac { border-left-color: var(--irac); }
+  .tabla-productos .grupo-hrac { border-left-color: var(--hrac); }
 }
 /* Tablet: dos tarjetas por fila. */
 @media (min-width: 700px) and (max-width: 1099px) {
   .tabla-productos tbody { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; align-items: start; }
   .tabla-productos tr { margin-bottom: 0; }
+  .tabla-productos .fila-grupo { grid-column: 1 / -1; margin: .6rem 0 0; }
 }
 
 /* ---------- Chips, etiquetas y botones ---------- */
@@ -577,6 +606,54 @@ ul.tarjeta.lista-simple { padding: 1.1rem 1.2rem; }
 }
 .casilla { display: flex; align-items: center; gap: .55rem; margin: .2rem 0 1rem; font-size: .95rem; cursor: pointer; }
 .casilla input { width: 20px; height: 20px; accent-color: var(--verde-fuerte); }
+
+/* ---------- Trivia ---------- */
+.trivia { max-width: 780px; margin: 0 auto; outline: none; }
+.trivia-bajada { color: var(--tinta-2); }
+.trivia-portada { display: grid; gap: 1.1rem; background: var(--superficie-2); border-radius: var(--radio); padding: 1.2rem 1.2rem 1.3rem; margin-top: 1rem; }
+.trivia-eleccion { display: flex; flex-direction: column; gap: .45rem; }
+.chip:disabled { opacity: .45; cursor: not-allowed; }
+.trivia-jugar { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; margin-top: .3rem; }
+.boton-grande { min-height: 54px; padding: .6rem 1.8rem; font-size: 1.08rem; }
+.trivia-barra { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem 1.2rem; font-size: .95rem; color: var(--tinta-2); margin: .3rem 0 .5rem; }
+.trivia-reloj { margin-left: auto; font-weight: 600; color: var(--tinta); font-variant-numeric: tabular-nums; }
+.trivia-progreso { height: 8px; border-radius: 999px; background: var(--superficie-3); overflow: hidden; margin-bottom: 1rem; }
+.trivia-progreso > span { display: block; height: 100%; background: var(--verde); border-radius: 999px; transition: width .25s ease; }
+.trivia-pregunta { background: var(--azul-bloque); border-radius: 24px; padding: 1.3rem 1.3rem 1.2rem; margin-bottom: .9rem; }
+.trivia-enunciado { font-size: clamp(1.2rem, 1rem + 1vw, 1.55rem); line-height: 1.3; margin: 0 0 .3rem; overflow-wrap: anywhere; }
+.trivia-pregunta .chico { margin: 0; color: var(--tinta-2); }
+.trivia-opciones { display: grid; gap: .6rem; }
+@media (min-width: 640px) { .trivia-opciones { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.opcion-trivia {
+  display: flex; align-items: center; gap: .75rem; width: 100%; min-height: 62px; padding: .6rem .9rem; text-align: left;
+  background: var(--superficie); color: var(--tinta); border: 1.5px solid var(--linea-fuerte); border-radius: 18px; cursor: pointer;
+}
+.opcion-trivia:hover:not(:disabled) { border-color: var(--tinta); background: var(--superficie-2); }
+.opcion-trivia:disabled { cursor: default; }
+.opcion-letra { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--superficie-2); font-weight: 700; font-size: .9rem; }
+.opcion-texto { overflow-wrap: anywhere; font-weight: 500; }
+.opcion-trivia.correcta { background: var(--ok-fondo); border-color: var(--verde); }
+.opcion-trivia.correcta .opcion-letra { background: var(--verde); color: #fff; }
+.opcion-trivia.incorrecta { background: var(--peligro-fondo); border-color: var(--peligro-linea); }
+.opcion-trivia.incorrecta .opcion-letra { background: #d9534a; color: #fff; }
+.trivia-resultado { margin-top: .9rem; }
+.trivia-resultado p { margin: 0 0 .35rem; }
+.trivia-bien, .trivia-mal { display: flex; align-items: center; gap: .4rem; font-weight: 600; font-size: 1.05rem; }
+.trivia-bien { color: var(--verde-fuerte); }
+.trivia-mal { color: var(--peligro-tinta); }
+.trivia-bien svg, .trivia-mal svg { width: 20px; height: 20px; }
+.trivia-acciones { display: flex; justify-content: flex-end; margin-top: .8rem; }
+.trivia-final { text-align: center; background: var(--verde-claro); border-radius: 24px; padding: 1.6rem 1.2rem 1.4rem; }
+.trivia-final .acciones { justify-content: center; }
+.trivia-final .etiqueta { margin: 0 auto .6rem; }
+.trivia-puntaje { font-size: 1.3rem; margin: 0; }
+.trivia-puntaje strong { font-size: 3.4rem; font-weight: 800; letter-spacing: -.03em; }
+.trivia-repaso { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+.trivia-repaso li { display: flex; gap: .7rem; padding: .8rem 1rem; border: 1px solid var(--linea); border-radius: var(--radio-chico); background: var(--superficie); }
+.trivia-repaso p { margin: 0 0 .2rem; overflow-wrap: anywhere; }
+.trivia-marca { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: var(--verde); }
+.trivia-repaso .mal .trivia-marca { background: #d9534a; }
+.trivia-marca svg { width: 16px; height: 16px; }
 
 /* Avisos emergentes (alertas que «saltan» al agregar) */
 .avisos-flotantes {

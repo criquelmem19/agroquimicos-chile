@@ -82,9 +82,11 @@ function leerCache() {
 }
 
 // Clave del grupo de modo de acción, por ejemplo "FRAC 3" o "IRAC 4A".
+// Solo se unifica cómo está escrito el código («M3» = «M03», mayúsculas), no grupos distintos.
 export function claveMoa(sistema, grupo) {
   if (!grupo) return null;
-  return sistema ? `${sistema} ${grupo}` : String(grupo);
+  const g = String(grupo).trim().toUpperCase().replace(/^M(\d)$/, 'M0$1');
+  return sistema ? `${sistema} ${g}` : g;
 }
 
 // Orden natural: FRAC, IRAC, HRAC y luego por número de grupo.
