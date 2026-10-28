@@ -97,6 +97,32 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
    que no la cumplen: al 20-10-2026 son 0).
 9. Medir cobertura antes y después. Meta: 80–90 % de las líneas con carencia resuelta y citada.
 
+## Recopilador: sesión 8 (28-10-2026, automática)
+
+- 07:32–~08:35. Uso al empezar: 5 h 2 %, semanal 53 %. Nada nuevo en el listado del SAG. Codex: 2 cargadas (426, 568;
+  lote `2026-10-28-8codex`): van 6 de las 20 antes de su control.
+- Control al azar (30 líneas de la sesión 7, `sag/control/2026-10-28_0734_revision.json`): 21 sin observaciones, 0 valores
+  que contradigan la etiqueta. Faltan datos: carencia «no corresponde» (ALION 218 manzano, ESPLANADE 709 pino, BACARA FORTE
+  312 triticale), máximo (218 y APACHE PLUS 252 ajo), mojamiento (MELYRA 1046 y BELT 342 cerezo) y métodos. **Método escrito
+  sin respaldo:** «Aplicación terrestre» en ALION 500 SC (manzano y bordes de camino) y ESPLANADE 500 SC (pino): se le
+  pregunta a Cristóbal si se vacía.
+- 28 tandas de Haiku (máx. 3 a la vez, 3–4 etiquetas) y 1 de Sonnet (860 HERBADOX: 9 usos, 5 con dosis). **111
+  etiquetas** (lotes `2026-10-28-8a` a `-8za`): 109 productos nuevos y 2 «diferencias» (327 BASTA 14 SL y 829 GLIFOSPEC 75%
+  SG PLUS: su N° SAG ya estaba). BASF terminada, Agrospec terminada, Sumitomo empezada (quedan 28). 739 FASTAC cargada con la
+  segunda lectura de Tesseract. Uso al terminar: 5 h ~72 %, semanal ~62 %.
+- Correcciones antes de cargar (JSON original como `<id>.original.json`): 1271 PRIAXOR: quitadas las dosis de Papas y Trigo
+  aéreo (citaban la cifra de otra fila); 1461 SITOFEX: quitada la carencia de Red Globe (la etiqueta dice «38 días en vides»
+  y no rotula Red Globe como vid); 918: quitado el mojamiento de Maravilla (tomado por cercanía); 971: quitado el método de
+  Ajo; 1247 POLISULFURO: quitadas las dosis de Cerezo y Duraznero/Nectarino (el subagente dudó de qué dosis va con qué
+  objetivo); 751: quitada la dosis de Pino/Eucalipto (ambigua) y la fila «Porotillo»; 1176 OVERKILL: quitado el mojamiento
+  de Raps/Trigo (60 en el texto, 200 en la imagen); 498 CLETODIM: quitado el cuadro aéreo (cultivos por fila no claros);
+  826 GLIFOSPEC 48% SL: quitadas todas las dosis (no se sabe qué dosis va con qué maleza).
+- Apartada: **464 CHAMP DP WG** (`464.sin_cuadro.json`): la pág. 1 está escaneada de lado y el OCR quedó en basura (giro 0):
+  repetir el OCR girado.
+- Flojas: 828/829/830 GLIFOSPEC y 1382 RIPPER MAX (escaneos; muchas dosis solo en la imagen), 1148 NUMEK (faltan vides,
+  cítricos, berries, remolacha, pimiento y aéreos), 1176 (pág. 3, cuadro aéreo, sin extraer), 1452 SIMAZINA (bloque de frutales
+  sin cargar), 640 y 940 (cuadros desordenados, carencias por imagen), 647 (dosis de cereales), 1699 (carencias de berries).
+
 ## Recopilador: sesión 7 (27-10-2026, automática)
 
 - 12:57–~14:00. Uso al empezar: 5 h 2 %, semanal 40 % (las sesiones de 19:20, 01:20 y 07:20 no corrieron: no hay
