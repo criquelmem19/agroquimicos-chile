@@ -97,6 +97,26 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
    que no la cumplen: al 20-10-2026 son 0).
 9. Medir cobertura antes y después. Meta: 80–90 % de las líneas con carencia resuelta y citada.
 
+## Recopilador: sesión 11 (29-10-2026, automática)
+
+- 13:22–~14:00 (hora de Chile). Uso al empezar: 5 h 2 %, semanal 85 %; al terminar: 5 h 28 %, semanal 89 % (se paró por
+  el límite semanal; se renueva el 31-10 a las 12:00). Sin etiquetas nuevas del SAG.
+- Codex: 5 cargadas (649, 1019, 1026, 1028, 1133; lote `2026-10-29-11codex`): van 16 de las 20 antes de su control. 1133
+  quedó con 1 línea.
+- **34 etiquetas** (29 de Haiku, lotes `2026-10-29-11a` a `-11h`, y 5 de Codex), 1.417 líneas, todas de productos nuevos.
+  **FMC terminada**; **Point empezada** (3; quedan 27). 8 tandas de Haiku (máx. 3 a la vez).
+- Apartadas sin cargar (`<id>.pagina_hds.json`): 532 y 1692 VALIS M (FMC) y 509 Clorotalonil 720 SC (Point): `textos.py`
+  marcó como HDS páginas que son de la etiqueta (la pág. 1 con el producto y, en 532, las instrucciones de uso), así que
+  el subagente no tuvo N° SAG, ingredientes ni el cuadro. Igual que 932 JANUS: falta corregir la clasificación.
+- Correcciones antes de cargar (JSON original como `<id>.original.json`): 590 DAGGER 50 % WP: quitada la «carencia» de
+  1 día con cultivos «*» (la etiqueta habla de un «período de resguardo» en post-cosecha, no de carencia, y con «*» se
+  aplicaba a todos los cultivos). 504 y 590: ligaduras «ﬂ»/«ﬁ» cambiadas por «fl»/«fi» (si no, se creaba el cultivo
+  «Coliﬂor» aparte).
+- Para revisar: 1395 (FMC) dice «Almendro: 132 días» de carencia en la capa de texto del PDF (se cargó tal cual); 1762
+  ZORO, carencia escrita para «nuez» asignada a Nogal; 1737 WARRANT, riego 1 L/ha asignado a las 3 plagas de tomate.
+- Flojas: 1133 (1 línea), 1354 (2), 1610 TOPGUARD (3), 1725 VINCIT FLO (1 uso, semilla), 755 (filas en cc/ha y L/ha sin
+  cargar), 1398, 1399 y 1400 (dosis sin unidad en varias filas).
+
 ## Recopilador: sesión 10 (29-10-2026, automática)
 
 - 07:57–~09:05 (hora de Chile). Uso al empezar: 5 h 1 %, semanal 74 %. El candado de `turno.py` venía de la **sesión 9**
