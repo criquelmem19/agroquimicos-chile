@@ -97,6 +97,36 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
    que no la cumplen: al 20-10-2026 son 0).
 9. Medir cobertura antes y después. Meta: 80–90 % de las líneas con carencia resuelta y citada.
 
+## Recopilador: sesión 10 (29-10-2026, automática)
+
+- 07:57–~10:10 (hora de Chile). Uso al empezar: 5 h 1 %, semanal 74 %. El candado de `turno.py` venía de la **sesión 9**
+  (28-10, 13:21): esa sesión cargó 43 etiquetas (Sumitomo casi entera, lote `2026-10-28-9…`), hizo el control al azar de
+  la sesión 8 (`sag/control/2026-10-28_1323_revision.json`) y se cortó a las ~13:46 sin soltar el turno, sin commit, sin
+  actualizar CLAUDE.md y sin correo (lo más probable: límite de uso). Esta sesión cargó lo que dejó escrito (1763, 1764).
+- Control de la sesión 9 (30 líneas de la sesión 8): 14 sin observaciones. Casi todo son datos que faltan (carencias
+  «no corresponde» de CLETODIM 240 EC 498, dosis de GLIFOSPEC 48% SL 826, máximos e intervalos). **Valores dudosos:**
+  KNOCKOUT (964) kiwi, mojamiento 1.500–2.000 en la base y 1.500–2.500 en la etiqueta; MCPA 750 SL (1043) con un objetivo
+  «#»; AGRITOX 750 (204) arroz con método «Aplicación terrestre» que la etiqueta no dice para arroz. No se corrigen sin el
+  «sí» de Cristóbal.
+- Codex: 5 cargadas (722, 736, 746, 786, 970; lote `2026-10-29-10codex`): van 11 de las 20 antes de su control.
+- Sumitomo: quedaban 3 (464 CHAMP DP WG, 648 DiTera WG, 817 GIBGRO 10LS). Un Sonnet tampoco las pudo leer: la pág. 1 está de
+  lado y las dos lecturas son basura. Quedan como `<id>.sin_cuadro.json` y `<id>.sin_cuadro2.json` (`lote.py` las vuelve a
+  ofrecer): hace falta que `ocr.py` pruebe el otro giro (90° y 270°).
+- **80 etiquetas** (75 de Haiku/Sonnet, lotes `2026-10-29-10a` a `-10t`, y 5 de Codex), 1.612 líneas, todas de productos
+  nuevos. **Corteva terminada** (35), **ADAMA (Makhteshim Agan) terminada** (38), **FMC empezada** (8; quedan 27). 21 tandas
+  de Haiku (máx. 3 a la vez) y 2 de Sonnet (Sumitomo y el control). Uso al terminar: 5 h 71 %, semanal 83 %.
+- Correcciones antes de cargar (JSON original como `<id>.original.json`): 286 y 287 AVAUNT: quitado el intervalo «Frutales:
+  18 días» de vid, arándano y avellano (la etiqueta no dice si van dentro de «Frutales»). Cuadros imagen resueltos con la segunda lectura de Tesseract (`ocr.py --tesseract --forzar`) y otra
+  tanda: 799 GALIGAN, 831 GLYPHOGAN, 1163/1164 ORIUS, 638/639 (diazinon), 1449, 1679 TYLLANEX, 280, 966 (1679 además con
+  `--rehacer`: su OCR estaba vacío).
+- Control al azar (30 líneas de la sesión 8, `sag/control/2026-10-29_0848_revision.json`): 20 sin observaciones, **0 valores
+  que contradigan la etiqueta**; faltan dosis (6: IMIDACLOPRID 70% WP coliflor, POLISULFURO peral, VERTICE postcosecha,
+  ESPIRODICLOFEN berros, GLIFOSPEC PLUS por maleza), carencias (CLETODIM nogal y GLIFOSPEC PLUS «no corresponde», IPRODION
+  arándano 1 día, CLORANTRANILIPROL repollo 3 días), 1 intervalo, 2 objetivos y 1 método.
+- Flojas: 197 (0 líneas tras la verificación), 1708 VERPEZU SC (0 líneas), 639 (sin las filas de riego ni las de L/ha),
+  1163/1164 ORIUS (cereales y uva sin dosis), 1107 (2 filas sin dosis), 1736 VYDATE L (carencias «NC» sin leyenda), 288 AVENUE
+  (máximo: «no más de dos» en el texto y «hasta 3» en el cuadro; se cargó 3), 831 GLYPHOGAN (dosis con base «otro»).
+
 ## Recopilador: sesión 8 (28-10-2026, automática)
 
 - 07:32–~08:35. Uso al empezar: 5 h 2 %, semanal 53 %. Nada nuevo en el listado del SAG. Codex: 2 cargadas (426, 568;

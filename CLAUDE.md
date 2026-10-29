@@ -540,35 +540,40 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   del 25-10-2026): otra extracción numera las filas distinto y podía poner la dosis de una fila en otra del mismo
   cultivo. Ahora también exige la misma página y algún objetivo en común.
 
-## Estado del recopilador (28-10-2026, ~08:35, después de la sesión 8)
+## Estado del recopilador (29-10-2026, ~10:15, después de la sesión 10)
 
 - Frase de Cristóbal para seguir a mano: **«Sigue con el recopilador del SAG»** → «Cómo seguir». Ahora corre solo
   (ver «Sesiones automáticas»). El detalle de cada sesión va al final de `docs/historia.md` (la más nueva arriba).
-- **Sesión 8** (28-10, 07:32–~08:35, automática): 111 etiquetas (BASF y Agrospec terminadas, 16 de Sumitomo), 2.462
-  líneas, lotes `2026-10-28-8a` a `-8za`, más 2 de Codex. Uso: 5 h de 2 a ~72 %, semanal de 53 a ~62 %.
-- **Codex:** 6 de las 20 antes de su control al azar (lotes `2026-10-26-codex-1` y `2026-10-28-8codex`); nada suyo sin
-  cargar. **Codex: UPL** (108).
-- **Empresa actual: Sumitomo** (quedan 28 vigentes de productos nuevos). Anasac, Syngenta, Bayer, BASF y Agrospec:
-  terminadas (de Bayer queda 932 JANUS 480 FS, `932.pagina_hds.json`: su cuadro está en la pág. 19, que `textos.py`
-  marcó como HDS; de Anasac, 1059/1060 METRICLAN). Apartada con `.sin_cuadro.json`: 464 CHAMP DP WG (pág. 1 escaneada de
-  lado: repetir el OCR girado). Después: Corteva 48, ADAMA 38, FMC 33, Point 30, Albaugh 20…
-- **Cola:** 669 vigentes de productos nuevos (108 de UPL, de Codex); además ~110 de productos que ya estaban y 236
-  canceladas o que no figuran en la planilla. Ritmo: ~100–110 por sesión y ~650 por semana (límite semanal); Codex suma
-  aparte. Estimado: ~10 de noviembre.
-- Inventario: 1.634 filas; 1.012 en «texto», 470 cargadas, 13 diferencias, 63 no son etiqueta, 50 versiones
+- **Sesión 9** (28-10, 13:21–~13:46): 43 etiquetas (Sumitomo) y un control; se cortó sin soltar el turno, sin commit ni
+  correo (`turno.py` reemplazó el candado abandonado). **Sesión 10** (29-10, 07:57–~10:15): 80 etiquetas (75 + 5 de Codex),
+  1.612 líneas, lotes `2026-10-29-10a` a `-10t` y `2026-10-29-10codex`. Uso: 5 h de 1 a 71 %, semanal de 74 a 83 %.
+- **Codex:** 11 de las 20 antes de su control al azar (lotes `2026-10-26-codex-1`, `2026-10-28-8codex`,
+  `2026-10-29-10codex`); nada suyo sin cargar. **Codex: UPL** (99).
+- **Empresa actual: FMC** (quedan 27 vigentes de productos nuevos). Anasac, Syngenta, Bayer, BASF, Agrospec, Sumitomo,
+  Corteva y ADAMA: terminadas (de Bayer queda 932 JANUS 480 FS, `932.pagina_hds.json`: su cuadro está en la pág. 19, que
+  `textos.py` marcó como HDS; de Anasac, 1059/1060 METRICLAN). **Sumitomo sin cargar: 464 CHAMP DP WG, 648 DiTera WG y 817
+  GIBGRO 10LS** (pág. 1 escaneada de lado; ni Sonnet las lee: `ocr.py` tiene que probar el otro giro). Después: Point 30,
+  Albaugh 20, Solchem 17, Arysta 17, Acres 15, Sipcam 14…
+- **Cola:** 539 vigentes de productos nuevos (99 de UPL, de Codex); además ~110 de productos que ya estaban y 236
+  canceladas o que no figuran en la planilla. Ritmo: ~80–110 por sesión y ~650 por semana (límite semanal); Codex suma
+  aparte. Estimado: ~14 de noviembre.
+- Inventario: 1.634 filas; 900 en «texto», 593 cargadas, 13 diferencias, 63 no son etiqueta, 39 versiones
   anteriores, 14 sin PDF, 5 ilegibles, 5 duplicados, 2 ya en la base.
-- Base: 621 productos (591 con N° SAG), 17.217 líneas visibles; dosis 93,4 %, carencia 88,8 %; 69 MB.
-- Último control al azar: 28-10-2026 07:34, con 361 cargadas, 30 líneas de la sesión 7
-  (`sag/control/2026-10-28_0734_revision.json`): 21 sin observaciones, 0 valores que contradigan la etiqueta; faltan datos
-  (3 carencias «no corresponde», 3 máximos, 2 mojamientos, 3 métodos) y 3 métodos «Aplicación terrestre» no escritos
-  (ALION 500 SC 218, ESPLANADE 500 SC 709). **El siguiente con ~570 cargadas** (van ~110 desde este: hacerlo al empezar
-  la próxima sesión, con `--lote "2026-10-28-8%"`).
+- Base: 744 productos (711 con N° SAG), 19.685 líneas visibles; dosis 93,7 %, carencia 89,3 %; 75 MB.
+- Último control al azar: 29-10-2026 08:48, con ~545 cargadas, 30 líneas de la sesión 8
+  (`sag/control/2026-10-29_0848_revision.json`): 20 sin observaciones, 0 valores que contradigan la etiqueta; faltan datos
+  (6 dosis, 4 carencias, 1 intervalo, 2 objetivos, 1 método). El de la sesión 9 (28-10 13:23, `…_1323_revision.json`): 14 de
+  30 sin observaciones, casi todo datos que faltan, y 3 valores dudosos (ver preguntas). **El siguiente con ~650 cargadas**
+  (con `--lote "2026-10-29-10%"`).
 - Preguntas abiertas para Cristóbal: **GLIFOGLEX 480 SL (821)** (tabla por grupo de malezas: ¿`--reemplazar`?);
-  **vaciar el método «Aplicación terrestre»** de ALION 500 SC y ESPLANADE 500 SC (no está en la etiqueta); ACTELLIC AGRO
-  (188); Agrocup (207); penconazol; revisar `recopilador_revision`.
+  **vaciar el método «Aplicación terrestre»** de ALION 500 SC, ESPLANADE 500 SC y AGRITOX 750 (arroz) (no está en la
+  etiqueta); **KNOCKOUT (964) kiwi**: mojamiento 1.500–2.000 en la base y 1.500–2.500 en la etiqueta (¿corregir?);
+  **MCPA 750 SL (1043)**: objetivo «#» (¿quitar?); ACTELLIC AGRO (188); Agrocup (207); penconazol; revisar
+  `recopilador_revision`.
 - Etiquetas flojas: COLT 45 WP (515); BACIFRUIT SC (315); AQUILES 24 EC (261); TOXIMOL (1620, segundo cuadro pág. 4); 591;
   RANGO 480 SL (1337); NEXUS 50 SL (1129); 1717; 542; de la sesión 8: 828/829/830 GLIFOSPEC, 1382 RIPPER MAX, 1148 NUMEK,
-  1176 OVERKILL (cuadro aéreo), 1452 SIMAZINA, 640, 940, 647, 1699 (ver `docs/historia.md`).
+  1176 OVERKILL (cuadro aéreo), 1452 SIMAZINA, 640, 940, 647, 1699; de la sesión 10: 197 y 1708 VERPEZU (0 líneas), 639,
+  1163/1164 ORIUS, 1107, 1736 VYDATE L, 288 AVENUE, 831 GLYPHOGAN (ver `docs/historia.md`).
 - Falta: las diferencias de los productos que ya estaban (incluido ACABAN, inventario 161) y, al terminar, el
   workflow mensual.
 

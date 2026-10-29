@@ -25,7 +25,7 @@ SIMBOLOS = str.maketrans({"º": "°", "˚": "°", "“": '"', "”": '"', "„":
                           "­": "", " ": " ", "…": "...", "ﬁ": "fi", "ﬂ": "fl"})
 NO_APLICA = re.compile(r"no\s+corresponde|no\s+posee|sin\s+carencia|exent|no\s+aplica|no\s+tiene|no\s+requiere|"
                        r"\bn\s*/\s*a\b|sin\s+restricci|no\s+hay\s+carencia|0\s*\(cero\)|"
-                       r"no\s+se\s+consideran?\s+(?:los\s+)?per[ií]odos?\s+de\s+carencia", re.I)
+                       r"no\s+se\s+consideran?\s+(?:los\s+)?per[ií]odos?\s+de\s+carencia|carencias?\s*:?\s*ningun", re.I)
 # En el OCR, cifras leídas como letras: «O días» (0), «lOO» (100). Solo palabras hechas de esas letras y
 # dígitos que tengan un dígito o una O/I mayúscula (así «lo» y «o» no cambian).
 CIFRA_OCR = re.compile(r"(?<![^\W\d_])[0-9OolI|](?:[0-9OolI|.,]*[0-9OolI|])?(?![^\W\d_])")
