@@ -99,7 +99,7 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
 
 ## Recopilador: sesión 10 (29-10-2026, automática)
 
-- 07:57–~10:10 (hora de Chile). Uso al empezar: 5 h 1 %, semanal 74 %. El candado de `turno.py` venía de la **sesión 9**
+- 07:57–~09:05 (hora de Chile). Uso al empezar: 5 h 1 %, semanal 74 %. El candado de `turno.py` venía de la **sesión 9**
   (28-10, 13:21): esa sesión cargó 43 etiquetas (Sumitomo casi entera, lote `2026-10-28-9…`), hizo el control al azar de
   la sesión 8 (`sag/control/2026-10-28_1323_revision.json`) y se cortó a las ~13:46 sin soltar el turno, sin commit, sin
   actualizar CLAUDE.md y sin correo (lo más probable: límite de uso). Esta sesión cargó lo que dejó escrito (1763, 1764).

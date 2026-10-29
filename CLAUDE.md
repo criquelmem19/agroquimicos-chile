@@ -540,12 +540,12 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   del 25-10-2026): otra extracción numera las filas distinto y podía poner la dosis de una fila en otra del mismo
   cultivo. Ahora también exige la misma página y algún objetivo en común.
 
-## Estado del recopilador (29-10-2026, ~10:15, después de la sesión 10)
+## Estado del recopilador (29-10-2026, ~09:05, después de la sesión 10)
 
 - Frase de Cristóbal para seguir a mano: **«Sigue con el recopilador del SAG»** → «Cómo seguir». Ahora corre solo
   (ver «Sesiones automáticas»). El detalle de cada sesión va al final de `docs/historia.md` (la más nueva arriba).
 - **Sesión 9** (28-10, 13:21–~13:46): 43 etiquetas (Sumitomo) y un control; se cortó sin soltar el turno, sin commit ni
-  correo (`turno.py` reemplazó el candado abandonado). **Sesión 10** (29-10, 07:57–~10:15): 80 etiquetas (75 + 5 de Codex),
+  correo (`turno.py` reemplazó el candado abandonado). **Sesión 10** (29-10, 07:57–~09:05): 80 etiquetas (75 + 5 de Codex),
   1.612 líneas, lotes `2026-10-29-10a` a `-10t` y `2026-10-29-10codex`. Uso: 5 h de 1 a 71 %, semanal de 74 a 83 %.
 - **Codex:** 11 de las 20 antes de su control al azar (lotes `2026-10-26-codex-1`, `2026-10-28-8codex`,
   `2026-10-29-10codex`); nada suyo sin cargar. **Codex: UPL** (99).
