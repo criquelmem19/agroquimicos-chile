@@ -97,6 +97,20 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
    que no la cumplen: al 20-10-2026 son 0).
 9. Medir cobertura antes y después. Meta: 80–90 % de las líneas con carencia resuelta y citada.
 
+## Recopilador: sesión 12 (30-10-2026, automática)
+
+- ~07:20–~08:30 (hora de Chile). Uso al empezar: 5 h 2 %, semanal 89 %; al terminar: 5 h 11 %, semanal 91 % (se paró
+  por el límite semanal; se renueva el 31-10 a las 12:00). Sin etiquetas nuevas del SAG.
+- Codex: 4 cargadas (1235, 1237, 1239, 1262; lote `2026-10-30-12codex`): con eso van 20. 1237 quedó con 0 líneas.
+- **Control al azar de Codex** (30 líneas de sus lotes, `sag/control/2026-10-30_0804_revision.json`, Sonnet): 22 sin
+  observaciones, 0 valores que contradigan la etiqueta; faltan datos (6 mojamientos, 3 intervalos, 2 máximos, 1 método).
+  Codex puede seguir cargándose.
+- **11 etiquetas** (7 de Haiku de Point, lotes `2026-10-30-12a` y `-12b`, y 4 de Codex), 482 líneas. Point: quedan 20
+  (509 sigue apartada por la página marcada como HDS).
+- Para revisar: 1542, dosis de tomate «(8-10 g/10 L)» que no calza con 75–100 g/hL; 157 y 1542, carencia escrita para
+  «Vides» asignada a las filas de uva; 157 fila 7, celda de cultivos ambigua; 790, máximos por temporada sacados del
+  «Modo de aplicación» (fila 3).
+
 ## Recopilador: sesión 11 (29-10-2026, automática)
 
 - 13:22–~14:00 (hora de Chile). Uso al empezar: 5 h 2 %, semanal 85 %; al terminar: 5 h 28 %, semanal 89 % (se paró por
