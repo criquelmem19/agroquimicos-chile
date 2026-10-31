@@ -55,6 +55,7 @@ const ICONOS = {
   cerrar: '<path d="M6 6l12 12M18 6 6 18"/>',
   trofeo: '<path d="M8 4h8v5.5a4 4 0 0 1-8 0z"/><path d="M8 6H5.5a3 3 0 0 0 3 4M16 6h2.5a3 3 0 0 1-3 4"/><path d="M12 13.5V17M8.5 20.5h7M10 17h4v3.5h-4z"/>',
   casa: '<path d="M4 10.5 12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H5.5A1.5 1.5 0 0 1 4 19z"/>',
+  mapa: '<circle cx="6" cy="6.5" r="2.5"/><circle cx="18" cy="8" r="2.5"/><circle cx="9.5" cy="18" r="2.5"/><path d="M8.5 6.8l7 .9M6.7 8.9l1.9 6.7M16.4 9.9l-5.3 6.3"/>',
 };
 
 export function icono(nombre) {
@@ -364,4 +365,44 @@ export function notificar(contenido, ms = 6000) {
 export function retrasar(fn, ms = 150) {
   let t = null;
   return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+}
+
+// Campo con sugerencias (cultivo y objetivo en el inicio; buscador del mapa). opciones(texto) devuelve
+// [{ etiqueta, detalle, clase, accion }]. Con `elegido`, muestra lo elegido y un botón para quitarlo (link `quitar`).
+export function combo({ id, titulo, placeholder, elegido, opciones, quitar }) {
+  if (elegido) {
+    return h('div', { class: 'filtro filtro-ancho' },
+      h('span', { class: 'filtro-titulo' }, titulo),
+      h('div', { class: 'combo-elegido' },
+        h('strong', null, elegido),
+        h('a', { class: 'combo-quitar', href: quitar, 'aria-label': `Quitar ${titulo.toLowerCase()}`, title: 'Quitar' }, icono('cerrar'))));
+  }
+  const entrada = h('input', {
+    class: 'entrada', id, type: 'search', placeholder, autocomplete: 'off', spellcheck: 'false', enterkeyhint: 'search',
+  });
+  const lista = h('ul', { class: 'combo-lista', hidden: true });
+  const caja = h('div', { class: 'combo' }, entrada, lista);
+  const pintar = () => {
+    vaciar(lista);
+    const ops = opciones(entrada.value);
+    if (!ops.length) lista.append(h('li', null, h('div', { class: 'opcion tenue' }, 'Sin coincidencias. Prueba con otra palabra.')));
+    for (const o of ops) {
+      lista.append(h('li', null, h('button', {
+        type: 'button', class: `opcion ${o.clase || ''}`, onmousedown: (e) => e.preventDefault(), onclick: o.accion,
+      }, h('span', null, o.etiqueta), o.detalle ? h('small', null, o.detalle) : null)));
+    }
+    lista.hidden = false;
+  };
+  entrada.addEventListener('focus', pintar);
+  entrada.addEventListener('input', retrasar(pintar, 80));
+  caja.addEventListener('focusout', (e) => { if (!caja.contains(e.relatedTarget)) lista.hidden = true; });
+  caja.addEventListener('keydown', (e) => {
+    const botones = [...lista.querySelectorAll('button.opcion')];
+    const i = botones.indexOf(document.activeElement);
+    if (e.key === 'Escape') { lista.hidden = true; entrada.focus(); }
+    else if (e.key === 'Enter' && document.activeElement === entrada) { e.preventDefault(); if (botones[0]) botones[0].click(); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); (botones[i + 1] || botones[0])?.focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); if (i > 0) botones[i - 1].focus(); else entrada.focus(); }
+  });
+  return h('div', { class: 'filtro filtro-ancho' }, h('label', { class: 'filtro-titulo', for: id }, titulo), caja);
 }

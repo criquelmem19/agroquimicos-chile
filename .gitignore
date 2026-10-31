@@ -15,3 +15,6 @@ desktop.ini
 
 # Estado local de la CLI de Supabase
 **/supabase/.temp/
+
+# Mapa del código de graphify (se rehace en cada computador: graphify update .)
+graphify-out/

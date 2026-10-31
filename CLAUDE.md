@@ -61,8 +61,9 @@ rechazo en destino o residuos sobre la tolerancia.
 - **Sin modo noche** (Cristóbal lo pidió quitar el 21-10-2026: «está muy de más»). Solo modo claro.
 - Marca: logo «CRM» (píldora negra con letras blancas y un punto verde) arriba a la izquierda, junto a
   «Agroquímicos CRM». Ícono de la pestaña: `assets/img/icono.svg` con la misma marca.
-- Se mantienen: letra de 17 px y alto contraste (se usa al sol), barra inferior en celular (Inicio, Plan y Trivia).
-- **Menú simple y tabla ancha (pedido del 27-10-2026):** «Inicio», «Plan de aplicaciones» y «Trivia». El inicio usa todo el
+- Se mantienen: letra de 17 px y alto contraste (se usa al sol), barra inferior en celular (Inicio, Plan, Mapa y Trivia).
+- **Menú simple y tabla ancha (pedido del 27-10-2026):** «Inicio», «Plan de aplicaciones», «Mapa» (31-10-2026) y
+  «Trivia». El inicio usa todo el
   ancho de la pantalla (`--ancho-max` 1600 px; `ANCHA = true` en la vista); el resto de las páginas, 1180 px.
 - Grupos de modo de acción con color propio: FRAC azul, IRAC verde, HRAC tierra.
 - **Pantallas de carga como esqueleto** (pedido del 31-10-2026: «la ruedita se ve muy tediosa»): bloques beige que
@@ -102,6 +103,17 @@ rechazo en destino o residuos sobre la tolerancia.
   corre SQL como `postgres`: así cargan los scripts sin pasar datos por la conversación. Cada llamada crea un
   usuario temporal y **dos llamadas a la vez se anulan** («password authentication failed for cli_login_postgres»):
   `scripts/recopilador/comun.py → sql()` usa un candado y reintenta.
+- **Mapa del código (graphify 0.9.92**, instalado el 31-10-2026 con el «sí» de Cristóbal; versión de dos semanas antes,
+  no la más nueva): `C:\Users\crisa\agroquimicos-datos\graphify\Scripts\graphify.exe` (venv propio, 174 MB). El mapa está
+  en `graphify-out/` (fuera del repo, `.gitignore`; qué no lee: `.graphifyignore`). Sirve para ubicarse sin leer
+  archivos: `graphify explain "cargarCatalogo"` (dónde está y con qué se conecta), `graphify affected "rangosDosis"`
+  (qué se rompe si cambia), `graphify path "A" "B"`, `graphify query "<pregunta>"`. Rehacerlo después de cambiar
+  código: `graphify update .` (sin IA, gratis). **Solo código (`extract . --code-only`)**: la lectura de documentos
+  gasta uso de Claude y no aporta (CLAUDE.md ya se lee). Sin hooks ni sección automática en este archivo.
+- **unslop** (31-10-2026, pedido de Cristóbal): habilidad de diseño en `~/.claude/skills/unslop` (de heydamir/unslop,
+  CC BY 4.0; revisada antes de instalarla: solo reglas de diseño y dos scripts opcionales de captura y video que piden
+  Playwright y ffmpeg, no instalados). `/unslop` en Claude Code. Si se usa en este sitio, respetar las «Reglas de
+  estética» de Cristóbal (Rubik, paleta, estilo Enza Zaden): mandan sobre las de unslop.
 - **Python 3.12** en `%LOCALAPPDATA%\Programs\Python\Python312\python.exe` (puede no estar en el PATH
   de una terminal abierta antes de instalarlo). `pdftotext` viene con Git for Windows.
 - **Tesseract 5.4.0** (23-10-2026, `winget install UB-Mannheim.TesseractOCR`, con el «sí» de Cristóbal):
@@ -256,6 +268,19 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     combinación de grupos («FRAC 7 + FRAC 11») van juntos, bajo un título con el grupo, el grupo químico y cuántos son,
     y con una franja del color del sistema; los sin grupo al final. Se agrupa por **código actual y familia**: ver
     «Códigos de modo de acción» más abajo.
+  - `#/mapa?nodo=g:FRAC 3|i:<id>|p:<id>|c:<id>|o:<id>` **Mapa** (31-10-2026, Cristóbal pidió incorporar graphify y eligió
+    «las dos»: esta página y la herramienta, ver «Mapa del código»; `assets/js/vistas/mapa.js`): dibujo interactivo de
+    las conexiones del catálogo, al estilo de graphify. Se parte de un nodo (buscador o chips de grupos y cultivos con
+    más productos) y se ven sus vecinos en dos anillos; tocar uno lo pone al centro. Grupo → ingredientes y productos;
+    ingrediente → grupo, productos y con qué viene mezclado; producto → ingredientes, grupos, cultivos y plagas (de sus
+    líneas); cultivo → grupos y plagas (con n.° de productos); plaga → grupos y cultivos. Debajo, las mismas conexiones
+    como chips (lo usable en el celular) y un botón a la tabla con ese filtro o a la ficha. Sin dosis ni carencias;
+    sin productos que no se usan en Chile. Máximo 24 vecinos por tipo en el dibujo (todos en la lista, hasta 80).
+    Posiciones calculadas a mano (`posiciones`: anillos, zigzag si hay más de 14, cada nodo de afuera junto a su vecino
+    de adentro; nombres hacia afuera); si para caber la letra queda chica, parte con zoom 0,8 en el centro y el botón
+    de la esquina muestra todo. Dibujo con **Cytoscape 3.34.3** (jsDelivr, huella SRI
+    `sha256-XztbUpVG1a8fxWKFkK8DO3RRGltveJ9fRoKEWGMii5E=`, unpkg de respaldo), que se carga solo en esta página; sin él,
+    queda la lista. La ficha del producto tiene «Ver en el mapa». `combo` (campo con sugerencias) pasó a `ui.js`.
   - `#/trivia?tipo=mezcla|tipo|moa|ing&tema=<id de categoría>` **Trivia** (27-10-2026, idea de Cristóbal, «tipo
     JetPunk»; `assets/js/vistas/trivia.js`): 10 preguntas de 4 alternativas sobre el catálogo: tipo de producto, grupo
     de modo de acción, ingrediente activo y «¿qué producto tiene tal ingrediente?», con filtro por fungicidas,

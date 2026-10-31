@@ -7,7 +7,7 @@
 import { usosPorCultivo, usosPorObjetivos, compararMoa, nombreCorto, familiaMoa, claveMoa } from '../db.js';
 import { filtrar, palabras, puntaje, normalizar } from '../buscador.js';
 import {
-  h, icono, ruta, plural, recortar, limpio, vaciar, cargando, retrasar,
+  h, icono, ruta, plural, recortar, limpio, vaciar, cargando, retrasar, combo,
   chipsMoa, ingredientesTexto, linkPdf, dosisRango, resumenDosis, rangosDosis,
 } from '../ui.js';
 
@@ -111,46 +111,6 @@ function calzaBusqueda(b, p, info) {
     if (!p.moa.includes(k) && !p.familias.includes(k) && ![...p.moaEtiqueta.values()].some((xs) => xs.includes(k))) return false;
   }
   return !b.palabras.length || puntaje(b.palabras, palabrasFila(p, info)) > 0;
-}
-
-// ---------- Campo con sugerencias (cultivo, objetivo) ----------
-
-function combo({ id, titulo, placeholder, elegido, opciones, quitar }) {
-  if (elegido) {
-    return h('div', { class: 'filtro filtro-ancho' },
-      h('span', { class: 'filtro-titulo' }, titulo),
-      h('div', { class: 'combo-elegido' },
-        h('strong', null, elegido),
-        h('a', { class: 'combo-quitar', href: quitar, 'aria-label': `Quitar ${titulo.toLowerCase()}`, title: 'Quitar' }, icono('cerrar'))));
-  }
-  const entrada = h('input', {
-    class: 'entrada', id, type: 'search', placeholder, autocomplete: 'off', spellcheck: 'false', enterkeyhint: 'search',
-  });
-  const lista = h('ul', { class: 'combo-lista', hidden: true });
-  const caja = h('div', { class: 'combo' }, entrada, lista);
-  const pintar = () => {
-    vaciar(lista);
-    const ops = opciones(entrada.value);
-    if (!ops.length) lista.append(h('li', null, h('div', { class: 'opcion tenue' }, 'Sin coincidencias. Prueba con otra palabra.')));
-    for (const o of ops) {
-      lista.append(h('li', null, h('button', {
-        type: 'button', class: `opcion ${o.clase || ''}`, onmousedown: (e) => e.preventDefault(), onclick: o.accion,
-      }, h('span', null, o.etiqueta), o.detalle ? h('small', null, o.detalle) : null)));
-    }
-    lista.hidden = false;
-  };
-  entrada.addEventListener('focus', pintar);
-  entrada.addEventListener('input', retrasar(pintar, 80));
-  caja.addEventListener('focusout', (e) => { if (!caja.contains(e.relatedTarget)) lista.hidden = true; });
-  caja.addEventListener('keydown', (e) => {
-    const botones = [...lista.querySelectorAll('button.opcion')];
-    const i = botones.indexOf(document.activeElement);
-    if (e.key === 'Escape') { lista.hidden = true; entrada.focus(); }
-    else if (e.key === 'Enter' && document.activeElement === entrada) { e.preventDefault(); if (botones[0]) botones[0].click(); }
-    else if (e.key === 'ArrowDown') { e.preventDefault(); (botones[i + 1] || botones[0])?.focus(); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); if (i > 0) botones[i - 1].focus(); else entrada.focus(); }
-  });
-  return h('div', { class: 'filtro filtro-ancho' }, h('label', { class: 'filtro-titulo', for: id }, titulo), caja);
 }
 
 // ---------- Celdas ----------

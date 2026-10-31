@@ -1,0 +1,6 @@
+# Lo que graphify no lee (mapa del código del proyecto; ver CLAUDE.md → «Mapa del código (graphify)»)
+datos/
+registro/
+supabase/.temp/
+graphify-out/
+assets/img/

@@ -185,7 +185,8 @@ export async function render(main, ctx) {
       h('div', { class: 'acciones' },
         p.etiqueta
           ? h('a', { class: 'boton boton-primario', href: p.etiqueta.url, target: '_blank', rel: 'noopener' }, icono('pdf'), 'Abrir etiqueta oficial (PDF)')
-          : h('span', { class: 'nota nota-peligro' }, 'La etiqueta PDF de este producto no está disponible en el sistema.'))),
+          : h('span', { class: 'nota nota-peligro' }, 'La etiqueta PDF de este producto no está disponible en el sistema.'),
+        p.noDisponible ? null : h('a', { class: 'boton', href: ruta('mapa', { nodo: `p:${p.id}` }) }, icono('mapa'), 'Ver en el mapa'))),
     zonaDescripcion,
 
     h('h2', { class: 'titulo-seccion' }, 'Ingredientes activos'),

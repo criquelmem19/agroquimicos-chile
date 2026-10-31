@@ -201,6 +201,24 @@ body { padding-bottom: calc(var(--alto-nav-inf) + env(safe-area-inset-bottom)); 
 }
 @media (max-width: 639px) { .esq-panel { grid-template-columns: 1fr; height: 24.6rem; } }
 
+/* ---------- Mapa (vistas/mapa.js) ---------- */
+.mapa-buscar { padding-bottom: 1rem; }
+.mapa-caja { position: relative; border: 1px solid var(--linea); border-radius: var(--radio); background: var(--superficie); overflow: hidden; margin-bottom: 1.4rem; }
+.mapa-lienzo { height: min(68vh, 640px); }
+@media (max-width: 639px) { .mapa-lienzo { height: 56vh; } }
+.mapa-lienzo > .esq { height: 100%; border-radius: 0; }
+.mapa-centrar { position: absolute; top: .6rem; right: .6rem; z-index: 2; }
+.mapa-leyenda { display: flex; flex-wrap: wrap; gap: .3rem 1rem; padding: .6rem .9rem; border-top: 1px solid var(--linea); font-size: .85rem; color: var(--tinta-2); }
+.mapa-leyenda span { display: inline-flex; align-items: center; gap: .4rem; }
+.muestra { width: 12px; height: 12px; border-radius: 50%; background: var(--color); flex: none; }
+.muestra.cuadrada { border-radius: 3px; }
+.muestra.triangular { border-radius: 0; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.mapa-detalle h2 { margin: .45rem 0 .2rem; }
+.mapa-detalle h3 { font-size: 1rem; margin: 1.3rem 0 .55rem; }
+.mapa-detalle .acciones { margin: .8rem 0 .2rem; }
+.mapa-inicio h2 { font-size: 1.1rem; margin: 1.2rem 0 .6rem; }
+.chip.chip-moa { border-color: currentColor; font-weight: 600; }
+
 .titulo-seccion {
   display: flex; flex-wrap: wrap; align-items: center; gap: .2rem .55rem;
   font-size: 1.25rem; font-weight: 600; letter-spacing: -.01em;
