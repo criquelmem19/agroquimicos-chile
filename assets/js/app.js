@@ -26,6 +26,12 @@ let caminoAnterior = null;
 // Última dirección de la tabla del inicio (con sus filtros), para el botón «Volver» de la ficha.
 let ultimoInicio = null;
 let turno = 0;
+// Si la persona ya usó la página (tocó, escribió o la movió), no se vuelve a dibujar sola cuando llega el catálogo
+// al día: perdería lo que estaba haciendo. Los datos nuevos se ven desde la siguiente página.
+let tocada = false;
+for (const tipo of ['pointerdown', 'keydown', 'wheel', 'touchstart']) {
+  window.addEventListener(tipo, () => { tocada = true; }, { capture: true, passive: true });
+}
 
 function leerRuta() {
   const sinNumeral = location.hash.replace(/^#\/?/, '');
@@ -56,7 +62,13 @@ function pintarPie() {
   }
 }
 
+function avisoSinConexion() {
+  return h('div', { class: 'nota nota-alerta', role: 'status' },
+    `Sin conexión: estás viendo los datos guardados el ${fecha(catalogo.fechaCache)}. Pueden no estar al día.`);
+}
+
 async function mostrar(evento) {
+  tocada = false;
   if (evento && evento.oldURL) {
     const antes = evento.oldURL.slice(evento.oldURL.indexOf('#') + 1 || evento.oldURL.length);
     if (/^\/?(\?|$)/.test(antes)) ultimoInicio = `#${antes}`;
@@ -78,10 +90,7 @@ async function mostrar(evento) {
   vaciar(principal);
   principal.classList.toggle('vista-ancha', Boolean(vista && vista.ANCHA));
 
-  if (catalogo.fechaCache) {
-    principal.append(h('div', { class: 'nota nota-alerta', role: 'status' },
-      `Sin conexión: estás viendo los datos guardados el ${fecha(catalogo.fechaCache)}. Pueden no estar al día.`));
-  }
+  if (catalogo.fechaCache) principal.append(avisoSinConexion());
 
   if (!vista) {
     document.title = `Página no encontrada · ${NOMBRE_SITIO}`;
@@ -123,16 +132,32 @@ async function mostrar(evento) {
 
 async function iniciar() {
   pintarMenus(leerRuta().partes[0] || '');
+  let carga;
   try {
-    catalogo = await cargarCatalogo();
+    carga = await cargarCatalogo();
   } catch (err) {
     console.error(err);
     vaciar(principal).append(mensajeError(err));
     return;
   }
+  catalogo = carga.catalogo;
   pintarPie();
   window.addEventListener('hashchange', mostrar);
   mostrar();
+  // Se partió con la copia guardada en el equipo: llega la descarga.
+  if (carga.nuevo) {
+    carga.nuevo.then((nuevo) => {
+      if (!nuevo) return;
+      catalogo = nuevo;
+      pintarPie();
+      if (!tocada) mostrar();
+    }, (err) => {
+      console.error(err);
+      catalogo.fechaCache = carga.fechaCopia;
+      pintarPie();
+      principal.prepend(avisoSinConexion());
+    });
+  }
 }
 
 iniciar();

@@ -31,33 +31,43 @@ export function cliente() {
 }
 
 // Trae todas las filas de una consulta, de a 1.000 (máximo de la API).
-// `construir` recibe el cliente y devuelve una consulta con orden estable.
-async function todas(construir) {
+// `construir` recibe el cliente y devuelve una consulta con orden estable. Las páginas se piden varias a la vez:
+// `primeras` al comienzo (las que se esperan) y después de a 3 hasta que una venga incompleta. Una tras otra,
+// los ~4.000 objetivos demoraban 3 s en llegar.
+async function todas(construir, primeras = 1) {
   const db = await cliente();
-  const filas = [];
-  for (let desde = 0; ; desde += FILAS_POR_PAGINA) {
-    const { data, error } = await construir(db).range(desde, desde + FILAS_POR_PAGINA - 1);
+  const pagina = async (n) => {
+    const { data, error } = await construir(db).range(n * FILAS_POR_PAGINA, (n + 1) * FILAS_POR_PAGINA - 1);
     if (error) throw error;
-    filas.push(...data);
-    if (data.length < FILAS_POR_PAGINA) return filas;
+    return data;
+  };
+  const filas = [];
+  for (let n = 0, tanda = primeras; ; n += tanda, tanda = 3) {
+    const paginas = await Promise.all(Array.from({ length: tanda }, (_, i) => pagina(n + i)));
+    for (const data of paginas) {
+      filas.push(...data);
+      if (data.length < FILAS_POR_PAGINA) return filas;
+    }
   }
 }
 
 // ---------- Catálogo (listas chicas) ----------
 
+// Clave de la copia guardada en el equipo. Cambiarla (v4…) si cambia la forma de lo que devuelve descargarCatalogo:
+// la copia se muestra antes de que llegue la descarga.
 const CLAVE_CACHE = 'catalogo-v3';
 
 async function descargarCatalogo() {
   const db = await cliente();
   const [productos, resumen, categorias, ingredientes, equivalencias, empresas, cultivos, objetivos, perfiles, estado] = await Promise.all([
-    todas((c) => c.from('v_sitio_productos').select('*').order('id')),
-    todas((c) => c.from('v_sitio_resumen_productos').select('id,cultivos,n_lineas,n_aprobadas,n_baja_confianza,dosis').order('id')),
+    todas((c) => c.from('v_sitio_productos').select('*').order('id'), 2),
+    todas((c) => c.from('v_sitio_resumen_productos').select('id,cultivos,n_lineas,n_aprobadas,n_baja_confianza,dosis').order('id'), 2),
     todas((c) => c.from('categories').select('id,name').order('id')),
     todas((c) => c.from('active_ingredients').select('id,common_name,chemical_group,mechanism_group,mechanism_system').order('id')),
     todas((c) => c.from('moa_equivalencias').select('id,sistema,codigo,codigo_actual,ingrediente_id,nota').order('id')),
     todas((c) => c.from('companies').select('id,legal_name').order('id')),
     todas((c) => c.from('v_sitio_cultivos').select('id,nombre,aliases,n_lineas,n_productos').order('id')),
-    todas((c) => c.from('v_sitio_objetivos').select('id,nombre,cientifico,n_lineas,n_productos').order('id')),
+    todas((c) => c.from('v_sitio_objetivos').select('id,nombre,cientifico,n_lineas,n_productos').order('id'), 4),
     todas((c) => c.from('product_safety_profiles').select('product_id,reentry_hours').order('product_id')),
     db.from('v_estado_datos').select('ultima_actualizacion').maybeSingle(),
   ]);
@@ -68,15 +78,44 @@ async function descargarCatalogo() {
   };
 }
 
-function guardarCache(crudo) {
+// La copia va en IndexedDB: pesa ~2 MB y crece, y localStorage tiene ~5 MB para todo criquelmem19.github.io
+// (ahí van también los planes de aplicación). Hasta el 30-10-2026 iba en localStorage: se lee una vez y se borra.
+function abrirCache() {
+  return new Promise((resolver, rechazar) => {
+    const pedido = indexedDB.open('agroquimicos-cache', 1);
+    pedido.onupgradeneeded = () => pedido.result.createObjectStore('copias');
+    pedido.onsuccess = () => resolver(pedido.result);
+    pedido.onerror = () => rechazar(pedido.error);
+  });
+}
+
+async function guardarCache(crudo) {
   try {
-    localStorage.removeItem('catalogo-v1');
-    localStorage.removeItem('catalogo-v2');
-    localStorage.setItem(CLAVE_CACHE, JSON.stringify({ t: Date.now(), crudo }));
+    for (const k of ['catalogo-v1', 'catalogo-v2', 'catalogo-v3']) localStorage.removeItem(k);
+  } catch (e) { /* bloqueado */ }
+  try {
+    const bd = await abrirCache();
+    await new Promise((resolver, rechazar) => {
+      const tx = bd.transaction('copias', 'readwrite');
+      tx.objectStore('copias').put({ t: Date.now(), crudo }, CLAVE_CACHE);
+      tx.oncomplete = resolver;
+      tx.onerror = tx.onabort = () => rechazar(tx.error);
+    });
+    bd.close();
   } catch (e) { /* sin espacio o bloqueado */ }
 }
 
-function leerCache() {
+async function leerCache() {
+  try {
+    const bd = await abrirCache();
+    const x = await new Promise((resolver, rechazar) => {
+      const pedido = bd.transaction('copias').objectStore('copias').get(CLAVE_CACHE);
+      pedido.onsuccess = () => resolver(pedido.result);
+      pedido.onerror = () => rechazar(pedido.error);
+    });
+    bd.close();
+    if (x && x.crudo) return x;
+  } catch (e) { /* bloqueado */ }
   try {
     const x = JSON.parse(localStorage.getItem(CLAVE_CACHE) || 'null');
     return x && x.crudo ? x : null;
@@ -265,16 +304,27 @@ function armarCatalogo(crudo, fechaCache) {
   };
 }
 
+// Devuelve { catalogo, nuevo }. Si el equipo tiene una copia guardada, `catalogo` sale de ella (el sitio se ve
+// al tiro, también en el campo con mala señal) y `nuevo` es la descarga: entrega el catálogo al día si cambió,
+// null si es igual, o falla sin conexión (`fechaCopia` dice de cuándo es la copia). Sin copia, se espera la descarga.
 export async function cargarCatalogo() {
-  try {
-    const crudo = await descargarCatalogo();
-    guardarCache(crudo);
-    return armarCatalogo(crudo, null);
-  } catch (err) {
-    const cache = leerCache();
-    if (cache) return armarCatalogo(cache.crudo, new Date(cache.t));
-    throw err;
+  const descarga = descargarCatalogo();
+  descarga.catch(() => {}); // el error se atiende más abajo
+  const cache = await leerCache();
+  let guardado = null;
+  if (cache) {
+    try { guardado = armarCatalogo(cache.crudo, null); } catch (e) { console.error(e); }
   }
+  if (!guardado) {
+    const crudo = await descarga;
+    guardarCache(crudo);
+    return { catalogo: armarCatalogo(crudo, null), nuevo: null };
+  }
+  const nuevo = descarga.then((crudo) => {
+    guardarCache(crudo);
+    return JSON.stringify(crudo) === JSON.stringify(cache.crudo) ? null : armarCatalogo(crudo, null);
+  });
+  return { catalogo: guardado, nuevo, fechaCopia: new Date(cache.t) };
 }
 
 // ---------- Líneas de uso (se piden cuando se necesitan) ----------

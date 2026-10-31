@@ -11,17 +11,34 @@
   <meta property="og:title" content="Agroquímicos CRM">
   <meta property="og:description" content="Busca productos, cultivos, plagas, enfermedades y malezas según etiquetas SAG, y arma tu plan de aplicaciones.">
   <meta property="og:type" content="website">
+  <!-- Íconos: pestaña (SVG y PNG de respaldo), pantalla de inicio del celular (iPhone y Android). scripts/iconos.py -->
+  <link rel="icon" href="assets/img/icono-32.png" sizes="32x32" type="image/png">
   <link rel="icon" href="assets/img/icono.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/img/icono-180.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://cejkhfugaobfqnjpkgpl.supabase.co" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="assets/css/app.css">
-  <!-- supabase-js con versión fija y huella SRI. Si jsDelivr falla, se intenta unpkg con la misma huella. -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"
+  <!-- supabase-js con versión fija y huella SRI. Si jsDelivr falla, se intenta unpkg con la misma huella.
+       `defer`: no frena el dibujo de la página; corre antes que app.js (db.js igual espera a que esté). -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"
           integrity="sha256-WdOUh8NYmEO0EDItij1WLOAiq6HlzLFomO8/sqDaLs0="
           crossorigin="anonymous"
           onerror="this.onerror=null;var s=document.createElement('script');s.src='https://unpkg.com/@supabase/supabase-js@2.117.2/dist/umd/supabase.js';s.integrity='sha256-WdOUh8NYmEO0EDItij1WLOAiq6HlzLFomO8/sqDaLs0=';s.crossOrigin='anonymous';document.head.appendChild(s);"></script>
   <script type="module" src="assets/js/app.js"></script>
+  <!-- Todos los módulos de una vez (si no, llegan en tres tandas: app.js, lo que importa, y lo que importan esos).
+       Al agregar un módulo nuevo, sumarlo aquí. -->
+  <link rel="modulepreload" href="assets/js/db.js">
+  <link rel="modulepreload" href="assets/js/ui.js">
+  <link rel="modulepreload" href="assets/js/config.js">
+  <link rel="modulepreload" href="assets/js/buscador.js">
+  <link rel="modulepreload" href="assets/js/plan.js">
+  <link rel="modulepreload" href="assets/js/vistas/inicio.js">
+  <link rel="modulepreload" href="assets/js/vistas/producto.js">
+  <link rel="modulepreload" href="assets/js/vistas/plan.js">
+  <link rel="modulepreload" href="assets/js/vistas/trivia.js">
 </head>
 <body>
   <a class="saltar" href="#vista">Ir al contenido</a>

@@ -1,6 +1,6 @@
 # Agroquímicos CRM — memoria del proyecto
 
-Leer completo antes de tocar algo. Última actualización: 27-10-2026.
+Leer completo antes de tocar algo. Última actualización: 31-10-2026.
 El sitio se llama **Agroquímicos CRM** (antes «Agroquímicos Chile»; el repo y la URL siguen siendo
 `agroquimicos-chile`). «CRM» es la marca de Cristóbal y va arriba, en el logo.
 
@@ -301,7 +301,21 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
 - Datos: al abrir se cargan las listas chicas (vistas `v_sitio_*`, `categories`, `active_ingredients`,
   `companies`, reingreso de `product_safety_profiles`); las líneas de uso se piden por cultivo, objetivo o
   producto. Todo paginado de a 1.000 filas (límite de la API) en `db.js → todas()`.
-- Sin conexión: si falla la carga, usa la última copia guardada en `localStorage` y lo avisa.
+- **Carga rápida (31-10-2026, a partir de un video que mandó Cristóbal, «4 señales de que tu app fue vibecodeada»:
+  marketing con IA, interfaz en degradé, sin favicon y carga deficiente; las dos primeras ya estaban bien):**
+  - Copia del catálogo en **IndexedDB** (`agroquimicos-cache`, almacén `copias`, clave `CLAVE_CACHE`; antes en
+    `localStorage`, que tiene ~5 MB para todo `criquelmem19.github.io` y ahí van los planes: la copia ya pesaba 2 MB).
+    Si hay copia, el sitio se dibuja con ella al tiro (~1 s) y baja el catálogo por detrás: si cambió, vuelve a dibujar
+    la página, salvo que la persona ya la haya tocado (`tocada` en `app.js`; lo nuevo se ve en la página siguiente).
+    Sin conexión: queda la copia y aparece el aviso (supabase-js reintenta ~8 s antes de rendirse). Sin copia, se espera
+    la descarga como antes. **Si cambia la forma de `descargarCatalogo`, subir `CLAVE_CACHE` (v4…).**
+  - `todas()` pide varias páginas a la vez (objetivos: 4; productos y resumen: 2; luego de a 3). Primera visita:
+    tabla en ~2,7 s (antes 3,5 s con la base despierta y >6 s dormida).
+  - `index.html`: supabase-js con `defer`, `preconnect` a Supabase y `modulepreload` de todos los módulos (al
+    agregar un módulo, sumarlo ahí).
+- **Íconos:** `icono.svg` (pestaña) + `icono-32.png` de respaldo, `icono-180.png` (iPhone, `apple-touch-icon`) e
+  `icono-192/512.png` (Android, `manifest.webmanifest`, sin `display`: se abre como página normal para poder copiar el
+  link). Se hacen con `scripts/iconos.py` (Pillow del venv).
 - Las piezas que cumplen las reglas 1–3 están en `assets/js/ui.js` (`estadoRevision`, `dosis`,
   `carencia`, `reingreso`, `linkPdf`, `urlDeLinea`). Usarlas siempre; no mostrar dosis ni carencia «a mano».
   `carencia`, `mojamiento`, `intervalo` y `metodo` muestran el valor con su cita «…» (pág. N) desde
