@@ -61,11 +61,25 @@ rechazo en destino o residuos sobre la tolerancia.
 - **Sin modo noche** (Cristóbal lo pidió quitar el 21-10-2026: «está muy de más»). Solo modo claro.
 - Marca: logo «CRM» (píldora negra con letras blancas y un punto verde) arriba a la izquierda, junto a
   «Agroquímicos CRM». Ícono de la pestaña: `assets/img/icono.svg` con la misma marca.
-- Se mantienen: letra de 17 px y alto contraste (se usa al sol), barra inferior en celular (Inicio, Plan, Mapa y Trivia).
-- **Menú simple y tabla ancha (pedido del 27-10-2026):** «Inicio», «Plan de aplicaciones», «Mapa» (31-10-2026) y
-  «Trivia». El inicio usa todo el
+- Se mantienen: letra de 17 px y alto contraste (se usa al sol), barra inferior en celular (Inicio, Plan y Trivia).
+- **Menú simple y tabla ancha (pedido del 27-10-2026):** «Inicio», «Plan de aplicaciones» y «Trivia» (el «Mapa» se
+  quitó por un tiempo el 31-10-2026, ver «El sitio»). El inicio usa todo el
   ancho de la pantalla (`--ancho-max` 1600 px; `ANCHA = true` en la vista); el resto de las páginas, 1180 px.
 - Grupos de modo de acción con color propio: FRAC azul, IRAC verde, HRAC tierra.
+- **Pasada «unslop» (31-10-2026, Cristóbal: «mantén la estética de colores que yo te dije pero sigue las reglas de
+  unslop»).** Dirección: catálogo según la etiqueta del SAG para quien decide qué aplicar en el campo; carácter exacto,
+  directo y de campo; mundo de la etiqueta impresa y la libreta (papel beige, tinta negra); el color fuerte es solo
+  de los códigos de modo de acción (FRAC/IRAC/HRAC) y su franja a la izquierda de cada grupo, que es la firma del sitio.
+  Reglas que quedaron: medidas en px sobre la grilla de 4 (2 px solo para ajustes dentro de controles chicos); títulos
+  y etiquetas en minúscula normal, nunca en MAYÚSCULAS espaciadas (salvo datos de la etiqueta como «CUIDADO»); pesos
+  400, 500 y 600 (800 solo en el logo; Rubik se carga con 400;500;600;800); sin cursiva (las citas van en gris entre
+  «…»); radios: tarjetas y paneles 16, avisos y opciones 12, campos 10, etiquetas y códigos 6, botones y chips en
+  píldora (regla de Cristóbal); íconos de línea de `ui.js` con trazo 1,5 (18 px en botones y menú, 16 en lo chico,
+  20 en la barra del celular); enlaces en negro con subrayado (el azul queda para FRAC, la trivia y los avisos de
+  información); un solo acento en los controles: verde (selección, foco, orden activo, progreso); «Extraído
+  automáticamente» como texto gris sin caja (regla 1 igual se cumple); sin signos de exclamación ni punto final en
+  textos cortos; transiciones solo de color/fondo/borde/transform (150 ms, `--curva`), nada que anime ancho o alto.
+  El pie queda abajo aunque la página sea corta (`body` en columna).
 - **Pantallas de carga como esqueleto** (pedido del 31-10-2026: «la ruedita se ve muy tediosa»): bloques beige que
   laten despacio con la forma de lo que viene, sin ruedita ni texto visible (el texto queda para lectores de
   pantalla). `ui.js → cargando(texto, forma)`: 'inicio' (panel de filtros y filas/tarjetas), 'lista' o 'texto'; el
@@ -113,7 +127,8 @@ rechazo en destino o residuos sobre la tolerancia.
 - **unslop** (31-10-2026, pedido de Cristóbal): habilidad de diseño en `~/.claude/skills/unslop` (de heydamir/unslop,
   CC BY 4.0; revisada antes de instalarla: solo reglas de diseño y dos scripts opcionales de captura y video que piden
   Playwright y ffmpeg, no instalados). `/unslop` en Claude Code. Si se usa en este sitio, respetar las «Reglas de
-  estética» de Cristóbal (Rubik, paleta, estilo Enza Zaden): mandan sobre las de unslop.
+  estética» de Cristóbal (Rubik, paleta, estilo Enza Zaden): mandan sobre las de unslop. Ya se aplicó una vez a todo el
+  sitio (31-10-2026, ver «Pasada unslop» en «Reglas de estética»).
 - **Python 3.12** en `%LOCALAPPDATA%\Programs\Python\Python312\python.exe` (puede no estar en el PATH
   de una terminal abierta antes de instalarlo). `pdftotext` viene con Git for Windows.
 - **Tesseract 5.4.0** (23-10-2026, `winget install UB-Mannheim.TesseractOCR`, con el «sí» de Cristóbal):
@@ -268,6 +283,11 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     combinación de grupos («FRAC 7 + FRAC 11») van juntos, bajo un título con el grupo, el grupo químico y cuántos son,
     y con una franja del color del sistema; los sin grupo al final. Se agrupa por **código actual y familia**: ver
     «Códigos de modo de acción» más abajo.
+  - **Mapa quitado por un tiempo (31-10-2026, Cristóbal: «quita un rato el mapa»).** No está en el menú ni en la barra
+    del celular, la ficha ya no tiene «Ver en el mapa», `mapa.js` no se importa ni se precarga, y `#/mapa` abre el inicio
+    (`ANTIGUAS` en `app.js`). El código (`vistas/mapa.js`) y sus estilos siguen. Para volver a ponerlo: la línea en
+    `SECCIONES` y el `import` en `app.js`, sacar «mapa» de `ANTIGUAS`, el `modulepreload` en `index.html` y el botón de
+    la ficha (`producto.js`). Lo que sigue describe cómo era:
   - `#/mapa?nodo=g:FRAC 3|i:<id>|p:<id>|c:<id>|o:<id>` **Mapa** (31-10-2026, Cristóbal pidió incorporar graphify y eligió
     «las dos»: esta página y la herramienta, ver «Mapa del código»; `assets/js/vistas/mapa.js`): dibujo interactivo de
     las conexiones del catálogo, al estilo de graphify. Se parte de un nodo (buscador o chips de grupos y cultivos con

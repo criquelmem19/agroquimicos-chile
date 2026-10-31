@@ -44,6 +44,9 @@ const ICONOS = {
   luna: '<path d="M20 14.6A8 8 0 1 1 9.4 4a6.6 6.6 0 0 0 10.6 10.6z"/>',
   sol: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2.5 12h2M19.5 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
   flecha: '<path d="m9 6 6 6-6 6"/>',
+  arriba: '<path d="M12 19V5"/><path d="m6 11 6-6 6 6"/>',
+  abajo: '<path d="M12 5v14"/><path d="m6 13 6 6 6-6"/>',
+  orden: '<path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/>',
   escudo: '<path d="M12 3 5 6v6c0 4.5 3 7.6 7 9 4-1.4 7-4.5 7-9V6z"/>',
   rotar: '<path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v5h-5"/>',
   calendario: '<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17.2h.01M12 17.2h.01"/>',
@@ -61,7 +64,7 @@ const ICONOS = {
 export function icono(nombre) {
   const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   for (const [k, v] of Object.entries({
-    viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2',
+    viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.5',
     'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true', focusable: 'false',
   })) s.setAttribute(k, v);
   s.innerHTML = ICONOS[nombre] || '';
@@ -147,6 +150,8 @@ function unidadDosis(unidad, base) {
 }
 
 const NBSP = '\u00a0';
+// Despu\u00e9s de la raya \u00ab\u2013\u00bb el navegador puede cortar aunque siga un espacio duro: la \u00abuni\u00f3n\u00bb lo impide.
+const UNION = '\u2060';
 
 // grupos: [{u, b, min, max, n}] (de la vista o de resumenDosis). Une los que quedan con la misma unidad.
 export function rangosDosis(grupos) {
@@ -158,8 +163,8 @@ export function rangosDosis(grupos) {
     if (x) { x.min = Math.min(x.min, g.min); x.max = Math.max(x.max, g.max); x.n += g.n; } else m.set(unidad, { unidad, min: Number(g.min), max: Number(g.max), n: g.n });
   }
   return [...m.values()].sort((a, b) => b.n - a.n)
-    // Espacios que no se cortan entre las cifras y la unidad («100 – 150 cc/100 L» queda en una línea).
-    .map((r) => `${r.min === r.max ? num(r.min) : `${num(r.min)}${NBSP}–${NBSP}${num(r.max)}`}${NBSP}${r.unidad.replace(/ (L|kg)\b/, `${NBSP}$1`)}`);
+    // Las cifras («100 – 150») y la unidad («cc/100 L») no se cortan por dentro; si no cabe, la unidad baja entera.
+    .map((r) => `${r.min === r.max ? num(r.min) : `${num(r.min)}${NBSP}–${UNION}${NBSP}${num(r.max)}`} ${r.unidad.replace(/ (L|kg)\b/, `${NBSP}$1`)}`);
 }
 
 // Resumen de un grupo de líneas de uso: dosis por unidad y su estado de revisión.

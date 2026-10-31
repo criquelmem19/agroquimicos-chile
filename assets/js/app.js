@@ -5,7 +5,6 @@ import * as vistaInicio from './vistas/inicio.js';
 import * as vistaProducto from './vistas/producto.js';
 import * as vistaPlan from './vistas/plan.js';
 import * as vistaTrivia from './vistas/trivia.js';
-import * as vistaMapa from './vistas/mapa.js';
 
 const NOMBRE_SITIO = 'Agroquímicos CRM';
 
@@ -14,13 +13,13 @@ const NOMBRE_SITIO = 'Agroquímicos CRM';
 const SECCIONES = [
   { camino: '', titulo: '', menu: 'Inicio', corto: 'Inicio', icono: 'casa', vista: vistaInicio },
   { camino: 'plan', titulo: 'Plan de aplicaciones', menu: 'Plan de aplicaciones', corto: 'Plan', icono: 'calendario', vista: vistaPlan },
-  { camino: 'mapa', titulo: 'Mapa', menu: 'Mapa', corto: 'Mapa', icono: 'mapa', vista: vistaMapa },
   { camino: 'trivia', titulo: 'Trivia', menu: 'Trivia', corto: 'Trivia', icono: 'trofeo', vista: vistaTrivia },
 ];
 // Rutas que no van en el menú.
 const OTRAS = { producto: vistaProducto };
 // Secciones antiguas que ahora son el inicio (links guardados o compartidos): se abren ahí con sus filtros.
-const ANTIGUAS = ['aplicar', 'productos', 'buscar'];
+// «mapa»: quitado por un tiempo a pedido de Cristóbal (31-10-2026); su código sigue en vistas/mapa.js.
+const ANTIGUAS = ['aplicar', 'productos', 'buscar', 'mapa'];
 
 const principal = document.getElementById('vista');
 let catalogo = null;
@@ -58,9 +57,9 @@ function pintarPie() {
   const p = document.querySelector('[data-actualizado]');
   if (!p || !catalogo) return;
   if (catalogo.fechaCache) {
-    p.textContent = `Sin conexión: se muestran los datos guardados en este equipo el ${fecha(catalogo.fechaCache)}.`;
+    p.textContent = `Sin conexión: se muestran los datos guardados en este equipo el ${fecha(catalogo.fechaCache)}`;
   } else {
-    p.textContent = catalogo.actualizado ? `Última actualización de los datos: ${fecha(catalogo.actualizado)}.` : '';
+    p.textContent = catalogo.actualizado ? `Última actualización de los datos: ${fecha(catalogo.actualizado)}` : '';
   }
 }
 

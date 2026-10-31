@@ -180,12 +180,15 @@ function tabla(orden, alOrdenar) {
     h('thead', null, h('tr', null, COLUMNAS.map(([titulo, clave]) => {
       if (!clave) return h('th', { scope: 'col', 'aria-label': titulo || 'Agregar al plan', class: titulo ? null : 'c-plan' }, titulo);
       const activa = orden.clave === clave;
-      const flecha = activa ? (orden.descendente ? '▼' : '▲') : '↕';
+      const flecha = activa ? (orden.descendente ? 'abajo' : 'arriba') : 'orden';
+      // La última palabra va pegada a la flecha: si el título se parte, la flecha no queda sola en una línea.
+      const partes = titulo.split(' ');
+      const ultima = partes.pop();
       return h('th', { scope: 'col', 'aria-sort': activa ? (orden.descendente ? 'descending' : 'ascending') : 'none' },
         h('button', {
           type: 'button', class: `orden-col${activa ? ' activa' : ''}`, onclick: () => alOrdenar(clave),
           title: activa ? 'Tocar para invertir el orden' : `Ordenar por ${titulo.toLowerCase()}`,
-        }, titulo, h('span', { class: 'flecha', 'aria-hidden': 'true' }, flecha)));
+        }, partes.length ? `${partes.join(' ')} ` : null, h('span', { class: 'orden-fin' }, ultima, icono(flecha))));
     }))),
     h('tbody'));
 }
@@ -284,7 +287,7 @@ export async function render(main, ctx) {
       return n ? h('option', { value: c.id, selected: String(c.id) === estado.cat }, `${c.nombre} (${n})`) : null;
     }));
   const texto = h('input', {
-    class: 'entrada entrada-busqueda', id: 'f-q', type: 'search', value: estado.q, placeholder: 'Producto, ingrediente, cultivo, empresa, FRAC 3, SC…',
+    class: 'entrada entrada-busqueda', id: 'f-q', type: 'search', value: estado.q, placeholder: 'Ej: Tecto, cobre, FRAC 3',
     autocomplete: 'off', spellcheck: 'false', enterkeyhint: 'search',
   });
   const selEmpresa = h('select', { class: 'selector', id: 'f-empresa' },
@@ -404,12 +407,12 @@ export async function render(main, ctx) {
     orden.addEventListener('change', () => { estado.orden = orden.value; estado.inv = false; pintar(); });
     zona.append(h('div', { class: 'barra-tabla' },
       h('p', { class: 'cuenta', 'aria-live': 'polite' }, h('strong', null, plural(visibles.length, 'producto', 'productos'))),
-      ing ? h('a', { class: 'chip', 'aria-pressed': 'true', href: ruta('', { ...base(), ing: '' }), title: 'Quitar este filtro' }, `Ingrediente: ${ing.nombre}`, h('small', null, '✕')) : null,
+      ing ? h('a', { class: 'chip', 'aria-pressed': 'true', href: ruta('', { ...base(), ing: '' }), title: 'Quitar este filtro' }, `Ingrediente: ${ing.nombre}`, icono('cerrar')) : null,
       h('div', { class: 'orden' }, h('label', null, 'Orden', orden),
         h('button', {
           type: 'button', class: 'boton-redondo', onclick: () => ordenar(estado.orden),
           title: 'Invertir el orden', 'aria-label': `Invertir el orden (ahora ${descendente ? 'de mayor a menor' : 'de menor a mayor'})`,
-        }, descendente ? '▼' : '▲'))));
+        }, icono(descendente ? 'abajo' : 'arriba')))));
 
     // Si lo escrito es un cultivo o una plaga, ofrecer ese filtro.
     if (estado.q.length >= 3) {
@@ -427,7 +430,7 @@ export async function render(main, ctx) {
     }
 
     if (!visibles.length) {
-      zona.append(h('div', { class: 'vacio' }, h('p', null, h('strong', null, 'Ningún producto cumple esos filtros.')),
+      zona.append(h('div', { class: 'vacio' }, h('p', null, h('strong', null, 'Ningún producto cumple esos filtros')),
         h('a', { class: 'boton', href: '#/' }, 'Quitar filtros')));
       return;
     }

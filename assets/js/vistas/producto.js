@@ -85,7 +85,7 @@ function seccionUsos(cat, p, lineas, contenedor, cultivoId) {
       listado.append(h('details', { class: 'cultivo-grupo', open: grupos.length <= 3 || (q.length > 0 && i < 6) || g.cultivo.id === cultivoId },
         h('summary', null, recortar(g.cultivo.nombre, 80), h('small', null, plural(us.length, 'línea', 'líneas'))),
         h('div', { class: 'linea-uso' },
-          h('a', { href: ruta('', { cultivo: g.cultivo.id }) }, 'Comparar con otros productos para este cultivo →')),
+          h('a', { class: 'enlace-icono', href: ruta('', { cultivo: g.cultivo.id }) }, 'Comparar con otros productos para este cultivo', icono('flecha'))),
         us.map((u) => lineaUso(cat, u))));
     });
     if (!visibles) listado.append(h('p', { class: 'vacio' }, 'Ningún cultivo u objetivo coincide.'));
@@ -185,8 +185,7 @@ export async function render(main, ctx) {
       h('div', { class: 'acciones' },
         p.etiqueta
           ? h('a', { class: 'boton boton-primario', href: p.etiqueta.url, target: '_blank', rel: 'noopener' }, icono('pdf'), 'Abrir etiqueta oficial (PDF)')
-          : h('span', { class: 'nota nota-peligro' }, 'La etiqueta PDF de este producto no está disponible en el sistema.'),
-        p.noDisponible ? null : h('a', { class: 'boton', href: ruta('mapa', { nodo: `p:${p.id}` }) }, icono('mapa'), 'Ver en el mapa'))),
+          : h('span', { class: 'nota nota-peligro' }, 'La etiqueta PDF de este producto no está disponible en el sistema.'))),
     zonaDescripcion,
 
     h('h2', { class: 'titulo-seccion' }, 'Ingredientes activos'),

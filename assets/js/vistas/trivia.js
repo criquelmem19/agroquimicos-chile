@@ -230,7 +230,7 @@ export function render(main, ctx) {
         });
         resultado.append(
           h('p', { class: bien ? 'trivia-bien' : 'trivia-mal' }, icono(bien ? 'check' : 'cerrar'),
-            bien ? '¡Correcto!' : ['Era ', h('strong', null, q.textoCorrecta)]),
+            bien ? 'Correcto' : ['Era ', h('strong', null, q.textoCorrecta)]),
           h('p', { class: 'chico' }, ficha(q.producto)));
         siguiente.hidden = false;
         siguiente.focus();
@@ -270,7 +270,7 @@ export function render(main, ctx) {
         h('div', { class: 'trivia-final' },
           h('p', { class: 'trivia-puntaje' }, h('strong', null, String(puntos)), ` de ${preguntas.length}`),
           h('p', null, `Tiempo: ${reloj(segundos)}`),
-          nuevo ? h('p', { class: 'etiqueta etq-ok' }, icono('trofeo'), '¡Nuevo récord!') : h('p', { class: 'chico tenue' }, textoRecord()),
+          nuevo ? h('p', { class: 'etiqueta etq-ok' }, icono('trofeo'), 'Nuevo récord') : h('p', { class: 'chico tenue' }, textoRecord()),
           h('div', { class: 'acciones' },
             h('button', { type: 'button', class: 'boton boton-primario', onclick: jugar }, 'Jugar otra vez'),
             h('button', { type: 'button', class: 'boton', onclick: portada }, 'Cambiar preguntas'))),
