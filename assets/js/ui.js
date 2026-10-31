@@ -333,8 +333,18 @@ export function mensajeError(err) {
     h('button', { class: 'boton', type: 'button', onclick: () => location.reload() }, 'Reintentar'));
 }
 
-export function cargando(texto = 'Cargando…') {
-  return h('div', { class: 'cargando', role: 'status' }, h('span', { class: 'ruedita', 'aria-hidden': 'true' }), texto);
+// Pantalla de carga: «esqueleto» de bloques grises con la forma de lo que viene (pedido de Cristóbal, 31-10-2026:
+// la ruedita con texto se veía tediosa). El texto queda solo para los lectores de pantalla.
+// forma: 'inicio' (filtros y filas de productos; igual al de index.html), 'lista' (líneas de uso, plan) o 'texto'.
+export function cargando(texto = 'Cargando…', forma = 'texto') {
+  const filas = forma === 'texto'
+    ? [1, 2, 3].map(() => h('span', { class: 'esq' }))
+    : Array.from({ length: forma === 'inicio' ? 6 : 4 }, () => h('div', { class: 'esq-fila' },
+      Array.from({ length: forma === 'inicio' ? 6 : 2 }, () => h('span', { class: 'esq' }))));
+  return h('div', { class: `esqueleto esqueleto-${forma}`, role: 'status', 'aria-busy': 'true' },
+    h('span', { class: 'solo-lector' }, texto),
+    forma === 'inicio' ? [h('div', { class: 'esq-panel' }, [1, 2, 3, 4].map(() => h('span'))), h('span', { class: 'esq esq-cuenta' })] : null,
+    filas);
 }
 
 // Aviso emergente abajo de la pantalla (sobre la barra del celular), que se cierra solo.

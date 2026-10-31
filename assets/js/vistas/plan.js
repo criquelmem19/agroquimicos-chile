@@ -508,7 +508,7 @@ async function abrirGuardados(clave, zona) {
 export async function render(main, ctx) {
   const { cat, params } = ctx;
   main.append(h('h1', null, 'Plan de aplicaciones'));
-  const zona = h('div', null, cargando('Preparando tu plan…'));
+  const zona = h('div', null, cargando('Preparando tu plan…', 'lista'));
   main.append(zona);
 
   if (params.get('abrir')) {

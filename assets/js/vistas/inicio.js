@@ -263,7 +263,7 @@ export async function render(main, ctx) {
 
   // Líneas de uso (solo si hay cultivo u objetivo): se piden antes de armar los filtros para que las
   // sugerencias muestren solo lo que existe con lo ya elegido.
-  const zona = h('div', null, conLineas ? cargando('Buscando los productos registrados…') : null);
+  const zona = h('div', null, conLineas ? cargando('Buscando los productos registrados…', 'inicio') : null);
   const panel = h('div', { class: 'panel-filtros', role: 'search', hidden: true });
   main.append(panel, zona);
 

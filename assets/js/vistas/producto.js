@@ -167,7 +167,7 @@ export async function render(main, ctx) {
     h('span', { class: 'chico tenue' }, [d.fecha ? ` · versión ${fecha(d.fecha)}` : '', d.paginas ? ` · ${plural(d.paginas, 'página', 'páginas')}` : ''].join(''))));
 
   const zonaDescripcion = h('div');
-  const zonaUsos = h('div', null, cargando('Cargando las líneas de uso…'));
+  const zonaUsos = h('div', null, cargando('Cargando las líneas de uso…', 'lista'));
   const zonaSeguridad = h('div', null, cargando('Cargando el perfil de seguridad…'));
 
   main.append(

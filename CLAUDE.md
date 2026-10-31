@@ -65,6 +65,10 @@ rechazo en destino o residuos sobre la tolerancia.
 - **Menú simple y tabla ancha (pedido del 27-10-2026):** «Inicio», «Plan de aplicaciones» y «Trivia». El inicio usa todo el
   ancho de la pantalla (`--ancho-max` 1600 px; `ANCHA = true` en la vista); el resto de las páginas, 1180 px.
 - Grupos de modo de acción con color propio: FRAC azul, IRAC verde, HRAC tierra.
+- **Pantallas de carga como esqueleto** (pedido del 31-10-2026: «la ruedita se ve muy tediosa»): bloques beige que
+  laten despacio con la forma de lo que viene, sin ruedita ni texto visible (el texto queda para lectores de
+  pantalla). `ui.js → cargando(texto, forma)`: 'inicio' (panel de filtros y filas/tarjetas), 'lista' o 'texto'; el
+  de la primera carga está escrito en `index.html`. Si cambia el alto del panel de filtros, ajustar `.esq-panel`.
 
 ## Arquitectura (decidida el 19-10-2026; no cambiarla sin avisar a Cristóbal)
 
