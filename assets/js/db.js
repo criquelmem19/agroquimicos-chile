@@ -289,11 +289,8 @@ function armarCatalogo(crudo, fechaCache) {
   }]));
 
   // Palabras normalizadas, para buscar sin tildes ni mayúsculas.
-  for (const p of productos.values()) {
-    p.palabras = palabras(`${p.nombre} ${p.registro || ''}`);
-    // Para el buscador de la tabla: nombre, registro, ingredientes y empresa.
-    p.palabrasTodas = palabras(`${p.nombre} ${p.registro || ''} ${p.ings.map((x) => x.ing.nombre).join(' ')} ${p.marca || ''}`);
-  }
+  // (El buscador de la tabla del inicio arma las suyas con todas las columnas: vistas/inicio.js.)
+  for (const p of productos.values()) p.palabras = palabras(`${p.nombre} ${p.registro || ''}`);
   for (const c of cultivos.values()) c.palabras = palabras(`${c.nombre} ${c.alias.join(' ')}`);
   for (const o of objetivos.values()) o.palabras = palabras(`${o.nombre} ${o.cientifico || ''}`);
 

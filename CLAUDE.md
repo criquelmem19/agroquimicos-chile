@@ -231,15 +231,21 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
 
 - `index.html`: una sola página, `noindex`, carga supabase-js y `assets/js/app.js`.
 - Rutas con `#` (funcionan en GitHub Pages sin configuración):
-  - `#/?cultivo=<id>&objetivo=<id>&oq=<texto>&cat=<id>&q=<texto>&empresa=<nombre corto>&moa=<clave>|sin&ing=<id>&orden=moa|nombre|empresa|tipo|ing|registro|cultivos&inv=1&todos=1`
+  - `#/?cultivo=<id>&objetivo=<id>&oq=<texto>&cat=<id>&q=<texto>&empresa=<nombre corto>&moa=<clave>|sin&ing=<id>&orden=moa|nombre|empresa|tipo|ing|registro|cultivos&inv=1`
     **Inicio = «¿Qué aplico?»** (rehecho el 27-10-2026 a pedido de Cristóbal; vista `assets/js/vistas/inicio.js`):
-    filtros arriba (cultivo y plaga/enfermedad/maleza con sugerencias; tipo de producto; texto; en «Más filtros»
-    empresa y modo de acción) y una tabla con **una fila por producto**: Producto (+ categoría), Empresa (nombre corto),
+    arriba el **buscador principal** («Buscar en la tabla», `q`; pedido del 31-10-2026): filtra mientras se escribe y
+    busca en todas las columnas (nombre y categoría, empresa y su nombre completo, grupos de modo de acción y su código
+    de la etiqueta, grupo químico, tipo y su nombre, ingredientes, registro, cultivos con sus sinónimos y el texto de
+    la dosis); cada palabra tiene que estar en alguna columna. «FRAC 3», «IRAC 4», «HRAC A» o «FRAC G1» se buscan como
+    grupo (`RE_MOA`), para que el número no calce con registros o dosis. Debajo: cultivo y plaga/enfermedad/maleza
+    con sugerencias y tipo de producto; en «Más filtros», empresa y modo de acción. Luego una tabla con
+    **una fila por producto**: Producto (+ categoría), Empresa (nombre corto),
     Modo de acción, Tipo (código de formulación: WP, SC…), Ingrediente activo (solo nombres), Etiqueta (PDF),
     Reg. SAG, Cultivos (3 y un botón «+X» que muestra el resto) y Dosis «desde – hasta», más un botón al plan.
     **Sin carencia ni reingreso en esta tabla** (pidió sacarlos; siguen en la ficha y en el plan). Con cultivo u
     objetivo, cultivos y dosis salen solo de las líneas que calzan (Enter en el objetivo = «Todos los que dicen…»).
-    Los productos que no se usan en Chile quedan ocultos con un botón para mostrarlos. Debajo de 1.100 px la tabla se
+    Los productos que no se usan en Chile no aparecen en la tabla (el botón «Mostrar también…» se quitó a pedido de
+    Cristóbal el 31-10-2026; siguen en su ficha y en el plan, que avisa). Debajo de 1.100 px la tabla se
     vuelve tarjetas (dos por fila en tablet). Ya no existen la rotación de grupos ni el buscador general.
     **Orden (27-10-2026):** tocar el título de una columna ordena por ella y tocarlo de nuevo invierte (`inv=1`); en el
     celular, un selector y un botón ▲/▼. Por defecto, **agrupados por modo de acción**: los productos con la misma

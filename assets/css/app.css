@@ -196,9 +196,14 @@ body { padding-bottom: calc(var(--alto-nav-inf) + env(safe-area-inset-bottom)); 
 .titulo-inicio { font-size: clamp(1.6rem, 1.2rem + 1.5vw, 2.2rem); margin-bottom: .8rem; }
 .panel-filtros { background: var(--superficie-2); border-radius: var(--radio); padding: 1rem 1.1rem .45rem; margin-bottom: 1.1rem; }
 .filtros-principales { display: grid; gap: .8rem 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-/* En el celular, cultivo y plaga a todo el ancho; tipo y texto lado a lado. */
+/* En el celular, cultivo, plaga y tipo a todo el ancho; desde la tablet, los tres en una fila. */
 @media (max-width: 639px) { .filtros-principales { gap: .7rem .6rem; } .filtro-ancho { grid-column: 1 / -1; } }
-@media (min-width: 1100px) { .panel-filtros > .filtros-principales { grid-template-columns: 1.2fr 1.5fr 1fr 1.2fr; } }
+@media (min-width: 640px) { .panel-filtros > .filtros-principales { grid-template-columns: 1.2fr 1.5fr 1fr; } }
+/* Buscador principal: filtra mientras se escribe, en todas las columnas de la tabla. */
+.filtro-busqueda { margin-bottom: .9rem; }
+.busqueda { position: relative; }
+.busqueda svg { position: absolute; left: 1rem; top: 50%; width: 22px; height: 22px; transform: translateY(-50%); color: var(--tinta-2); pointer-events: none; }
+.filtro .entrada-busqueda { min-height: 56px; padding-left: 3rem; font-size: 1.1rem; border: 1.5px solid var(--tinta); }
 .filtro { display: flex; flex-direction: column; gap: .3rem; min-width: 0; }
 .filtro-titulo { font-size: .78rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--tinta-3); }
 .filtro .selector, .filtro .entrada { width: 100%; min-height: 48px; background: var(--superficie); }

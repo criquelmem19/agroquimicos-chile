@@ -148,7 +148,7 @@ function unidadDosis(unidad, base) {
 const NBSP = '\u00a0';
 
 // grupos: [{u, b, min, max, n}] (de la vista o de resumenDosis). Une los que quedan con la misma unidad.
-function rangosDosis(grupos) {
+export function rangosDosis(grupos) {
   const m = new Map();
   for (const g of grupos) {
     const unidad = unidadDosis(g.u, g.b);
