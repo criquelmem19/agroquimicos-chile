@@ -5,6 +5,7 @@ import * as vistaInicio from './vistas/inicio.js';
 import * as vistaProducto from './vistas/producto.js';
 import * as vistaPlan from './vistas/plan.js';
 import * as vistaTrivia from './vistas/trivia.js';
+import * as vistaModos from './vistas/modos.js';
 
 const NOMBRE_SITIO = 'Agroquímicos CRM';
 
@@ -12,6 +13,7 @@ const NOMBRE_SITIO = 'Agroquímicos CRM';
 // Para la Fase 3 (foro, cuenta) basta sumarlas aquí.
 const SECCIONES = [
   { camino: '', titulo: '', menu: 'Inicio', corto: 'Inicio', icono: 'casa', vista: vistaInicio },
+  { camino: 'modos', titulo: 'FRAC, IRAC y HRAC', menu: 'Modos de acción', corto: 'Modos', icono: 'libro', vista: vistaModos },
   { camino: 'plan', titulo: 'Plan de aplicaciones', menu: 'Plan de aplicaciones', corto: 'Plan', icono: 'calendario', vista: vistaPlan },
   { camino: 'trivia', titulo: 'Trivia', menu: 'Trivia', corto: 'Trivia', icono: 'trofeo', vista: vistaTrivia },
 ];
@@ -20,6 +22,19 @@ const OTRAS = { producto: vistaProducto };
 // Secciones antiguas que ahora son el inicio (links guardados o compartidos): se abren ahí con sus filtros.
 // «mapa»: quitado por un tiempo a pedido de Cristóbal (31-10-2026); su código sigue en vistas/mapa.js.
 const ANTIGUAS = ['aplicar', 'productos', 'buscar', 'mapa'];
+
+// La primera vez que alguien entra al sitio (al inicio, sin filtros) ve la explicación de FRAC, IRAC y HRAC (pedido de
+// Cristóbal, 01-11-2026). Un link compartido abre lo que trae. Una sola vez por equipo.
+const CLAVE_BIENVENIDA = 'bienvenida-v1';
+function esPrimeraVisita() {
+  try {
+    if (localStorage.getItem(CLAVE_BIENVENIDA)) return false;
+    localStorage.setItem(CLAVE_BIENVENIDA, '1');
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 
 const principal = document.getElementById('vista');
 let catalogo = null;
@@ -132,6 +147,8 @@ async function mostrar(evento) {
 }
 
 async function iniciar() {
+  const entrada = leerRuta();
+  if (!entrada.camino && !entrada.params.toString() && esPrimeraVisita()) history.replaceState(null, '', '#/modos');
   pintarMenus(leerRuta().partes[0] || '');
   let carga;
   try {

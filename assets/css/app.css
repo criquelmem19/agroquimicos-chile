@@ -47,6 +47,7 @@
   --irac: #13723d;  --irac-fondo: #e5f6ea;   /* insecticidas y acaricidas: verde */
   --hrac: #8a5a12;  --hrac-fondo: #f8eedb;   /* herbicidas: tierra */
   --hrac-claro: #c08a2c;
+  --hrac-bloque: #f1dfb8;   /* bloque tierra (portada de modos de acción) */
   --otro: #55534d;  --otro-fondo: #eeece7;
 
   --radio: 16px;             /* tarjetas y paneles */
@@ -745,6 +746,151 @@ ul.tarjeta.lista-simple { padding: 16px 20px; }
 .trivia-marca { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: var(--verde); }
 .trivia-repaso .mal .trivia-marca { background: var(--peligro-punto); }
 .trivia-marca svg { width: 16px; height: 16px; }
+
+/* ---------- Modos de acción: FRAC, IRAC y HRAC (vistas/modos.js) ----------
+   Página para leer: textos a 68 caracteres como máximo, secciones separadas por 64 px. El color fuerte va en los tres
+   bloques de la portada (uno por comité) y en el dibujo de la resistencia; el resto, beige, negro y gris. */
+.md-seccion { margin-top: 64px; scroll-margin-top: calc(var(--alto-cabecera) + 16px); }
+.md-seccion > h2 { font-size: clamp(24px, 1rem + 1vw, 28px); margin-bottom: 16px; }
+.md-intro { color: var(--tinta-2); max-width: 68ch; }
+.md-rotulo { display: block; font-size: 14px; font-weight: 500; color: var(--tinta-3); margin-bottom: 2px; }
+
+/* Portada: texto a la izquierda; a la derecha, un bloque de color plano por comité (llevan a su explicación). */
+.md-cabeza { display: grid; gap: 32px; align-items: center; padding: 8px 0 40px; }
+@media (min-width: 960px) { .md-cabeza { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 48px; padding: 24px 0 48px; } }
+.md-cabeza h1 { font-size: clamp(36px, 1.4rem + 3vw, 56px); line-height: 1.05; letter-spacing: -.02em; margin-bottom: 16px; }
+.md-bajada { font-size: 19px; line-height: 1.5; color: var(--tinta-2); max-width: 36rem; margin-bottom: 24px; }
+.md-bloques { display: grid; gap: 12px; }
+.md-bloque {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "sigla flecha" "para flecha" "contra flecha";
+  align-items: center; column-gap: 16px; width: 100%; text-align: left;
+  padding: 20px 24px; border: 0; border-radius: var(--radio); color: var(--tinta); cursor: pointer;
+}
+.md-bloque:hover { box-shadow: inset 0 0 0 2px var(--tinta); }
+.md-bloque-frac { background: var(--azul-bloque); }
+.md-bloque-irac { background: var(--verde-claro); }
+.md-bloque-hrac { background: var(--hrac-bloque); }
+.md-bloque-sigla { grid-area: sigla; font-size: 28px; font-weight: 600; line-height: 1.1; letter-spacing: .02em; }
+.md-bloque-para { grid-area: para; font-size: 18px; font-weight: 500; margin-top: 4px; }
+.md-bloque-contra { grid-area: contra; font-size: 15px; line-height: 1.4; color: var(--tinta-2); margin-top: 4px; }
+.md-bloque svg { grid-area: flecha; width: 20px; height: 20px; transform: rotate(90deg); }
+
+.md-esencial { background: var(--superficie-2); border-radius: var(--radio); padding: 24px 20px; }
+@media (min-width: 760px) { .md-esencial { padding: 32px; } }
+.md-esencial h2 { font-size: 20px; margin-bottom: 20px; }
+.md-esencial ol { list-style: none; counter-reset: esencial; margin: 0; padding: 0; display: grid; gap: 24px; }
+@media (min-width: 760px) { .md-esencial ol { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 32px; } }
+@media (min-width: 1100px) { .md-esencial ol { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.md-esencial li { counter-increment: esencial; font-size: 18px; line-height: 1.45; }
+.md-esencial li::before { content: counter(esencial); display: block; margin-bottom: 8px; font-size: 32px; font-weight: 500; line-height: 1; color: var(--verde-fuerte); }
+
+.md-palabras { display: grid; gap: 16px; }
+@media (min-width: 760px) { .md-palabras { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.md-palabra { border: 1px solid var(--linea); border-radius: var(--radio); padding: 20px; }
+.md-palabra h3 { margin-bottom: 8px; }
+.md-palabra p { margin-bottom: 12px; }
+.md-ejemplo { color: var(--tinta-2); }
+.md-palabra .md-tecnico { margin: 0; padding-top: 12px; border-top: 1px solid var(--linea); font-size: 15px; color: var(--tinta-3); }
+
+/* Dibujo de la resistencia: 30 puntos por etapa. */
+.md-etapas { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0 0 16px; }
+@media (min-width: 960px) { .md-etapas { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; } }
+.md-etapa { margin: 0; display: flex; flex-direction: column; gap: 12px; padding: 12px; border: 1px solid var(--linea); border-radius: var(--radio); }
+@media (min-width: 960px) { .md-etapa { padding: 16px; gap: 16px; } }
+.md-puntos { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; justify-items: center; padding: 12px 4px; background: var(--superficie-2); border-radius: var(--radio-medio); }
+@media (min-width: 960px) { .md-puntos { gap: 8px; padding: 16px 8px; } }
+.md-punto { display: inline-block; width: 12px; height: 12px; border-radius: 50%; }
+@media (min-width: 960px) { .md-puntos .md-punto { width: 16px; height: 16px; } }
+.md-sensible { background: var(--verde-claro); }
+.md-aguanta { background: var(--tinta); }
+.md-muerto { border: 1.5px solid var(--linea-fuerte); }
+.md-etapa figcaption { display: flex; flex-direction: column; gap: 4px; font-size: 15px; line-height: 1.45; color: var(--tinta-2); }
+.md-etapa figcaption strong { font-size: 16px; font-weight: 500; color: var(--tinta); }
+.md-leyenda { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; font-size: 14px; color: var(--tinta-2); }
+.md-leyenda span { display: inline-flex; align-items: center; gap: 8px; }
+
+.md-importa { display: grid; gap: 24px 32px; }
+@media (min-width: 760px) { .md-importa { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.md-importa > div { padding-top: 12px; border-top: 2px solid var(--tinta); }
+.md-importa h3 { font-size: 18px; margin-bottom: 4px; }
+.md-importa p { margin: 0; color: var(--tinta-2); }
+
+/* Una tarjeta por comité, con la franja de su color a la izquierda (la misma de la tabla). */
+.md-sigla {
+  margin-top: 20px; padding: 20px; border: 1px solid var(--linea); border-left: 4px solid var(--otro); border-radius: var(--radio);
+  scroll-margin-top: calc(var(--alto-cabecera) + 16px);
+}
+@media (min-width: 760px) { .md-sigla { padding: 24px 28px; } }
+.md-sigla-frac { border-left-color: var(--frac); }
+.md-sigla-irac { border-left-color: var(--irac); }
+.md-sigla-hrac { border-left-color: var(--hrac); }
+.md-sigla-cabeza { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 12px; }
+.md-sigla-cabeza h3 { font-size: 22px; margin: 0 0 2px; }
+.md-sigla-cabeza p { margin: 0; font-size: 15px; }
+.md-sigla .md-sigla-codigo { padding: 4px 12px; font-size: 18px; line-height: 24px; }
+.md-lectura { display: grid; gap: 8px; margin: 0 0 20px; padding-left: 20px; color: var(--tinta-2); max-width: 80ch; }
+.md-tabla { margin-bottom: 20px; }
+.md-tabla .tabla-simple { font-size: 15px; }
+.md-que { display: block; }
+.md-sitio, .md-antes { display: block; margin-top: 2px; font-size: 13px; line-height: 1.4; color: var(--tinta-3); }
+.md-antes { margin-top: 4px; }
+.md-catalogo { padding-top: 16px; border-top: 1px solid var(--linea); }
+.md-catalogo p { margin-bottom: 12px; font-size: 15px; color: var(--tinta-2); }
+.md-familias { display: flex; flex-wrap: wrap; gap: 8px; }
+.md-familia { gap: 8px; text-decoration: none; }
+.md-familia:hover { text-decoration: underline; text-underline-offset: 3px; }
+.md-familia small { font-family: var(--letra); font-size: 13px; font-weight: 400; opacity: .8; }
+.md-fuente { margin-top: 16px; font-size: 14px; color: var(--tinta-3); }
+
+.md-reglas { list-style: none; counter-reset: regla; display: grid; gap: 20px 32px; margin: 0 0 24px; padding: 0; }
+@media (min-width: 760px) { .md-reglas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.md-reglas li { counter-increment: regla; display: grid; grid-template-columns: 32px minmax(0, 1fr); align-content: start; column-gap: 12px; }
+.md-reglas li::before {
+  content: counter(regla); grid-row: span 2; width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center; background: var(--superficie-2); font-size: 15px; font-weight: 500;
+}
+.md-reglas h3 { font-size: 18px; margin: 4px 0; }
+.md-reglas p { margin: 0; color: var(--tinta-2); }
+.md-rotacion { display: grid; gap: 20px; padding: 20px; background: var(--superficie-2); border-radius: var(--radio); }
+.md-rotacion-fila { display: grid; gap: 8px; }
+@media (min-width: 900px) { .md-rotacion-fila { grid-template-columns: 96px auto minmax(0, 1fr); align-items: center; gap: 20px; } }
+.md-rotacion-titulo { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; }
+.md-rotacion-titulo svg { width: 18px; height: 18px; }
+.md-mal { color: var(--peligro-tinta); }
+.md-bien { color: var(--verde-fuerte); }
+.md-rotacion-fila p { margin: 0; font-size: 15px; color: var(--tinta-2); }
+.md-pasos { list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; padding: 0; }
+.md-pasos li { display: flex; align-items: center; gap: 8px; }
+.md-pasos svg { width: 16px; height: 16px; color: var(--tinta-3); }
+.md-paso { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 8px 12px; background: var(--superficie); border: 1px solid var(--linea); border-radius: var(--radio-medio); font-size: 15px; }
+.md-paso-n { font-size: 12px; color: var(--tinta-3); }
+/* En el celular las tres aplicaciones van en una fila, sin flechas (el número dice el orden). */
+@media (max-width: 599px) {
+  .md-pasos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .md-pasos svg { display: none; }
+  .md-pasos li, .md-paso { width: 100%; }
+  .md-paso { padding: 8px; }
+}
+
+.md-ejemplos { display: grid; gap: 16px; }
+@media (min-width: 960px) { .md-ejemplos { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.md-caso { padding: 20px; border: 1px solid var(--linea); border-radius: var(--radio); }
+.md-caso h3 { font-size: 20px; margin: 12px 0; }
+.md-caso p { margin: 0 0 12px; }
+.md-caso p:last-child { margin: 0; }
+.md-subtitulo { font-size: 20px; margin: 32px 0 12px; }
+.md-reales { display: grid; gap: 16px; }
+@media (min-width: 760px) { .md-reales { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.md-real { padding: 20px; background: var(--superficie-2); border-radius: var(--radio); }
+.md-real h3 { font-size: 18px; margin-bottom: 8px; }
+.md-real p { margin: 0 0 8px; }
+.md-real p:last-child { margin: 0; color: var(--tinta-2); }
+
+.md-sitio-lista { list-style: none; display: grid; gap: 16px; max-width: 72ch; margin: 0 0 32px; padding: 0; }
+.md-sitio-lista li { position: relative; padding-left: 20px; }
+.md-sitio-lista li::before { content: ""; position: absolute; left: 4px; top: 11px; width: 6px; height: 6px; border-radius: 50%; background: var(--tinta-3); }
+.md-muestras { display: block; margin-bottom: 8px; }
+.md-final { margin-top: 0; }
 
 /* Avisos emergentes (alertas que «saltan» al agregar) */
 .avisos-flotantes {

@@ -40,7 +40,8 @@ productores, muchas veces **desde el celular en el campo**.
 4. ~~Aviso visible en todas las páginas~~: **eliminado a pedido de Cristóbal el 21-10-2026** («elimina
    de la app todo este tipo de avisos»), junto con los textos de presentación de cada página, la nota del
    pie («Fuente…») y la página «Estado de los datos». No volver a agregar avisos generales ni textos
-   explicativos largos. Se mantienen las etiquetas por dato (reglas 1–3) y las alertas del plan.
+   explicativos largos. Se mantienen las etiquetas por dato (reglas 1–3) y las alertas del plan. Excepción pedida por
+   él el 01-11-2026: la página «Modos de acción» (`#/modos`), que es una explicación larga a propósito.
 5. **Nunca inventar ni completar datos agronómicos con conocimiento general.** Solo lo que dice la
    etiqueta, con cita (texto y página).
 6. Mientras la carencia esté incompleta: `noindex` (meta robots en `index.html`). Se comparte solo por link.
@@ -61,9 +62,9 @@ rechazo en destino o residuos sobre la tolerancia.
 - **Sin modo noche** (Cristóbal lo pidió quitar el 21-10-2026: «está muy de más»). Solo modo claro.
 - Marca: logo «CRM» (píldora negra con letras blancas y un punto verde) arriba a la izquierda, junto a
   «Agroquímicos CRM». Ícono de la pestaña: `assets/img/icono.svg` con la misma marca.
-- Se mantienen: letra de 17 px y alto contraste (se usa al sol), barra inferior en celular (Inicio, Plan y Trivia).
-- **Menú simple y tabla ancha (pedido del 27-10-2026):** «Inicio», «Plan de aplicaciones» y «Trivia» (el «Mapa» se
-  quitó por un tiempo el 31-10-2026, ver «El sitio»). El inicio usa todo el
+- Se mantienen: letra de 17 px y alto contraste (se usa al sol), barra inferior en celular (Inicio, Modos, Plan y Trivia).
+- **Menú simple y tabla ancha (pedido del 27-10-2026):** «Inicio», «Modos de acción» (01-11-2026), «Plan de
+  aplicaciones» y «Trivia» (el «Mapa» se quitó por un tiempo el 31-10-2026, ver «El sitio»). El inicio usa todo el
   ancho de la pantalla (`--ancho-max` 1600 px; `ANCHA = true` en la vista); el resto de las páginas, 1180 px.
 - Grupos de modo de acción con color propio: FRAC azul, IRAC verde, HRAC tierra.
 - **Pasada «unslop» (31-10-2026, Cristóbal: «mantén la estética de colores que yo te dije pero sigue las reglas de
@@ -283,6 +284,21 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     combinación de grupos («FRAC 7 + FRAC 11») van juntos, bajo un título con el grupo, el grupo químico y cuántos son,
     y con una franja del color del sistema; los sin grupo al final. Se agrupa por **código actual y familia**: ver
     «Códigos de modo de acción» más abajo.
+  - `#/modos` **Modos de acción: FRAC, IRAC y HRAC** (01-11-2026, Cristóbal: «una pantalla de inicio que explique qué es
+    IRAC, FRAC y HRAC y por qué es importante… que la entienda un agricultor sin estudios y que un ingeniero esté de
+    acuerdo, con ejemplos y definiciones»; `assets/js/vistas/modos.js`). **Se abre sola la primera vez** que alguien entra
+    al inicio sin filtros (`esPrimeraVisita` en `app.js`, `localStorage` `bienvenida-v1`; un link compartido abre lo que
+    trae); después, desde el menú. Partes: portada con un bloque de color por comité (FRAC azul `--azul-bloque`, IRAC
+    verde `--verde-claro`, HRAC tierra `--hrac-bloque`); lo esencial en 4 frases; 4 palabras (ingrediente activo, modo de
+    acción, resistencia, resistencia cruzada), cada una en simple, con ejemplo y «en términos técnicos»; dibujo de cómo
+    aparece la resistencia (30 puntos por etapa, cantidades de ejemplo); por qué importa; una tarjeta por comité (qué
+    ordena, cómo se lee el código, tabla de grupos frecuentes con qué hace en simple y su sitio de acción, familia,
+    ingredientes de ejemplo y, en FRAC, riesgo; y cuántos productos del catálogo tienen cada código, con link a la tabla
+    filtrada); 8 reglas para el campo con «así no / así sí»; ejemplos (botrytis FRAC, arañita IRAC, ballica HRAC) y dos
+    sacados del catálogo (dos marcas con el mismo código; un producto con dos códigos); cómo aparecen en el sitio.
+    Los grupos y ejemplos de ingrediente de las tablas están escritos a mano desde las listas oficiales (FRAC Code List,
+    IRAC MoA Classification, HRAC 2020), no de la base: en la base hay errores (glufosinato como HRAC 3, el protector
+    cloquintocet como HRAC 4, «FRAC E3 GRUPO 2»); los conteos del catálogo solo muestran códigos bien escritos.
   - **Mapa quitado por un tiempo (31-10-2026, Cristóbal: «quita un rato el mapa»).** No está en el menú ni en la barra
     del celular, la ficha ya no tiene «Ver en el mapa», `mapa.js` no se importa ni se precarga, y `#/mapa` abre el inicio
     (`ANTIGUAS` en `app.js`). El código (`vistas/mapa.js`) y sus estilos siguen. Para volver a ponerlo: la línea en

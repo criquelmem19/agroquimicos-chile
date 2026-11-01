@@ -57,6 +57,7 @@ const ICONOS = {
   descargar: '<path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/>',
   cerrar: '<path d="M6 6l12 12M18 6 6 18"/>',
   trofeo: '<path d="M8 4h8v5.5a4 4 0 0 1-8 0z"/><path d="M8 6H5.5a3 3 0 0 0 3 4M16 6h2.5a3 3 0 0 1-3 4"/><path d="M12 13.5V17M8.5 20.5h7M10 17h4v3.5h-4z"/>',
+  libro: '<path d="M12 7v13"/><path d="M3.5 5.5h5A3.5 3.5 0 0 1 12 9a3.5 3.5 0 0 1 3.5-3.5h5V18h-5.5a3 3 0 0 0-3 3 3 3 0 0 0-3-3H3.5z"/>',
   casa: '<path d="M4 10.5 12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H5.5A1.5 1.5 0 0 1 4 19z"/>',
   mapa: '<circle cx="6" cy="6.5" r="2.5"/><circle cx="18" cy="8" r="2.5"/><circle cx="9.5" cy="18" r="2.5"/><path d="M8.5 6.8l7 .9M6.7 8.9l1.9 6.7M16.4 9.9l-5.3 6.3"/>',
 };
