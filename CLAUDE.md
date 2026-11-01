@@ -625,7 +625,7 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   del 25-10-2026): otra extracción numera las filas distinto y podía poner la dosis de una fila en otra del mismo
   cultivo. Ahora también exige la misma página y algún objetivo en común.
 
-## Estado del recopilador (30-10-2026, ~08:30, después de la sesión 12)
+## Estado del recopilador (01-11-2026, ~17:55, después de la sesión 13)
 
 - Frase de Cristóbal para seguir a mano: **«Sigue con el recopilador del SAG»** → «Cómo seguir». Ahora corre solo
   (ver «Sesiones automáticas»). El detalle de cada sesión va al final de `docs/historia.md` (la más nueva arriba).
@@ -635,37 +635,42 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   **Sesión 11** (29-10, 13:22–~14:00): 34 etiquetas (29 + 5 de Codex), 1.417 líneas, lotes `2026-10-29-11a` a `-11h` y
   `2026-10-29-11codex`; paró por el límite semanal (de 85 a 89 %). **Sesión 12** (30-10, ~07:20–~08:30): 11 etiquetas
   (7 de Point + 4 de Codex), 482 líneas, lotes `2026-10-30-12a`, `-12b` y `2026-10-30-12codex`; paró en 91 % semanal.
-  Ese límite se renueva el **31-10 a las 12:00**: hasta entonces las sesiones automáticas terminan solas.
+  **Sesión 13** (01-11, ~12:30–~17:55): 56 etiquetas (55 + 1 de Codex), 5.422 líneas, lotes `2026-11-01-13a` a `-13n` y
+  `2026-11-01-13codex`; Point y Albaugh terminadas. Uso: 5 h de 4 a 32 % (se renovó a mitad), semanal de 2 a 14 %.
 - **Codex:** 20 cargadas y **control al azar hecho** (30-10, `sag/control/2026-10-30_0804_revision.json`: 22 de 30 sin
   observaciones, 0 valores contradictorios, solo datos que faltan): se sigue cargando lo suyo normalmente. **Codex: UPL**.
-- **Empresa actual: Point** (quedan 20 vigentes de productos nuevos, sin contar 509). Anasac, Syngenta, Bayer, BASF, Agrospec, Sumitomo,
-  Corteva, ADAMA y FMC: terminadas. **Páginas de etiqueta marcadas como HDS por `textos.py`** (sin cargar, JSON como
+- **Empresa actual: Solchem** (17). Anasac, Syngenta, Bayer, BASF, Agrospec, Sumitomo, Corteva, ADAMA, FMC, Point (salvo
+  509) y Albaugh: terminadas. **Páginas de etiqueta marcadas como HDS por `textos.py`** (sin cargar, JSON como
   `<id>.pagina_hds.json`): 932 JANUS 480 FS (Bayer, cuadro en la pág. 19), 532 y 1692 VALIS M (FMC), 509 Clorotalonil
   720 SC (Point); hay que corregir la clasificación de esas páginas y volver a extraerlas. De Anasac, 1059/1060 METRICLAN.
   **Sumitomo sin cargar: 464 CHAMP DP WG, 648 DiTera WG y 817 GIBGRO 10LS** (pág. 1 escaneada de lado; ni Sonnet las lee:
-  `ocr.py` tiene que probar el otro giro). Después: Albaugh 20, Solchem 17, Arysta 17, Acres 15, Sipcam 14…
-- **Cola:** ~492 vigentes de productos nuevos (95 de UPL, de Codex); además ~110 de productos que ya estaban y 236
-  canceladas o que no figuran en la planilla. Ritmo: ~80–110 por sesión y ~650 por semana (límite semanal); Codex suma
-  aparte. Estimado: ~15 de noviembre.
-- Inventario: 1.634 filas; 855 en «texto», 638 cargadas, 13 diferencias, 63 no son etiqueta, 39 versiones
+  `ocr.py` tiene que probar el otro giro). Después: Arysta 17, Acres 15, Sipcam 14, Degesch 13, Gowan 11…
+- **Cola:** ~444 vigentes de productos nuevos (93 de UPL, de Codex); además ~110 de productos que ya estaban y 236
+  canceladas o que no figuran en la planilla. Ritmo: ~55–110 por sesión y ~650 por semana (límite semanal); Codex suma
+  aparte. Estimado: ~12–15 de noviembre.
+- Inventario: 1.634 filas; 799 en «texto», 694 cargadas, 13 diferencias, 63 no son etiqueta, 39 versiones
   anteriores, 14 sin PDF, 5 ilegibles, 5 duplicados, 2 ya en la base.
-- Base: 789 productos (756 con N° SAG), 21.588 líneas visibles; dosis 94,0 %, carencia 89,9 %; 80 MB.
-- Último control al azar: 29-10-2026 08:48, con ~545 cargadas, 30 líneas de la sesión 8
+- Base: 845 productos (810 con N° SAG), 27.010 líneas visibles; dosis 94,3 %, carencia 91,1 %; 92 MB.
+- Último control al azar: 01-11-2026 12:34, con ~640 cargadas, 30 líneas de la sesión 10
+  (`sag/control/2026-11-01_1234_revision.json`): 16 sin observaciones, 0 valores que contradigan la etiqueta; solo faltan
+  datos (sobre todo mojamientos). **El siguiente con ~750 cargadas** (con `--lote "2026-11-01-13%"`). Anterior: 29-10 08:48, con ~545 cargadas, 30 líneas de la sesión 8
   (`sag/control/2026-10-29_0848_revision.json`): 20 sin observaciones, 0 valores que contradigan la etiqueta; faltan datos
   (6 dosis, 4 carencias, 1 intervalo, 2 objetivos, 1 método). El de la sesión 9 (28-10 13:23, `…_1323_revision.json`): 14 de
-  30 sin observaciones, casi todo datos que faltan, y 3 valores dudosos (ver preguntas). **El siguiente con ~650 cargadas**
-  (con `--lote "2026-10-29-10%"`).
+  30 sin observaciones, casi todo datos que faltan, y 3 valores dudosos (ver preguntas). Ojo con Haiku: pone máx. = mín.
+  cuando la etiqueta dice «mínimo X» (mojamiento, intervalo): revisarlo en el JSON antes de cargar.
 - Preguntas abiertas para Cristóbal: **GLIFOGLEX 480 SL (821)** (tabla por grupo de malezas: ¿`--reemplazar`?);
   **vaciar el método «Aplicación terrestre»** de ALION 500 SC, ESPLANADE 500 SC y AGRITOX 750 (arroz) (no está en la
   etiqueta); **KNOCKOUT (964) kiwi**: mojamiento 1.500–2.000 en la base y 1.500–2.500 en la etiqueta (¿corregir?);
-  **MCPA 750 SL (1043)**: objetivo «#» (¿quitar?); ACTELLIC AGRO (188); Agrocup (207); penconazol; revisar
+  **MCPA 750 SL (1043)**: objetivo «#» (¿quitar?); **761 Remolacha** (la etiqueta dice 113 días y también «no corresponde»:
+  quedó sin carencia); **1401 RUKARB** (¿50 WP u 85 WP?); ACTELLIC AGRO (188); Agrocup (207); penconazol; revisar
   `recopilador_revision`.
 - Etiquetas flojas: COLT 45 WP (515); BACIFRUIT SC (315); AQUILES 24 EC (261); TOXIMOL (1620, segundo cuadro pág. 4); 591;
   RANGO 480 SL (1337); NEXUS 50 SL (1129); 1717; 542; de la sesión 8: 828/829/830 GLIFOSPEC, 1382 RIPPER MAX, 1148 NUMEK,
   1176 OVERKILL (cuadro aéreo), 1452 SIMAZINA, 640, 940, 647, 1699; de la sesión 10: 197 y 1708 VERPEZU (0 líneas), 639,
   1163/1164 ORIUS, 1107, 1736 VYDATE L, 288 AVENUE, 831 GLYPHOGAN; de la sesión 11: 1133 (1 línea), 1354 (2), 1610 TOPGUARD
   (3), 1725 VINCIT FLO (1 uso), 755, 1398, 1399, 1400 (dosis sin unidad); de la sesión 12: 1237 (Codex, 0 líneas), 1542
-  (dosis de tomate), 157 (ver `docs/historia.md`).
+  (dosis de tomate), 157; de la sesión 13: 832 y 873 (0 líneas), 176 ACIGIB (falta uva de mesa), 470, 1621, 1351,
+  888, 1386 (ver `docs/historia.md`).
 - Falta: las diferencias de los productos que ya estaban (incluido ACABAN, inventario 161) y, al terminar, el
   workflow mensual.
 
