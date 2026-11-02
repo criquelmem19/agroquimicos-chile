@@ -239,7 +239,10 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
 - 84 «cultivos» son frases mal leídas (instrucciones de uso) con 92 líneas en total; además hay nombres
   cortos que no son cultivos («ADVERTENCIAS», «Syngenta», «NOCIVO») o que juntan varios («Manzano, Peral.»).
   El sitio marca como frase los de >40 caracteres o >6 palabras y **no los muestra en el buscador ni en
-  «¿Qué aplico?»**; sus líneas sí se ven en la ficha del producto.
+  «¿Qué aplico?»**; sus líneas sí se ven en la ficha del producto. **Ojo (02-11-2026):** esas líneas sí entran en la
+  dosis «desde – hasta» del inicio (`v_sitio_resumen_productos`): 387 líneas con dosis de 122 productos. En TOPAS
+  200 EW metían «3 – 15 L/ha» (eran n.° de aplicaciones e intervalos); sus 6 líneas se ocultaron (`rechazado`) con el
+  «sí» de Cristóbal, y se le agregó el penconazol que le faltaba (migración `correccion_topas_e_irac_romanos`).
 - Cultivos duplicados/variantes: «Repollito de Bruselas» / «Repollo de Bruselas» / «REPOLLODE BRUSELAS»,
   «Zarzaparrila» / «Zarzaparrilla», «Mango» (0 líneas) / «Mango Vides Forestales».
 - Objetivos con muchas variantes (ej. 50 «oídio» con distintos nombres científicos). El sitio ofrece
@@ -394,7 +397,8 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
   la etiqueta. Único dato corregido: propamocarb «4» → «F4» (así dice Previcur Energy; se había leído mal). FRAC P01
   (acibenzolar) y BM01 (quillay) son códigos actuales: quedan igual. Para buscar más: grupos que no calcen con
   `^(FRAC|IRAC|HRAC) (M\d{2}|\d{1,2}[A-Z]?|UN)$` después de las equivalencias, y mirar a mano los de formato correcto
-  (así salieron el glufosinato y el cloquintocet).
+  (así salieron el glufosinato y el cloquintocet). Con su «Sí, todo» (migración `correccion_topas_e_irac_romanos`):
+  IRAC en número romano, etoprofós «I» y fenamifós «Ib» → 1B.
   **Familias:** en IRAC el modo de acción es el número («IRAC 4A» y «4D» son el grupo 4; «IRAC 3» = «3A»):
   `familiaMoa`/`familias` en `db.js`. La tabla agrupa y filtra por familia, y las alertas de rotación del plan
   comparan familias (antes «HRAC A» seguido de «HRAC 1» o «IRAC 4A» de «4D» no avisaban). Etiqueta nueva con un
@@ -711,9 +715,7 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   (objetivo «#»), **1579 TERBUTILAZINA 75 DF** (nogal con «Siete venas» y «Chinilla», de la fila de avellano), **1154
   NUZOLE** (granado, dosis «60» sin unidad: cc/100 L); **1465/1467** (1-MCP: ¿«no aplica» por «no deja residuos
   detectables»?); ACTELLIC AGRO (188); Agrocup (207); revisar
-  `recopilador_revision`; **etoprofós «IRAC I» (MOCAP MR 6 EC, 1086) y fenamifós «IRAC Ib» (NEMACUR 240 CS, 1120)**:
-  ¿equivalencia a IRAC 1B (organofosforados)?; **TOPAS 200 EW (2340)**: sin ingrediente en la base (la etiqueta dice
-  penconazol 20 % p/v) y 6 líneas con frases como cultivo que meten «3–15 L/ha» en la dosis del inicio (02-11-2026).
+  `recopilador_revision`.
 - Etiquetas flojas: COLT 45 WP (515); BACIFRUIT SC (315); AQUILES 24 EC (261); TOXIMOL (1620, segundo cuadro pág. 4); 591;
   RANGO 480 SL (1337); NEXUS 50 SL (1129); 1717; 542; de la sesión 8: 828/829/830 GLIFOSPEC, 1382 RIPPER MAX, 1148 NUMEK,
   1176 OVERKILL (cuadro aéreo), 1452 SIMAZINA, 640, 940, 647, 1699; de la sesión 10: 197 y 1708 VERPEZU (0 líneas), 639,
