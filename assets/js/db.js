@@ -193,6 +193,65 @@ export function nombreCorto(nombre) {
   return texto || String(nombre || '').trim();
 }
 
+// Muchos cultivos «frase» son cultivos reales con nombre largo: «Vides (de mesa, para vino y para pisco)», «Manzanos,
+// perales y nogales», «Plantaciones forestales (Pino insigne, Eucaliptos)». Se unen a los cultivos del catálogo que
+// nombran (las primeras 1 a 3 palabras de cada trozo, en singular simple): `bases` son esos cultivos y cada uno guarda
+// en `variantes` los nombres largos que lo incluyen. Así sus líneas salen al filtrar por Vid, Manzano o Pino. Las frases
+// de instrucciones («Aplicar en otoño…») no parten con un cultivo y quedan fuera. Solo sirven de base los cultivos con
+// nombre limpio (no «pisquera)» ni «Cerezo”», restos de lecturas cortadas) y que no estén en NO_CULTIVOS (palabras
+// leídas como cultivo). No cambia ningún dato.
+const NOMBRE_LIMPIO = /^[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÑáéíóúñü .'-]*$/;
+const NO_CULTIVOS = new Set(['aplicar', 'notas', 'se recomienda', 'syngenta', 'cultivos', 'planta']);
+function unirVariantes(cultivos, productos) {
+  const porClave = new Map();
+  for (const c of cultivos.values()) {
+    c.bases = [];
+    c.variantes = [];
+    if (c.esFrase || !NOMBRE_LIMPIO.test(c.nombre.trim()) || NO_CULTIVOS.has(normalizar(c.nombre))) continue;
+    for (const n of [c.nombre, ...c.alias]) {
+      const k = normalizar(n);
+      const otro = k && cultivos.get(porClave.get(k));
+      if (k && (!otro || (c.nLineas || 0) > (otro.nLineas || 0))) porClave.set(k, c.id);
+    }
+  }
+  const formas = (ws) => [ws, ws.map((w) => (w.length > 4 && w.endsWith('es') ? w.slice(0, -2) : w)),
+    ws.map((w) => (w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w))];
+  for (const c of cultivos.values()) {
+    if (!c.esFrase) continue;
+    const bases = new Set();
+    for (const trozo of c.nombre.split(/[(,;:/]|\s+(?:y|e|o|u)\s+/i)) {
+      const ws = palabras(trozo);
+      for (let n = Math.min(3, ws.length); n >= 1; n--) {
+        const id = formas(ws.slice(0, n)).map((f) => porClave.get(f.join(' '))).find(Boolean);
+        if (id) { bases.add(id); break; }
+      }
+    }
+    c.bases = [...bases];
+    for (const id of c.bases) {
+      const b = cultivos.get(id);
+      b.variantes.push(c.id);
+      b.nLineas += c.nLineas || 0;
+    }
+  }
+  // Productos por cultivo, contando también los que solo lo tienen con el nombre largo.
+  for (const b of cultivos.values()) {
+    if (!b.variantes.length) continue;
+    const ids = new Set([b.id, ...b.variantes]);
+    b.nProductos = [...productos.values()].filter((p) => p.cultivoIds.some((id) => ids.has(id))).length;
+  }
+}
+
+// Cultivos que se muestran para unas líneas: los nombres largos se cambian por los cultivos que nombran.
+export function cultivosVisibles(cat, ids) {
+  const vistos = new Set();
+  for (const id of ids) {
+    const c = cat.cultivos.get(id);
+    if (!c) continue;
+    for (const x of c.esFrase ? c.bases : [id]) vistos.add(x);
+  }
+  return [...vistos].map((id) => cat.cultivos.get(id));
+}
+
 function armarCatalogo(crudo, fechaCache) {
   const categorias = new Map(crudo.categorias.map((x) => [x.id, { id: x.id, nombre: x.name }]));
   // Equivalencias código antiguo → actual (tabla moa_equivalencias, de las tablas oficiales FRAC y HRAC). Las que
@@ -292,6 +351,7 @@ function armarCatalogo(crudo, fechaCache) {
     // selectores, pero sus líneas se siguen mostrando en la ficha de cada producto.
     esFrase: x.nombre.length > 40 || x.nombre.trim().split(/\s+/).length > 6,
   }]));
+  unirVariantes(cultivos, productos);
   const objetivos = new Map(crudo.objetivos.map((x) => [x.id, {
     id: x.id, nombre: x.nombre, cientifico: x.cientifico, nLineas: x.n_lineas, nProductos: x.n_productos,
   }]));
@@ -358,10 +418,12 @@ function conObjetivos(filas) {
 }
 
 // Las líneas 'rechazado' (marcadas como erróneas, o reemplazadas por una lectura nueva de la etiqueta) no se muestran.
-export function usosPorCultivo(cultivoId) {
-  return recordar(`c:${cultivoId}`, async () => conObjetivos(await todas((c) =>
+// `variantes`: cultivos con nombre largo que incluyen a este («Vides (…)» para Vid), ver unirVariantes.
+export function usosPorCultivo(cultivoId, variantes = []) {
+  const ids = [cultivoId, ...variantes];
+  return recordar(`c:${ids.join(',')}`, async () => conObjetivos(await todas((c) =>
     c.from('product_uses').select(`${CAMPOS_USO},todos:use_targets(target_id)`)
-      .eq('crop_id', cultivoId).neq('review_status', 'rechazado').order('id'))));
+      .in('crop_id', ids).neq('review_status', 'rechazado').order('id'))));
 }
 
 export function usosPorProducto(productoId) {

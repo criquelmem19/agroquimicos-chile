@@ -363,8 +363,9 @@ export function calcularAlertas(plan, cat, { usosCultivo = null } = {}) {
       add('peligro', 'no-disponible', `${enCatalogo.nombre} no se puede usar en Chile: ${enCatalogo.noDisponible}.`);
     }
     // El uso elegido es de otro cultivo.
-    if (u && cultivos.length && u.crop_id && !cultivos.includes(u.crop_id)) {
-      const c = cat.cultivos.get(u.crop_id);
+    const cultivoUso = u && u.crop_id ? cat.cultivos.get(u.crop_id) : null;
+    if (u && cultivos.length && u.crop_id && ![u.crop_id, ...(cultivoUso ? cultivoUso.bases : [])].some((id) => cultivos.includes(id))) {
+      const c = cultivoUso;
       add('alerta', 'otro-cultivo', `Este uso de la etiqueta es para ${c ? c.nombre : 'otro cultivo'}, no para ${nombreCultivos.join(', ')}.`);
     }
 

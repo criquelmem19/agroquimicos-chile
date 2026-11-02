@@ -733,7 +733,7 @@ export async function render(main, ctx) {
     if (!ctx.vigente()) return;
     if (!P.planActivo()) {
       const c = pre.linea ? cat.cultivos.get(pre.linea.crop_id) : null;
-      P.crearPlan({ nombre: `${c ? c.nombre : 'Plan'} ${P.temporada()}`, cultivoId: c && !c.esFrase ? c.id : null });
+      P.crearPlan({ nombre: `${c ? c.nombre : 'Plan'} ${P.temporada()}`, cultivoId: c ? (c.esFrase ? c.bases[0] || null : c.id) : null });
     }
     ctx.cambiarParams({});
   }
@@ -770,7 +770,9 @@ export async function render(main, ctx) {
     try {
       const porId = new Map();
       for (const cid of P.cultivosDelPlan(plan)) {
-        for (const u of await usosPorCultivo(cid)) {
+        const c = cat.cultivos.get(cid);
+        for (const u of await usosPorCultivo(cid, c ? c.variantes : [])) {
+          if (porId.has(u.id)) continue; // «Manzanos, perales…» sale con Manzano y con Peral
           porId.set(u.id, u);
           if (!usosCultivo.has(u.product_id)) usosCultivo.set(u.product_id, []);
           usosCultivo.get(u.product_id).push(u);

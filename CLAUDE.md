@@ -246,8 +246,12 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
   (`rechazado`) las de dosis falsas: TOPAS 200 EW (6, «3 – 15 L/ha»; además se le agregó el penconazol que le
   faltaba, migración `correccion_topas_e_irac_romanos`) y KARATE CON TECNOLOGIA ZEON (5, «1 – 200 L/ha», migración
   `correccion_karate_zeon_frases`); CUPROFORTE se reemplazó entero con la etiqueta del SAG (ver «Estado del
-  recopilador»). Queda: el criterio de «frase» esconde del filtro por cultivo esos 334 cultivos reales (por ejemplo,
-  «Vides (…)» no sale al filtrar por Vid).
+  recopilador»). **Cultivos con nombre largo unidos a su cultivo (02-11-2026, con su «sí, arréglalo»):**
+  `db.js → unirVariantes` une cada cultivo «frase» a los cultivos del catálogo que nombra (primeras 1–3 palabras de cada
+  trozo separado por paréntesis, comas, «y», «o», en singular simple; solo cultivos con nombre limpio y fuera de
+  `NO_CULTIVOS`): «Vides (de mesa…)» → Vid, «Manzanos, perales…» → Manzano, Peral… (125 de 149). `usosPorCultivo(id,
+  variantes)` trae también esas líneas (Vid ganó 28 productos), la tabla muestra el cultivo base en vez del nombre largo
+  (`cultivosVisibles`), el plan no avisa «otro cultivo» por ellos y `nProductos` los cuenta. Sin cambios en la base.
 - Cultivos duplicados/variantes: «Repollito de Bruselas» / «Repollo de Bruselas» / «REPOLLODE BRUSELAS»,
   «Zarzaparrila» / «Zarzaparrilla», «Mango» (0 líneas) / «Mango Vides Forestales».
 - Objetivos con muchas variantes (ej. 50 «oídio» con distintos nombres científicos). El sitio ofrece

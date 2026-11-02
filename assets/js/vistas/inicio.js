@@ -6,6 +6,7 @@
 // moa=<clave>|sin, ing=<id>, orden=moa|nombre|empresa|tipo|ing|registro|cultivos, inv=1 (orden al revés)
 import {
   usosPorCultivo, usosPorObjetivos, compararMoa, nombreCorto, familiaMoa, claveMoa, tipoFormulacion as tipoDe,
+  cultivosVisibles,
 } from '../db.js';
 import { filtrar, palabras, puntaje, normalizar } from '../buscador.js';
 import {
@@ -230,7 +231,7 @@ export async function render(main, ctx) {
   let textoObjetivo = objetivo ? nombreObjetivo(objetivo) : '';
   if (conLineas) {
     if (cultivo) {
-      lineas = await usosPorCultivo(cultivo.id);
+      lineas = await usosPorCultivo(cultivo.id, cultivo.variantes);
       if (objetivo) resaltados = new Set([objetivo.id]);
       else if (estado.oq) {
         const q = palabras(estado.oq);
@@ -266,10 +267,10 @@ export async function render(main, ctx) {
     if (!lineas || cultivo) return [...cat.cultivos.values()].filter((c) => c.nLineas && !c.esFrase).map((c) => ({ c, n: c.nProductos }));
     const m = new Map();
     for (const u of lineas) {
-      const c = cat.cultivos.get(u.crop_id);
-      if (!c || c.esFrase) continue;
-      if (!m.has(c.id)) m.set(c.id, { c, productos: new Set() });
-      m.get(c.id).productos.add(u.product_id);
+      for (const c of cultivosVisibles(cat, [u.crop_id])) {
+        if (!m.has(c.id)) m.set(c.id, { c, productos: new Set() });
+        m.get(c.id).productos.add(u.product_id);
+      }
     }
     return [...m.values()].map((x) => ({ c: x.c, n: x.productos.size }));
   };
@@ -345,7 +346,7 @@ export async function render(main, ctx) {
       porProducto.get(u.product_id).push(u);
     }
   }
-  const ordenCultivos = (ids) => ids.map((id) => cat.cultivos.get(id)).filter((c) => c && !c.esFrase)
+  const ordenCultivos = (ids) => cultivosVisibles(cat, ids)
     .sort((a, b) => (b.id === estado.cultivo) - (a.id === estado.cultivo) || b.nProductos - a.nProductos || a.nombre.localeCompare(b.nombre, 'es'));
   // Las líneas no cambian mientras se escribe: el resumen de cada producto se calcula una vez.
   const infos = new Map();
