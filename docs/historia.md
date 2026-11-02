@@ -97,6 +97,45 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
    que no la cumplen: al 20-10-2026 son 0).
 9. Medir cobertura antes y después. Meta: 80–90 % de las líneas con carencia resuelta y citada.
 
+## Recopilador: sesión 14 (02-11-2026, automática)
+
+- ~08:00–~08:50 (hora de Chile). Uso al empezar: 5 h 2 %, semanal 14 %; al terminar: 5 h 86 %, semanal 26 % (se dejó de
+  lanzar subagentes al pasar 78 %). Sin etiquetas nuevas del SAG ni JSON pendientes (tampoco de Codex).
+- **72 etiquetas, 1.993 líneas**, todas de Haiku (lotes `2026-11-02-14a` a `-14q`): **Solchem, Arysta, Acres y Sipcam
+  terminadas**; 3 de Degesch (629, 1012, 1013). Productos 845 → 917.
+- Al empezar, un `lote.py --help` (no tiene ayuda: arma un lote) reservó 8 etiquetas; se liberaron a mano en
+  `sag/reservas.json`. No usar `--help` con `lote.py`.
+- **Control al azar** (30 líneas de la sesión 13, `sag/control/2026-11-02_0834_revision.json`, Sonnet): 21 sin
+  observaciones, 0 valores que contradigan la etiqueta; faltan datos (4 intervalos, 1 carencia de manzano en 761, 1
+  máximo, 1 mojamiento, 1 dosis en 883 IMAXI duraznero) y un objetivo mal escrito («Hualcho» por «Hualcacho», 535).
+- Arreglos antes de cargar (JSON original en `<id>.antes.json`): 1154 y 922, se quitó la carencia de las líneas de
+  postcosecha (la etiqueta la da para el uso en campo); 1320, Almendros separado de las filas 8 y 9 sin el mojamiento
+  «Manzano, Peral y Carozos» (almendro no aparece ahí).
+- Flojas: 951 KATHON 886 F (0 líneas, preservante de madera); 1010 MAGNACIDE H (sin dosis numérica, remite al manual);
+  1000 (1 línea, «de 6 a 3 semanas»); 1306 PUGIL 50 SC (ajo: observación 7 días y carencia 5); 629 DETIA GAS (nueces:
+  5 días en el cuadro y 120 horas en la nota); 1012 (filas 7 y 8 con dosis «2,3» sin unidad en la celda); 507 (páginas
+  2 y 3 leídas de la imagen).
+
+## Recopilador: sesión 13 (01-11-2026, automática)
+
+- ~12:30–~17:55 (hora de Chile; la ventana de 5 h se renovó a mitad de la sesión). Uso al empezar: 5 h 4 %, semanal 2 %
+  (recién renovado); al terminar: 5 h 32 %, semanal 14 %. Sin etiquetas nuevas del SAG.
+- **56 etiquetas, 5.422 líneas**: 1 de Codex (1020, lote `2026-11-01-13codex`) y 55 de Haiku (lotes `2026-11-01-13a`
+  a `-13n`). **Point terminada** (salvo 509, apartada por la página marcada como HDS) y **Albaugh terminada**.
+  Un subagente se colgó (sin escribir nada) y sus 4 etiquetas se dieron de nuevo.
+- **Control al azar** (30 líneas de la sesión 10, `sag/control/2026-11-01_1234_revision.json`, Sonnet): 16 sin
+  observaciones, 0 valores que contradigan la etiqueta; faltan datos (9 mojamientos, 3 objetivos, 2 dosis, 2 carencias,
+  1 máximo).
+- Arreglos antes de cargar (JSON original en `sag/<id>.antes.json`): 643, se quitó Pimentón de la carencia escrita para
+  «Pimiento»; 761, Remolacha sin carencia (la etiqueta dice 113 días y también «no corresponde»: pregunta); 861, la
+  celda de malezas común del cuadro se copió a todas las filas (el subagente usó un campo `objetivos_de_fila` que el
+  verificador no conoce); 884, 888, 973 y 1386, mojamientos e intervalos «mínimo X» quedaron sin máximo (Haiku ponía
+  máx. = mín.); 1386 fila 1, mojamiento «En 400 L de agua» quitado (no dice por hectárea).
+- Flojas: 832 GLYRUK SL y 873 HUMEASIL (0 líneas: cuadro sin cultivos o coadyuvante); 176 ACIGIB 4 % SL (falta el cuadro
+  de uva de mesa); 470 (bolsa «2530 kg» en la capa de texto, «25-30 kg» en la imagen); 1621 (N° SAG «3.1 64» con
+  espacio); 1401 RUKARB (el frente dice 50 WP y el resto 85 WP); 1351 y 888 (dos dosis de una celda separadas por
+  posición); 1386 (fila de tomate emparejada con la imagen).
+
 ## Recopilador: sesión 12 (30-10-2026, automática)
 
 - ~07:20–~08:30 (hora de Chile). Uso al empezar: 5 h 2 %, semanal 89 %; al terminar: 5 h 11 %, semanal 91 % (se paró
