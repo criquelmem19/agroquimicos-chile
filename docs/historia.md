@@ -97,6 +97,25 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
    que no la cumplen: al 20-10-2026 son 0).
 9. Medir cobertura antes y después. Meta: 80–90 % de las líneas con carencia resuelta y citada.
 
+## Recopilador: sesión 14 (02-11-2026, automática)
+
+- ~08:00–~08:50 (hora de Chile). Uso al empezar: 5 h 2 %, semanal 14 %; al terminar: 5 h 86 %, semanal 26 % (se dejó de
+  lanzar subagentes al pasar 78 %). Sin etiquetas nuevas del SAG ni JSON pendientes (tampoco de Codex).
+- **72 etiquetas, 1.993 líneas**, todas de Haiku (lotes `2026-11-02-14a` a `-14q`): **Solchem, Arysta, Acres y Sipcam
+  terminadas**; 3 de Degesch (629, 1012, 1013). Productos 845 → 917.
+- Al empezar, un `lote.py --help` (no tiene ayuda: arma un lote) reservó 8 etiquetas; se liberaron a mano en
+  `sag/reservas.json`. No usar `--help` con `lote.py`.
+- **Control al azar** (30 líneas de la sesión 13, `sag/control/2026-11-02_0834_revision.json`, Sonnet): 21 sin
+  observaciones, 0 valores que contradigan la etiqueta; faltan datos (4 intervalos, 1 carencia de manzano en 761, 1
+  máximo, 1 mojamiento, 1 dosis en 883 IMAXI duraznero) y un objetivo mal escrito («Hualcho» por «Hualcacho», 535).
+- Arreglos antes de cargar (JSON original en `<id>.antes.json`): 1154 y 922, se quitó la carencia de las líneas de
+  postcosecha (la etiqueta la da para el uso en campo); 1320, Almendros separado de las filas 8 y 9 sin el mojamiento
+  «Manzano, Peral y Carozos» (almendro no aparece ahí).
+- Flojas: 951 KATHON 886 F (0 líneas, preservante de madera); 1010 MAGNACIDE H (sin dosis numérica, remite al manual);
+  1000 (1 línea, «de 6 a 3 semanas»); 1306 PUGIL 50 SC (ajo: observación 7 días y carencia 5); 629 DETIA GAS (nueces:
+  5 días en el cuadro y 120 horas en la nota); 1012 (filas 7 y 8 con dosis «2,3» sin unidad en la celda); 507 (páginas
+  2 y 3 leídas de la imagen).
+
 ## Recopilador: sesión 13 (01-11-2026, automática)
 
 - ~12:30–~17:55 (hora de Chile; la ventana de 5 h se renovó a mitad de la sesión). Uso al empezar: 5 h 4 %, semanal 2 %
