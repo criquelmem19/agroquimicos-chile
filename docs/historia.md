@@ -97,6 +97,30 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
    que no la cumplen: al 20-10-2026 son 0).
 9. Medir cobertura antes y después. Meta: 80–90 % de las líneas con carencia resuelta y citada.
 
+## Recopilador: sesión 15 (02-11-2026, automática)
+
+- ~13:20–~14:15 (hora de Chile). Uso al empezar: 5 h 2 %, semanal 27 %; al terminar: 5 h ~77 %, semanal ~37 % (se dejó
+  de lanzar subagentes al llegar a 75 %). Sin etiquetas nuevas del SAG ni JSON pendientes.
+- **95 etiquetas cargadas + 1 con diferencias (569, su N° SAG ya estaba), 1.942 líneas**, todas de Haiku (lotes
+  `2026-11-02-15a` a `-15z`). **Degesch, Gowan, AgroFresh, Makhteshim Agan, Summit Agro y Oscar Ham terminadas**;
+  además ADAMA (8 nuevas), KPC, Agria, Manejo Integrado de Plagas, Pilarquim, Protección de Madera, CSR Consulting y
+  Agroconnexion (4). Productos 917 → 1.012.
+- Segunda lectura (Tesseract) para 986 LINUREX, 1648, 425 CAPSILUS, 569 y 194 ACUTE (cuadro en imagen o texto revuelto);
+  se dieron de nuevo con una nota y salieron bien (569 sin las 15 filas del cuadro aéreo).
+- Arreglos antes de cargar (JSON original en `<id>.antes.json`): 765 FORTUNA GLOBO, se quitó la carencia de pepino dulce
+  (la etiqueta lo pone en las listas de 5 y de 7 días); 1277 PRIVENT, sin carencia en las filas 6 y 7 (tizones: la
+  etiqueta da 4/7/14 días foliar y 21 para lo demás, y esas filas no dicen el método).
+- 1465 y 1467 (AgroFresh, 1-MCP): carencia «no aplica» con la cita «no permite encontrar residuos detectables» (está bajo
+  «Periodo de Carencia»).
+- **Control al azar** (30 líneas de la sesión 14, `sag/control/2026-11-02_1405_revision.json`, Sonnet): 20 sin
+  observaciones; 3 valores que no calzan (825 GLIFOSATO 75,7 % SG objetivo «#»; 1579 TERBUTILAZINA 75 DF nogal con
+  «Siete venas» y «Chinilla», que son de la fila de avellano; 1154 NUZOLE granado, dosis «60» sin unidad: es cc/100 L);
+  el resto, datos que faltan (dosis y carencias de 941 KANEMITE, 834, 1201, 922, 669, 1154, 365).
+- Flojas: 631 y 632 (raticidas, 0 líneas); 1171, 1297, 1691, 1741, 1743, 1004 (preservantes de madera, 0 líneas) y 1209,
+  1211 (trampas de feromona, 0 líneas); 523 (unidad «Uha» tal cual en el texto, es L/ha en la imagen); 698 («Uha» leído
+  como L/ha); 569 (falta el cuadro aéreo); 986 (14 filas sin dosis: cifras solo en la imagen); 1567 (2 dosis solo en la
+  imagen); 1648 (achicoria y trigo sin dosis).
+
 ## Recopilador: sesión 14 (02-11-2026, automática)
 
 - ~08:00–~08:50 (hora de Chile). Uso al empezar: 5 h 2 %, semanal 14 %; al terminar: 5 h 86 %, semanal 26 % (se dejó de

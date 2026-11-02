@@ -662,7 +662,7 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   del 25-10-2026): otra extracción numera las filas distinto y podía poner la dosis de una fila en otra del mismo
   cultivo. Ahora también exige la misma página y algún objetivo en común.
 
-## Estado del recopilador (02-11-2026, ~08:50, después de la sesión 14)
+## Estado del recopilador (02-11-2026, ~14:15, después de la sesión 15)
 
 - Frase de Cristóbal para seguir a mano: **«Sigue con el recopilador del SAG»** → «Cómo seguir». Ahora corre solo
   (ver «Sesiones automáticas»). El detalle de cada sesión va al final de `docs/historia.md` (la más nueva arriba).
@@ -675,24 +675,29 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   **Sesión 13** (01-11, ~12:30–~17:55): 56 etiquetas (55 + 1 de Codex), 5.422 líneas, lotes `2026-11-01-13a` a `-13n` y
   `2026-11-01-13codex`; Point y Albaugh terminadas. Uso: 5 h de 4 a 32 % (se renovó a mitad), semanal de 2 a 14 %.
   **Sesión 14** (02-11, ~08:00–~08:50): 72 etiquetas (Haiku), 1.993 líneas, lotes `2026-11-02-14a` a `-14q`; Solchem,
-  Arysta, Acres y Sipcam terminadas. Uso: 5 h de 2 a 86 %, semanal de 14 a 26 %.
+  Arysta, Acres y Sipcam terminadas. Uso: 5 h de 2 a 86 %, semanal de 14 a 26 %. **Sesión 15** (02-11, ~13:20–~14:15):
+  95 etiquetas + 1 con diferencias (Haiku), 1.942 líneas, lotes `2026-11-02-15a` a `-15z`; Degesch, Gowan, AgroFresh,
+  Makhteshim Agan, Summit Agro y Oscar Ham terminadas, y varias empresas chicas. Uso: 5 h de 2 a ~77 %, semanal de 27 a ~37 %.
 - **Codex:** 20 cargadas y **control al azar hecho** (30-10, `sag/control/2026-10-30_0804_revision.json`: 22 de 30 sin
   observaciones, 0 valores contradictorios, solo datos que faltan): se sigue cargando lo suyo normalmente. **Codex: UPL**.
-- **Empresa actual: Degesch** (~7 que quedan). Anasac, Syngenta, Bayer, BASF, Agrospec, Sumitomo, Corteva, ADAMA, FMC, Point
-  (salvo 509), Albaugh, Solchem, Arysta, Acres y Sipcam: terminadas. **Páginas de etiqueta marcadas como HDS por `textos.py`** (sin cargar, JSON como
+- **Empresa actual: la primera de `lote.py --empresas`** después de UPL (al 02-11: Albaugh Chile Agroquímica 7, Protección de
+  Madera 6, CSR Consulting, Monsanto, Nutrien…; quedan ~184 fuera de UPL, casi todas de empresas con 1–6). Anasac, Syngenta,
+  Bayer, BASF, Agrospec, Sumitomo, Corteva, ADAMA, FMC, Point (salvo 509), Albaugh, Solchem, Arysta, Acres, Sipcam, Degesch,
+  Gowan, AgroFresh, Makhteshim Agan, Summit Agro y Oscar Ham: terminadas. **Páginas de etiqueta marcadas como HDS por `textos.py`** (sin cargar, JSON como
   `<id>.pagina_hds.json`): 932 JANUS 480 FS (Bayer, cuadro en la pág. 19), 532 y 1692 VALIS M (FMC), 509 Clorotalonil
   720 SC (Point); hay que corregir la clasificación de esas páginas y volver a extraerlas. De Anasac, 1059/1060 METRICLAN.
   **Sumitomo sin cargar: 464 CHAMP DP WG, 648 DiTera WG y 817 GIBGRO 10LS** (pág. 1 escaneada de lado; ni Sonnet las lee:
-  `ocr.py` tiene que probar el otro giro). Después: Gowan 11, AgroFresh 10, Makhteshim Agan 10, Summit Agro 9…
-- **Cola:** ~370 vigentes de productos nuevos (93 de UPL, de Codex); además ~110 de productos que ya estaban y 236
+  `ocr.py` tiene que probar el otro giro).
+- **Cola:** ~277 vigentes de productos nuevos (93 de UPL, de Codex); además ~110 de productos que ya estaban y 236
   canceladas o que no figuran en la planilla. Ritmo: ~55–110 por sesión y ~650 por semana (límite semanal); Codex suma
-  aparte. Estimado: ~10–13 de noviembre.
-- Inventario: 1.634 filas; 727 en «texto», 766 cargadas, 13 diferencias, 63 no son etiqueta, 39 versiones
+  aparte. Estimado: vigentes nuevas ~5–7 de noviembre; todo ~10–13 de noviembre.
+- Inventario: 1.634 filas; 641 en «texto», 861 cargadas, 14 diferencias, 63 no son etiqueta, 29 versiones
   anteriores, 14 sin PDF, 5 ilegibles, 5 duplicados, 2 ya en la base.
-- Base: 917 productos (881 con N° SAG), 29.003 líneas visibles; dosis 94,2 %, carencia 91,0 %; 97 MB.
-- Último control al azar: 02-11-2026 08:34, con ~750 cargadas, 30 líneas de la sesión 13
-  (`sag/control/2026-11-02_0834_revision.json`): 21 sin observaciones, 0 valores que contradigan la etiqueta; solo faltan
-  datos (sobre todo intervalos). **El siguiente con ~860 cargadas** (con `--lote "2026-11-02-14%"`). Antes: 01-11 12:34
+- Base: 1.012 productos (976 con N° SAG), 30.945 líneas visibles; dosis 94,3 %, carencia 91,0 %; 102 MB.
+- Último control al azar: 02-11-2026 14:05, con ~840 cargadas, 30 líneas de la sesión 14
+  (`sag/control/2026-11-02_1405_revision.json`): 20 sin observaciones, 3 valores que no calzan (ver preguntas), el resto
+  datos que faltan. **El siguiente con ~960 cargadas** (con `--lote "2026-11-02-15%"`). Antes: 02-11 08:34 (sesión 13, 21 de
+  30 sin observaciones). Antes: 01-11 12:34
   (sesión 10, 16 de 30 sin observaciones, faltan mojamientos). Anterior: 29-10 08:48, con ~545 cargadas, 30 líneas de la sesión 8
   (`sag/control/2026-10-29_0848_revision.json`): 20 sin observaciones, 0 valores que contradigan la etiqueta; faltan datos
   (6 dosis, 4 carencias, 1 intervalo, 2 objetivos, 1 método). El de la sesión 9 (28-10 13:23, `…_1323_revision.json`): 14 de
@@ -702,7 +707,10 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   **vaciar el método «Aplicación terrestre»** de ALION 500 SC, ESPLANADE 500 SC y AGRITOX 750 (arroz) (no está en la
   etiqueta); **KNOCKOUT (964) kiwi**: mojamiento 1.500–2.000 en la base y 1.500–2.500 en la etiqueta (¿corregir?);
   **MCPA 750 SL (1043)**: objetivo «#» (¿quitar?); **761 Remolacha** (la etiqueta dice 113 días y también «no corresponde»:
-  quedó sin carencia); **1401 RUKARB** (¿50 WP u 85 WP?); ACTELLIC AGRO (188); Agrocup (207); revisar
+  quedó sin carencia); **1401 RUKARB** (¿50 WP u 85 WP?); del control del 02-11 14:05: **825 GLIFOSATO 75,7 % SG**
+  (objetivo «#»), **1579 TERBUTILAZINA 75 DF** (nogal con «Siete venas» y «Chinilla», de la fila de avellano), **1154
+  NUZOLE** (granado, dosis «60» sin unidad: cc/100 L); **1465/1467** (1-MCP: ¿«no aplica» por «no deja residuos
+  detectables»?); ACTELLIC AGRO (188); Agrocup (207); revisar
   `recopilador_revision`; **etoprofós «IRAC I» (MOCAP MR 6 EC, 1086) y fenamifós «IRAC Ib» (NEMACUR 240 CS, 1120)**:
   ¿equivalencia a IRAC 1B (organofosforados)?; **TOPAS 200 EW (2340)**: sin ingrediente en la base (la etiqueta dice
   penconazol 20 % p/v) y 6 líneas con frases como cultivo que meten «3–15 L/ha» en la dosis del inicio (02-11-2026).
@@ -712,7 +720,9 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   1163/1164 ORIUS, 1107, 1736 VYDATE L, 288 AVENUE, 831 GLYPHOGAN; de la sesión 11: 1133 (1 línea), 1354 (2), 1610 TOPGUARD
   (3), 1725 VINCIT FLO (1 uso), 755, 1398, 1399, 1400 (dosis sin unidad); de la sesión 12: 1237 (Codex, 0 líneas), 1542
   (dosis de tomate), 157; de la sesión 13: 832 y 873 (0 líneas), 176 ACIGIB (falta uva de mesa), 470, 1621, 1351,
-  888, 1386; de la sesión 14: 951 (0 líneas), 1010, 1000, 1306, 629, 1012, 507 (ver `docs/historia.md`).
+  888, 1386; de la sesión 14: 951 (0 líneas), 1010, 1000, 1306, 629, 1012, 507; de la sesión 15: 631, 632, 1171, 1297,
+  1691, 1741, 1743, 1004, 1209, 1211 (0 líneas: raticidas, madera, trampas), 523 («Uha»), 569 (sin cuadro aéreo), 986,
+  1567, 1648 (ver `docs/historia.md`).
 - Falta: las diferencias de los productos que ya estaban (incluido ACABAN, inventario 161) y, al terminar, el
   workflow mensual.
 
