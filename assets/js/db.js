@@ -213,6 +213,7 @@ function armarCatalogo(crudo, fechaCache) {
       grupo: x.mechanism_group,
       moa: eq ? claveMoa(eq.sistema, eq.codigo_actual) : enEtiqueta,
       // Solo si la etiqueta lo escribe con el código antiguo: cómo viene en la etiqueta y de dónde sale el actual.
+      // Sin codigo_actual el ingrediente no tiene grupo (la etiqueta se lo pone por error, como al cloquintocet).
       moaEtiqueta: eq ? enEtiqueta : null,
       moaNota: eq ? eq.nota : null,
       productos: [],
@@ -235,7 +236,7 @@ function armarCatalogo(crudo, fechaCache) {
     // Código actual → cómo viene escrito en la etiqueta (solo los que cambian).
     const moaEtiqueta = new Map();
     for (const x of ings) {
-      if (x.ing.moaEtiqueta) moaEtiqueta.set(x.ing.moa, [...new Set([...(moaEtiqueta.get(x.ing.moa) || []), x.ing.moaEtiqueta])]);
+      if (x.ing.moa && x.ing.moaEtiqueta) moaEtiqueta.set(x.ing.moa, [...new Set([...(moaEtiqueta.get(x.ing.moa) || []), x.ing.moaEtiqueta])]);
     }
     const roles = new Map();
     for (const e of p.empresas || []) {

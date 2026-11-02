@@ -169,7 +169,8 @@ recibe «permission denied» (verificado el 20-10-2026).
 | `sag_inventario` | 1.634 (22-10) | Proceso, privada: cada PDF del listado del SAG y su estado en el recopilador |
 | `recopilador_revision` | — | Proceso, privada: cultivos, objetivos, ingredientes, empresas y categorías que creó el recopilador (revisar) |
 
-- `moa_equivalencias` (27-10-2026, 61 filas, lectura pública): código antiguo → actual de FRAC y HRAC (ver «El sitio»).
+- `moa_equivalencias` (27-10-2026, 72 filas desde el 02-11-2026, lectura pública): código antiguo → actual de FRAC y
+  HRAC; `codigo_actual` vacío = el ingrediente no tiene grupo (ver «El sitio»).
 - **Recopilador (22-10-2026):** `field_citations` (mismo formato que en `product_uses`) también en `products`,
   `product_active_ingredients`, `product_companies`, `product_safety_profiles` y `active_ingredients` (grupo de modo
   de acción leído de una etiqueta, con `documento`). `documents.source_url` (URL oficial). En `products`:
@@ -383,8 +384,17 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
   ingrediente `moa` = código actual, `moaEtiqueta` y `moaNota`; los chips muestran «HRAC 1 (A)» (actual y, entre
   paréntesis, el de la etiqueta) y la ficha lo explica. Por ingrediente: tebuconazol «G» → FRAC 3 (su etiqueta dice
   «Grupo G, Clase 1»), fenhexamida «G3» → 17, etofumesato y molinato «N» → 15, aclonifeno «F3» → 32 (N y F3 se
-  repartieron en varios grupos nuevos). **Penconazol queda «FRAC G3»** sin convertir: la etiqueta de CANDADO 200 EW
-  dice «grupo G3 (Triazoles)» y los triazoles son G1 (= FRAC 3); se le preguntó a Cristóbal si lo corrige.
+  repartieron en varios grupos nuevos).
+  **Revisión del 02-11-2026** (con el «Sí, los 12» de Cristóbal; migración `moa_correcciones_grupos`): cada código raro
+  se comparó con su etiqueta. Generales: «E3 grupo 2» → FRAC 2 (iprodiona), «E14» → HRAC 14 (carfentrazona), «2B» →
+  HRAC 2 (tritosulfurón). Por ingrediente: penconazol «G3» → FRAC 3 (CANDADO dice «G3 (Triazoles)», error; SOLVIT dice
+  3), fenpirazamina «G3» → 17, glufosinato de amonio «K1» → 10 (FASCINATE 150 SL trae «HRAC K1, WSSA 3», error), MCPA
+  «0» → 4 (es la letra O), dicamba-sodio «40» → 4, etaboxam «U5» → 22, fosetilo «33» → P07. `codigo_actual` vacío =
+  **sin grupo**: cloquintocet-mexilo (protector; ADMITT le pone «4» por error); la ficha dice «Sin grupo» y lo que trae
+  la etiqueta. Único dato corregido: propamocarb «4» → «F4» (así dice Previcur Energy; se había leído mal). FRAC P01
+  (acibenzolar) y BM01 (quillay) son códigos actuales: quedan igual. Para buscar más: grupos que no calcen con
+  `^(FRAC|IRAC|HRAC) (M\d{2}|\d{1,2}[A-Z]?|UN)$` después de las equivalencias, y mirar a mano los de formato correcto
+  (así salieron el glufosinato y el cloquintocet).
   **Familias:** en IRAC el modo de acción es el número («IRAC 4A» y «4D» son el grupo 4; «IRAC 3» = «3A»):
   `familiaMoa`/`familias` en `db.js`. La tabla agrupa y filtra por familia, y las alertas de rotación del plan
   comparan familias (antes «HRAC A» seguido de «HRAC 1» o «IRAC 4A» de «4D» no avisaban). Etiqueta nueva con un
@@ -692,8 +702,10 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   **vaciar el método «Aplicación terrestre»** de ALION 500 SC, ESPLANADE 500 SC y AGRITOX 750 (arroz) (no está en la
   etiqueta); **KNOCKOUT (964) kiwi**: mojamiento 1.500–2.000 en la base y 1.500–2.500 en la etiqueta (¿corregir?);
   **MCPA 750 SL (1043)**: objetivo «#» (¿quitar?); **761 Remolacha** (la etiqueta dice 113 días y también «no corresponde»:
-  quedó sin carencia); **1401 RUKARB** (¿50 WP u 85 WP?); ACTELLIC AGRO (188); Agrocup (207); penconazol; revisar
-  `recopilador_revision`.
+  quedó sin carencia); **1401 RUKARB** (¿50 WP u 85 WP?); ACTELLIC AGRO (188); Agrocup (207); revisar
+  `recopilador_revision`; **etoprofós «IRAC I» (MOCAP MR 6 EC, 1086) y fenamifós «IRAC Ib» (NEMACUR 240 CS, 1120)**:
+  ¿equivalencia a IRAC 1B (organofosforados)?; **TOPAS 200 EW (2340)**: sin ingrediente en la base (la etiqueta dice
+  penconazol 20 % p/v) y 6 líneas con frases como cultivo que meten «3–15 L/ha» en la dosis del inicio (02-11-2026).
 - Etiquetas flojas: COLT 45 WP (515); BACIFRUIT SC (315); AQUILES 24 EC (261); TOXIMOL (1620, segundo cuadro pág. 4); 591;
   RANGO 480 SL (1337); NEXUS 50 SL (1129); 1717; 542; de la sesión 8: 828/829/830 GLIFOSPEC, 1382 RIPPER MAX, 1148 NUMEK,
   1176 OVERKILL (cuadro aéreo), 1452 SIMAZINA, 640, 940, 647, 1699; de la sesión 10: 197 y 1708 VERPEZU (0 líneas), 639,
@@ -736,8 +748,6 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   la vuelve a tomar cuando le toque a su empresa.
 - Revisión humana: para que una línea diga «Revisado» alguien tiene que compararla con la etiqueta
   (hoy solo las 56 de ACABAN). Quitar `noindex` lo decide Cristóbal.
-- Penconazol (CANDADO 200 EW, SOLVIT): la etiqueta de CANDADO dice «grupo G3 (Triazoles)», pero los triazoles son G1
-  (FRAC 3). Quedó «FRAC G3» sin convertir; se le preguntó a Cristóbal (27-10-2026) si se muestra como FRAC 3.
 - Limpieza de datos (con su visto bueno): cultivos-frase, duplicados de cultivos, objetivos y productos,
   ingredientes basura, métodos antiguos con basura.
 - Mejoras posibles: modo sin conexión completo (service worker), imagen para compartir por WhatsApp,

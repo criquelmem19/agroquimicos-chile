@@ -200,7 +200,10 @@ export async function render(main, ctx) {
             ? [chipsMoa([x.ing.moa]), x.ing.moaEtiqueta
               ? h('span', { class: 'cita' }, `En la etiqueta: ${x.ing.moaEtiqueta}. ${x.ing.moaNota || ''} (tabla oficial ${x.ing.sistema}).`)
               : null]
-            : h('span', { class: 'tenue chico' }, 'Sin grupo informado')))))))
+            : x.ing.moaEtiqueta
+              ? [h('div', { class: 'tenue chico' }, 'Sin grupo'),
+                h('span', { class: 'cita' }, `En la etiqueta: ${x.ing.moaEtiqueta}. ${x.ing.moaNota || ''}`)]
+              : h('span', { class: 'tenue chico' }, 'Sin grupo informado')))))))
       : h('p', { class: 'nota nota-info' }, 'Sin ingrediente activo registrado en los datos.'),
 
     h('h2', { class: 'titulo-seccion' }, 'Empresas'),
