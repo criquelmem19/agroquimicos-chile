@@ -85,7 +85,7 @@ function seccionUsos(cat, p, lineas, contenedor, cultivoId) {
       listado.append(h('details', { class: 'cultivo-grupo', open: grupos.length <= 3 || (q.length > 0 && i < 6) || g.cultivo.id === cultivoId },
         h('summary', null, recortar(g.cultivo.nombre, 80), h('small', null, plural(us.length, 'línea', 'líneas'))),
         h('div', { class: 'linea-uso' },
-          h('a', { class: 'enlace-icono', href: ruta('', { cultivo: g.cultivo.id }) }, 'Comparar con otros productos para este cultivo', icono('flecha'))),
+          h('a', { class: 'enlace-icono', href: ruta('buscar', { cultivo: g.cultivo.id }) }, 'Comparar con otros productos para este cultivo', icono('flecha'))),
         us.map((u) => lineaUso(cat, u))));
     });
     if (!visibles) listado.append(h('p', { class: 'vacio' }, 'Ningún cultivo u objetivo coincide.'));
@@ -156,7 +156,7 @@ export async function render(main, ctx) {
   const p = cat.productos.get(partes[1]);
   if (!p) {
     main.append(h('div', { class: 'vacio' }, h('h1', null, 'Producto no encontrado'),
-      h('p', null, 'Puede que el link esté incompleto. ', h('a', { href: '#/' }, 'Ver todos los productos'))));
+      h('p', null, 'Puede que el link esté incompleto. ', h('a', { href: '#/buscar' }, 'Ver todos los productos'))));
     return;
   }
   ctx.titulo(p.nombre);
@@ -171,7 +171,7 @@ export async function render(main, ctx) {
   const zonaSeguridad = h('div', null, cargando('Cargando el perfil de seguridad…'));
 
   main.append(
-    h('a', { class: 'volver', href: ctx.volverInicio || '#/' }, icono('flecha'), 'Volver a la tabla'),
+    h('a', { class: 'volver', href: ctx.volverInicio || '#/buscar' }, icono('flecha'), 'Volver a la tabla'),
     h('header', { class: 'ficha-cabeza' },
       p.categorias.length ? h('div', { class: 'chips' }, etiquetasCategoria(p)) : null,
       h('h1', null, p.nombre),
@@ -193,7 +193,7 @@ export async function render(main, ctx) {
       ? h('div', { class: 'tarjeta' }, h('table', { class: 'tabla-simple' },
         h('thead', null, h('tr', null, ['Ingrediente', 'Concentración', 'Grupo químico', 'Modo de acción'].map((t) => h('th', { scope: 'col' }, t)))),
         h('tbody', null, p.ings.map((x) => h('tr', null,
-          h('td', { 'data-etiqueta': 'Ingrediente' }, h('a', { href: ruta('', { ing: x.ing.id }), title: 'Ver otros productos con este ingrediente' }, x.ing.nombre)),
+          h('td', { 'data-etiqueta': 'Ingrediente' }, h('a', { href: ruta('buscar', { ing: x.ing.id }), title: 'Ver otros productos con este ingrediente' }, x.ing.nombre)),
           h('td', { 'data-etiqueta': 'Concentración' }, textoOSinDato(x.conc)),
           h('td', { 'data-etiqueta': 'Grupo químico' }, textoOSinDato(x.ing.grupoQuimico)),
           h('td', { 'data-etiqueta': 'Modo de acción' }, x.ing.moa
@@ -206,7 +206,7 @@ export async function render(main, ctx) {
     h('h2', { class: 'titulo-seccion' }, 'Empresas'),
     p.empresas.length
       ? h('div', { class: 'tarjeta' }, h('ul', { class: 'lista-simple' }, p.empresas.map((e) => h('li', null,
-        h('a', { href: ruta('', { empresa: nombreCorto(e.empresa.nombre) }), title: 'Ver los productos de esta empresa' }, e.empresa.nombre), ` — ${[...new Set(e.roles)].join(', ')}`))))
+        h('a', { href: ruta('buscar', { empresa: nombreCorto(e.empresa.nombre) }), title: 'Ver los productos de esta empresa' }, e.empresa.nombre), ` — ${[...new Set(e.roles)].join(', ')}`))))
       : h('p', { class: 'tenue' }, 'Sin empresas registradas en los datos.'),
 
     h('h2', { class: 'titulo-seccion' }, 'Usos registrados'),

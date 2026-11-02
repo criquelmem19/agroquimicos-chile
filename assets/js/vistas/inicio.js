@@ -1,10 +1,12 @@
-// Inicio: tabla de productos (una fila por producto) con un buscador principal (busca mientras se escribe en todas
-// las columnas) y filtros por cultivo, plaga/enfermedad/maleza, tipo de producto, empresa y modo de acción. Es también
-// «¿Qué aplico?»: con cultivo u objetivo, los cultivos y la dosis de cada fila salen solo de las líneas de uso que calzan.
-// Los productos que no se usan en Chile no aparecen.
+// Buscador (#/buscar; fue el inicio hasta el 02-11-2026): tabla de productos (una fila por producto) con un buscador
+// principal (busca mientras se escribe en todas las columnas) y filtros por cultivo, plaga/enfermedad/maleza, tipo de
+// producto, empresa y modo de acción. Es también «¿Qué aplico?»: con cultivo u objetivo, los cultivos y la dosis de cada
+// fila salen solo de las líneas de uso que calzan. Los productos que no se usan en Chile no aparecen.
 // Parámetros: cultivo=<id>, objetivo=<id>, oq=<texto de objetivo>, cat=<id>, q=<texto>, empresa=<nombre corto>,
 // moa=<clave>|sin, ing=<id>, orden=moa|nombre|empresa|tipo|ing|registro|cultivos, inv=1 (orden al revés)
-import { usosPorCultivo, usosPorObjetivos, compararMoa, nombreCorto, familiaMoa, claveMoa } from '../db.js';
+import {
+  usosPorCultivo, usosPorObjetivos, compararMoa, nombreCorto, familiaMoa, claveMoa, tipoFormulacion as tipoDe,
+} from '../db.js';
 import { filtrar, palabras, puntaje, normalizar } from '../buscador.js';
 import {
   h, icono, ruta, plural, recortar, limpio, vaciar, cargando, retrasar, combo,
@@ -36,20 +38,13 @@ const COLUMNAS = [
 ];
 const SIN_GRUPO = 'Sin grupo de modo de acción informado';
 
-function ir(params) { location.hash = ruta('', params); }
+function ir(params) { location.hash = ruta('buscar', params); }
 
 // Nombre común + nombre científico (si no viene ya en el nombre), para distinguir variantes.
 function nombreObjetivo(o) {
   const n = limpio(o.nombre);
   const c = limpio(o.cientifico);
   return recortar(c && !normalizar(n).includes(normalizar(c)) ? `${n} (${c})` : n, 80);
-}
-
-// Código de formulación (WP, SC, EC…). Si falta en los datos, el que trae el nombre comercial («PUNTO 70 WP»).
-function tipoDe(p) {
-  if (p.formulacionCodigo) return p.formulacionCodigo;
-  const m = String(p.nombre).match(/\b(SC|EC|WP|SL|WG|WDG|DP|FS|EW|CS|OD|SG|SE|SP|GR|ZC|ME|DC|TB|RB|GB|UL|WS|DS)\b/);
-  return m ? m[1] : null;
 }
 
 function valorOrden(clave, p, info) {
@@ -220,7 +215,7 @@ export async function render(main, ctx) {
 
   main.append(h('h1', { class: 'titulo-inicio' }, '¿Qué aplico?'));
   if ((estado.cultivo && !cultivo) || (estado.objetivo && !objetivo)) {
-    main.append(h('div', { class: 'nota nota-alerta' }, 'No encontramos ese cultivo u objetivo. ', h('a', { href: '#/' }, 'Empezar de nuevo')));
+    main.append(h('div', { class: 'nota nota-alerta' }, 'No encontramos ese cultivo u objetivo. ', h('a', { href: '#/buscar' }, 'Empezar de nuevo')));
     return;
   }
 
@@ -278,7 +273,7 @@ export async function render(main, ctx) {
     }
     return [...m.values()].map((x) => ({ c: x.c, n: x.productos.size }));
   };
-  const quitarObjetivo = ruta('', { ...base(), objetivo: '', oq: '' });
+  const quitarObjetivo = ruta('buscar', { ...base(), objetivo: '', oq: '' });
 
   const selCat = h('select', { class: 'selector', id: 'f-cat' },
     h('option', { value: '' }, 'Todos'),
@@ -310,7 +305,7 @@ export async function render(main, ctx) {
       combo({
         id: 'f-cultivo', titulo: 'Cultivo', placeholder: 'Ej: cerezo, uva, trigo',
         elegido: cultivo ? recortar(cultivo.nombre, 50) : null,
-        quitar: ruta('', { ...base(), cultivo: '' }),
+        quitar: ruta('buscar', { ...base(), cultivo: '' }),
         opciones: (t) => {
           const lista = cultivosDisponibles();
           const elegidos = limpio(t) ? filtrar(lista, t, (x) => x.c.palabras, (x) => x.n, 40) : lista.sort((a, b) => b.n - a.n).slice(0, 15);
@@ -407,7 +402,7 @@ export async function render(main, ctx) {
     orden.addEventListener('change', () => { estado.orden = orden.value; estado.inv = false; pintar(); });
     zona.append(h('div', { class: 'barra-tabla' },
       h('p', { class: 'cuenta', 'aria-live': 'polite' }, h('strong', null, plural(visibles.length, 'producto', 'productos'))),
-      ing ? h('a', { class: 'chip', 'aria-pressed': 'true', href: ruta('', { ...base(), ing: '' }), title: 'Quitar este filtro' }, `Ingrediente: ${ing.nombre}`, icono('cerrar')) : null,
+      ing ? h('a', { class: 'chip', 'aria-pressed': 'true', href: ruta('buscar', { ...base(), ing: '' }), title: 'Quitar este filtro' }, `Ingrediente: ${ing.nombre}`, icono('cerrar')) : null,
       h('div', { class: 'orden' }, h('label', null, 'Orden', orden),
         h('button', {
           type: 'button', class: 'boton-redondo', onclick: () => ordenar(estado.orden),
@@ -419,19 +414,19 @@ export async function render(main, ctx) {
       const sug = [];
       if (!cultivo) {
         for (const c of filtrar([...cat.cultivos.values()].filter((x) => x.nLineas && !x.esFrase), estado.q, (x) => x.palabras, (x) => x.nProductos, 2)) {
-          sug.push(h('a', { class: 'chip', href: ruta('', { ...base(), q: '', cultivo: c.id }) }, `Cultivo: ${recortar(c.nombre, 30)}`));
+          sug.push(h('a', { class: 'chip', href: ruta('buscar', { ...base(), q: '', cultivo: c.id }) }, `Cultivo: ${recortar(c.nombre, 30)}`));
         }
       }
       if (!objetivo && !estado.oq) {
         const n = filtrar([...cat.objetivos.values()].filter((o) => o.nLineas), estado.q, (o) => o.palabras, (o) => o.nLineas).length;
-        if (n) sug.push(h('a', { class: 'chip', href: ruta('', { ...base(), q: '', oq: estado.q }) }, `Plaga, enfermedad o maleza: «${estado.q}»`, h('small', null, plural(n, 'objetivo', 'objetivos'))));
+        if (n) sug.push(h('a', { class: 'chip', href: ruta('buscar', { ...base(), q: '', oq: estado.q }) }, `Plaga, enfermedad o maleza: «${estado.q}»`, h('small', null, plural(n, 'objetivo', 'objetivos'))));
       }
       if (sug.length) zona.append(h('div', { class: 'sugerencias' }, h('span', { class: 'chico tenue' }, '¿Buscabas esto?'), sug));
     }
 
     if (!visibles.length) {
       zona.append(h('div', { class: 'vacio' }, h('p', null, h('strong', null, 'Ningún producto cumple esos filtros')),
-        h('a', { class: 'boton', href: '#/' }, 'Quitar filtros')));
+        h('a', { class: 'boton', href: '#/buscar' }, 'Quitar filtros')));
       return;
     }
     const cuerpo = tabla({ clave: estado.orden, descendente }, ordenar);

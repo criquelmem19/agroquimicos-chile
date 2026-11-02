@@ -6,40 +6,32 @@ import * as vistaProducto from './vistas/producto.js';
 import * as vistaPlan from './vistas/plan.js';
 import * as vistaTrivia from './vistas/trivia.js';
 import * as vistaModos from './vistas/modos.js';
+import * as vistaMezclas from './vistas/mezclas.js';
 
 const NOMBRE_SITIO = 'Agroquímicos CRM';
 
 // Secciones del menú (titulo: el de la página; menu: el del menú de arriba; corto: el de la barra del celular).
 // Para la Fase 3 (foro, cuenta) basta sumarlas aquí.
+// El inicio es la explicación de FRAC, IRAC y HRAC y la tabla es el «Buscador» (pedido de Cristóbal, 02-11-2026).
 const SECCIONES = [
-  { camino: '', titulo: '', menu: 'Inicio', corto: 'Inicio', icono: 'casa', vista: vistaInicio },
-  { camino: 'modos', titulo: 'FRAC, IRAC y HRAC', menu: 'Modos de acción', corto: 'Modos', icono: 'libro', vista: vistaModos },
-  { camino: 'plan', titulo: 'Plan de aplicaciones', menu: 'Plan de aplicaciones', corto: 'Plan', icono: 'calendario', vista: vistaPlan },
+  { camino: '', titulo: '', menu: 'Inicio', corto: 'Inicio', icono: 'casa', vista: vistaModos },
+  { camino: 'buscar', titulo: 'Buscador', menu: 'Buscador', corto: 'Buscar', icono: 'buscar', vista: vistaInicio },
+  { camino: 'mezclas', titulo: 'Mezclas', menu: 'Mezclas', corto: 'Mezclas', icono: 'frasco', vista: vistaMezclas },
+  { camino: 'plan', titulo: 'Plan de aplicaciones', menu: 'Plan', corto: 'Plan', icono: 'calendario', vista: vistaPlan },
   { camino: 'trivia', titulo: 'Trivia', menu: 'Trivia', corto: 'Trivia', icono: 'trofeo', vista: vistaTrivia },
 ];
 // Rutas que no van en el menú.
 const OTRAS = { producto: vistaProducto };
-// Secciones antiguas que ahora son el inicio (links guardados o compartidos): se abren ahí con sus filtros.
+// Links antiguos (guardados o compartidos). Estas secciones ahora son el buscador y se abren ahí con sus filtros.
 // «mapa»: quitado por un tiempo a pedido de Cristóbal (31-10-2026); su código sigue en vistas/mapa.js.
-const ANTIGUAS = ['aplicar', 'productos', 'buscar', 'mapa'];
-
-// La primera vez que alguien entra al sitio (al inicio, sin filtros) ve la explicación de FRAC, IRAC y HRAC (pedido de
-// Cristóbal, 01-11-2026). Un link compartido abre lo que trae. Una sola vez por equipo.
-const CLAVE_BIENVENIDA = 'bienvenida-v1';
-function esPrimeraVisita() {
-  try {
-    if (localStorage.getItem(CLAVE_BIENVENIDA)) return false;
-    localStorage.setItem(CLAVE_BIENVENIDA, '1');
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
+const AL_BUSCADOR = ['aplicar', 'productos', 'mapa'];
+// Hasta el 02-11-2026 la tabla era el inicio: un link al inicio con alguno de sus filtros abre el buscador.
+const FILTROS_TABLA = ['cultivo', 'objetivo', 'oq', 'cat', 'q', 'empresa', 'moa', 'ing', 'orden', 'inv'];
 
 const principal = document.getElementById('vista');
 let catalogo = null;
 let caminoAnterior = null;
-// Última dirección de la tabla del inicio (con sus filtros), para el botón «Volver» de la ficha.
+// Última dirección del buscador (con sus filtros), para el botón «Volver» de la ficha.
 let ultimoInicio = null;
 let turno = 0;
 // Si la persona ya usó la página (tocó, escribió o la movió), no se vuelve a dibujar sola cuando llega el catálogo
@@ -87,11 +79,15 @@ async function mostrar(evento) {
   tocada = false;
   if (evento && evento.oldURL) {
     const antes = evento.oldURL.slice(evento.oldURL.indexOf('#') + 1 || evento.oldURL.length);
-    if (/^\/?(\?|$)/.test(antes)) ultimoInicio = `#${antes}`;
+    if (/^\/buscar(\?|$)/.test(antes)) ultimoInicio = `#${antes}`;
   }
-  if (ANTIGUAS.includes(leerRuta().partes[0])) {
-    const consulta = leerRuta().params.toString();
-    history.replaceState(null, '', `#/${consulta ? `?${consulta}` : ''}`);
+  const llegada = leerRuta();
+  const tablaAntigua = !llegada.partes.length && FILTROS_TABLA.some((k) => llegada.params.has(k));
+  if (AL_BUSCADOR.includes(llegada.partes[0]) || tablaAntigua) {
+    const consulta = llegada.params.toString();
+    history.replaceState(null, '', `#/buscar${consulta ? `?${consulta}` : ''}`);
+  } else if (llegada.partes[0] === 'modos') {
+    history.replaceState(null, '', '#/');
   }
   const { partes, params } = leerRuta();
   const clave = partes[0] || '';
@@ -102,7 +98,7 @@ async function mostrar(evento) {
   const cambioDePagina = caminoNuevo !== caminoAnterior;
   caminoAnterior = caminoNuevo;
 
-  pintarMenus(seccion ? seccion.camino : clave === 'producto' ? '' : null);
+  pintarMenus(seccion ? seccion.camino : clave === 'producto' ? 'buscar' : null);
   vaciar(principal);
   principal.classList.toggle('vista-ancha', Boolean(vista && vista.ANCHA));
 
@@ -147,8 +143,6 @@ async function mostrar(evento) {
 }
 
 async function iniciar() {
-  const entrada = leerRuta();
-  if (!entrada.camino && !entrada.params.toString() && esPrimeraVisita()) history.replaceState(null, '', '#/modos');
   pintarMenus(leerRuta().partes[0] || '');
   let carga;
   try {

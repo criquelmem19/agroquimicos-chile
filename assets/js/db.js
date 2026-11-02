@@ -150,6 +150,13 @@ export function compararMoa(a, b) {
   return ga.localeCompare(gb, 'es', { numeric: true });
 }
 
+// Código de formulación (WP, SC, EC…). Si falta en los datos, el que trae el nombre comercial («PUNTO 70 WP»).
+export function tipoFormulacion(p) {
+  if (p.formulacionCodigo) return p.formulacionCodigo;
+  const m = String(p.nombre).match(/\b(SC|EC|WP|SL|WG|WDG|DP|FS|EW|CS|OD|SG|SE|SP|GR|ZC|ME|DC|TB|RB|GB|UL|WS|DS)\b/);
+  return m ? m[1] : null;
+}
+
 // Nombre corto de la empresa para las tablas: «UPL Chile S.A.» → «UPL», «QUIMETAL INDUSTRIAL S.A.» → «Quimetal».
 const MARCAS = [
   ['syngenta', 'Syngenta'], ['sygenta', 'Syngenta'], ['bayer', 'Bayer'], ['basf', 'BASF'], ['anasac', 'Anasac'],

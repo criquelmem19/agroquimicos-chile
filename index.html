@@ -40,6 +40,7 @@
   <link rel="modulepreload" href="assets/js/vistas/plan.js">
   <link rel="modulepreload" href="assets/js/vistas/trivia.js">
   <link rel="modulepreload" href="assets/js/vistas/modos.js">
+  <link rel="modulepreload" href="assets/js/vistas/mezclas.js">
 </head>
 <body>
   <a class="saltar" href="#vista">Ir al contenido</a>
@@ -58,16 +59,11 @@
   </header>
 
   <main id="vista" class="vista" tabindex="-1">
-    <!-- Esqueleto mientras carga el catálogo (el mismo de ui.js → cargando(…, 'inicio'), con el título). -->
-    <div class="esqueleto esqueleto-inicio" role="status" aria-busy="true">
+    <!-- Esqueleto mientras carga el catálogo: título, bajada y los tres bloques de color del inicio (vistas/modos.js). -->
+    <div class="esqueleto esqueleto-portada" role="status" aria-busy="true">
       <span class="solo-lector">Cargando el catálogo…</span>
-      <span class="esq esq-titulo"></span>
-      <div class="esq-panel"><span></span><span></span><span></span><span></span></div>
-      <span class="esq esq-cuenta"></span>
-      <div class="esq-fila"><span class="esq"></span><span class="esq"></span><span class="esq"></span><span class="esq"></span><span class="esq"></span><span class="esq"></span></div>
-      <div class="esq-fila"><span class="esq"></span><span class="esq"></span><span class="esq"></span><span class="esq"></span><span class="esq"></span><span class="esq"></span></div>
-      <div class="esq-fila"><span class="esq"></span><span class="esq"></span><span class="esq"></span><span class="esq"></span><span class="esq"></span><span class="esq"></span></div>
-      <div class="esq-fila"><span class="esq"></span><span class="esq"></span><span class="esq"></span><span class="esq"></span><span class="esq"></span><span class="esq"></span></div>
+      <div><span class="esq esq-titulo"></span><span class="esq"></span><span class="esq"></span></div>
+      <div class="esq-bloques"><span class="esq"></span><span class="esq"></span><span class="esq"></span></div>
     </div>
     <noscript>
       <p class="nota nota-alerta">Este sitio necesita JavaScript activado para consultar el catálogo.</p>

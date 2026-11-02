@@ -2,7 +2,10 @@
 // (mismo grupo IRAC/FRAC/HRAC, máximo por temporada, intervalo y carencia antes de la cosecha).
 // Se guarda en este equipo. Parámetros: producto=<id>&uso=<id> (llega con el uso elegido desde
 // «¿Qué aplico?» o la ficha), abrir=<clave> (link personal con planes guardados en la base).
-import { usosPorCultivo, usosPorProducto, planGuardado } from '../db.js';
+// 02-11-2026 (pedido de Cristóbal: «una metodología más fácil, una línea de tiempo, que aparezca rápido qué controla y
+// qué son, qué cosas no repetir»): línea de tiempo con las carencias, «Qué no repetir» y formulario que parte por la
+// plaga (muestra primero los productos que no repiten el código de la última aplicación).
+import { usosPorCultivo, usosPorProducto, planGuardado, familiaMoa } from '../db.js';
 import { filtrar, palabras, normalizar } from '../buscador.js';
 import * as P from '../plan.js';
 import { UMBRAL_CONFIANZA } from '../config.js';
@@ -158,6 +161,129 @@ function calendarioMes(cat, plan, alertas, mes, alCambiarMes, alElegir) {
       h('tbody', null, semanas)));
 }
 
+// ---------- Línea de tiempo ----------
+// Del trasplante (o la primera aplicación) a la cosecha. Cada día de aplicación es una marca con un cuadrito por producto
+// (color de su comité); debajo, la carencia de cada producto, en rojo si pasa la fecha de cosecha.
+
+const MAX_CARRILES = 6;
+
+function lineaDeTiempo(cat, plan, alertas, alElegir) {
+  const aps = P.ordenadas(plan).filter((a) => P.fechaDe(plan, a));
+  if (!aps.length) return null;
+  const finCarencia = (a) => (a.linea && a.linea.withholding_period_days != null
+    ? P.sumarDias(P.fechaDe(plan, a), a.linea.withholding_period_days) : null);
+  const extremos = [plan.trasplante, plan.cosecha, ...aps.map((a) => P.fechaDe(plan, a)), ...aps.map(finCarencia)].filter(Boolean).sort();
+  const inicio = P.sumarDias(extremos[0], -3);
+  const termino = P.sumarDias(extremos[extremos.length - 1], 3);
+  const total = Math.max(1, P.diasEntre(inicio, termino));
+  const pos = (iso) => (P.diasEntre(inicio, iso) / total) * 100;
+
+  const meses = [];
+  const d = P.aFecha(inicio);
+  d.setDate(1);
+  d.setMonth(d.getMonth() + 1);
+  while (P.isoLocal(d) <= termino) {
+    meses.push(h('span', { class: 'lt-mes', style: `left:${pos(P.isoLocal(d))}%` }, `${MESES[d.getMonth()].slice(0, 3)} ${String(d.getFullYear()).slice(2)}`));
+    d.setMonth(d.getMonth() + 1);
+  }
+
+  const porDia = new Map();
+  for (const a of aps) {
+    const f = P.fechaDe(plan, a);
+    if (!porDia.has(f)) porDia.set(f, []);
+    porDia.get(f).push(a);
+  }
+  const marcas = [...porDia].map(([f, lista]) => h('button', {
+    type: 'button', class: 'lt-dia', style: `left:${pos(f)}%`,
+    title: `${P.fechaCorta(f)}: ${lista.map((a) => `${P.nombreDe(cat, a)}${P.gruposDe(cat, a).length ? ` (${P.gruposDe(cat, a).join(', ')})` : ''}`).join(' + ')}`,
+    'aria-label': `${P.fechaCorta(f)}: ${plural(lista.length, 'producto', 'productos')}. Ver en la lista`,
+    onclick: () => alElegir(lista[0].id),
+  }, lista.slice(0, 4).map((a) => h('span', {
+    class: `lt-producto lt-${sistema(P.gruposDe(cat, a))}${(alertas.get(a.id) || []).some(P.esGrave) ? ' lt-grave' : ''}`,
+  })), lista.length > 4 ? h('small', null, `+${lista.length - 4}`) : null));
+
+  // Carencias en carriles, para que no se tapen entre ellas.
+  const carriles = [];
+  const barras = [];
+  for (const a of aps) {
+    const f = P.fechaDe(plan, a);
+    const hasta = finCarencia(a);
+    if (!hasta || hasta === f) continue;
+    let c = carriles.findIndex((ocupado) => ocupado < f);
+    if (c === -1) {
+      if (carriles.length >= MAX_CARRILES) continue;
+      c = carriles.length;
+      carriles.push(hasta);
+    } else carriles[c] = hasta;
+    const pasa = plan.cosecha && hasta > plan.cosecha;
+    barras.push(h('button', {
+      type: 'button', class: `lt-carencia${pasa ? ' lt-pasa' : ''}`,
+      style: `left:${pos(f)}%;width:${pos(hasta) - pos(f)}%;top:${c * 12}px`,
+      title: `${P.nombreDe(cat, a)}: carencia ${plural(a.linea.withholding_period_days, 'día', 'días')}, hasta el ${P.fechaCorta(hasta)}${pasa ? '. Pasa la fecha de cosecha' : ''}`,
+      'aria-label': `Carencia de ${P.nombreDe(cat, a)} hasta el ${P.fechaCorta(hasta)}${pasa ? ', pasa la cosecha' : ''}`,
+      onclick: () => alElegir(a.id),
+    }));
+  }
+
+  const hito = (iso, texto, clase) => (iso && iso >= inicio && iso <= termino
+    ? h('span', { class: `lt-hito ${clase}${pos(iso) > 85 ? ' lt-hito-der' : ''}`, style: `left:${pos(iso)}%` }, h('span', null, texto)) : null);
+  const muestra = (clase, texto) => h('span', null, h('i', { class: clase }), texto);
+  return h('section', { class: 'linea-tiempo', 'aria-label': 'Línea de tiempo del plan' },
+    h('div', { class: 'lt-scroll' }, h('div', { class: 'lt-lienzo', style: `min-width:${Math.min(Math.max(total * 5, 320), 2400)}px` },
+      h('div', { class: 'lt-meses' }, meses),
+      h('div', { class: 'lt-pista' },
+        hito(plan.trasplante, 'Trasplante', 'lt-trasplante'),
+        hito(P.hoy(), 'Hoy', 'lt-hoy'),
+        hito(plan.cosecha, plan.destino === 'semillero' ? 'Cosecha de semilla' : 'Cosecha', 'lt-cosecha'),
+        marcas),
+      barras.length ? h('div', { class: 'lt-carencias', style: `height:${carriles.length * 12}px` }, barras) : null)),
+    h('div', { class: 'lt-leyenda' },
+      muestra('lt-producto lt-frac', 'FRAC'), muestra('lt-producto lt-irac', 'IRAC'), muestra('lt-producto lt-hrac', 'HRAC'),
+      muestra('lt-producto lt-otro', 'Sin código'),
+      barras.length ? [muestra('lt-carencia-muestra', 'Carencia'), muestra('lt-carencia-muestra lt-pasa', 'Pasa la cosecha')] : null,
+      plan.cosecha ? null : h('span', { class: 'tenue' }, 'Pon la fecha de cosecha para ver si alcanzan las carencias')));
+}
+
+// ---------- Qué no repetir ----------
+// Códigos (familias: en IRAC, el número) de la última aplicación del plan y cuántas veces se usó cada código.
+
+function ultimaJornada(plan) {
+  const aps = P.ordenadas(plan);
+  if (!aps.length) return [];
+  const clave = P.claveDia(plan, aps[aps.length - 1]);
+  return aps.filter((a) => P.claveDia(plan, a) === clave);
+}
+
+const familiasDe = (cat, a) => [...new Set(P.gruposDe(cat, a).map(familiaMoa))];
+
+function noRepetir(cat, plan) {
+  const aps = P.ordenadas(plan);
+  if (!aps.length) return null;
+  const usos = new Map();
+  for (const a of aps) {
+    for (const k of familiasDe(cat, a)) {
+      const x = usos.get(k) || { n: 0, ultima: null };
+      x.n += 1;
+      x.ultima = a;
+      usos.set(k, x);
+    }
+  }
+  const ultimas = ultimaJornada(plan);
+  const evitar = [...new Set(ultimas.flatMap((a) => familiasDe(cat, a)))];
+  return h('section', { class: 'no-repetir', 'aria-label': 'Qué no repetir' },
+    h('div', { class: 'nr-proxima' },
+      h('h2', null, 'En la próxima aplicación'),
+      evitar.length
+        ? [h('p', null, 'No repitas ', chipsMoa(evitar)),
+          h('p', { class: 'chico' }, `Son los códigos de la última aplicación del plan (${P.cuando(plan, ultimas[0])}). Elige otro código para la misma plaga.`)]
+        : h('p', null, 'La última aplicación no tiene código de modo de acción. Puedes elegir cualquier código.'),
+      h('a', { class: 'enlace-icono chico', href: '#/' }, '¿Por qué no repetir?', icono('flecha'))),
+    usos.size ? h('div', { class: 'nr-usados' },
+      h('h2', null, 'Códigos usados en el plan'),
+      h('ul', { class: 'nr-lista' }, [...usos].sort((a, b) => b[1].n - a[1].n).map(([k, x]) => h('li', { class: evitar.includes(k) ? 'nr-ultimo' : null },
+        chipsMoa([k]), h('strong', null, `${x.n} ${x.n === 1 ? 'vez' : 'veces'}`), h('span', { class: 'chico tenue' }, `última: ${P.cuando(plan, x.ultima)}`))))) : null);
+}
+
 // ---------- Lista por día (cada día es una mezcla) ----------
 
 function filaProducto(cat, plan, a, alertas, usosCultivo, alCambiar) {
@@ -221,7 +347,7 @@ function filaProducto(cat, plan, a, alertas, usosCultivo, alCambiar) {
       p ? null : h('span', { class: 'etiqueta etq-externo' }, 'Fuera del catálogo')),
     p ? h('p', { class: 'chico tenue' }, ingredientesTexto(p))
       : (a.externo && a.externo.ingrediente ? h('p', { class: 'chico tenue' }, a.externo.ingrediente) : null),
-    u ? h('p', { class: 'ap-uso' }, h('strong', null, 'Uso: '), etiquetaUso(cat, plan, u)) : null,
+    u ? h('p', { class: 'ap-uso' }, h('strong', null, 'Controla: '), etiquetaUso(cat, plan, u)) : null,
     datos.length ? h('dl', { class: 'ap-datos' }, datos) : null,
     listaAlertas(alertas),
     a.nota ? h('p', { class: 'ap-nota' }, h('strong', null, 'Nota: '), a.nota) : null,
@@ -291,11 +417,26 @@ function listaPorDia(cat, plan, alertas, usosCultivo, alCambiar) {
 
 function formulario(cat, plan, usosCultivo, pre, alAgregar) {
   const estado = {
+    objetivoId: null,
     productoId: pre.productoId || null,
     linea: pre.linea || null,
     externo: null,
     todos: false,
   };
+  // Códigos de la última aplicación: los productos que los repiten van al final y con aviso.
+  const evitar = new Set(ultimaJornada(plan).flatMap((a) => familiasDe(cat, a)));
+  const repite = (p) => p.familias.filter((k) => evitar.has(k));
+  // Plagas, enfermedades y malezas de las etiquetas para el cultivo del plan, con los productos que las controlan.
+  const porObjetivo = new Map();
+  for (const [pid, lineas] of usosCultivo) {
+    for (const u of lineas) {
+      for (const t of u.objetivos || []) {
+        if (!porObjetivo.has(t)) porObjetivo.set(t, new Set());
+        porObjetivo.get(t).add(pid);
+      }
+    }
+  }
+  const zonaObjetivo = h('div');
   const zonaProducto = h('div');
   const zonaUso = h('div');
   const zonaAvisos = h('div', { 'aria-live': 'polite' });
@@ -346,6 +487,8 @@ function formulario(cat, plan, usosCultivo, pre, alAgregar) {
       return;
     }
     if (lineas.length === 1 && !estado.linea) estado.linea = lineas[0];
+    // Con una plaga elegida, el uso de la etiqueta que la controla.
+    if (!estado.linea && estado.objetivoId) estado.linea = lineas.find((u) => (u.objetivos || []).includes(estado.objetivoId)) || null;
     zonaUso.append(h('fieldset', { class: 'campo usos' },
       h('legend', null, 'Uso de la etiqueta'),
       lineas.map((u) => {
@@ -357,17 +500,67 @@ function formulario(cat, plan, usosCultivo, pre, alAgregar) {
       })));
   };
 
+  // Paso 1: qué se quiere controlar (opcional). Ordena los productos y elige solo el uso de la etiqueta.
+  const pintarObjetivo = () => {
+    vaciar(zonaObjetivo);
+    if (!porObjetivo.size) return;
+    if (estado.objetivoId) {
+      const o = cat.objetivos.get(estado.objetivoId);
+      zonaObjetivo.append(h('div', { class: 'campo' }, h('span', { class: 'campo-etiqueta' }, '1. Qué quieres controlar'),
+        h('div', { class: 'elegido' },
+          h('span', null, h('strong', null, o ? recortar(o.nombre, 60) : 'Plaga'),
+            h('span', { class: 'chico' }, ` · ${plural(porObjetivo.get(estado.objetivoId).size, 'producto', 'productos')} para ${nombreCultivoPlan(cat, plan)}`)),
+          h('button', { type: 'button', class: 'boton boton-chico', onclick: () => {
+            estado.objetivoId = null; estado.productoId = null; estado.linea = null; pintarObjetivo(); pintarProducto(); pintarUso(); avisos();
+          } }, 'Cambiar'))));
+      return;
+    }
+    const lista = [...porObjetivo].map(([t, ps]) => ({ o: cat.objetivos.get(t), n: ps.size })).filter((x) => x.o);
+    zonaObjetivo.append(buscadorOpciones({
+      id: 'f-objetivo-buscar', etiqueta: '1. Qué quieres controlar (plaga, enfermedad o maleza)', placeholder: 'Ej: oídio, pulgón, botrytis',
+      opciones: (texto) => {
+        const t = limpio(texto);
+        const elegidos = t ? filtrar(lista, t, (x) => x.o.palabras, (x) => x.n, 20) : [...lista].sort((a, b) => b.n - a.n).slice(0, 8);
+        return elegidos.map((x) => ({
+          etiqueta: recortar(x.o.nombre, 70), detalle: plural(x.n, 'producto', 'productos'),
+          accion: () => {
+            estado.objetivoId = x.o.id;
+            if (!limpio(objetivo.value)) objetivo.value = recortar(x.o.nombre, 160);
+            if (estado.productoId && !porObjetivo.get(x.o.id).has(estado.productoId)) { estado.productoId = null; estado.linea = null; }
+            pintarObjetivo(); pintarProducto(); pintarUso(); avisos();
+            const b = form.querySelector('#f-producto');
+            if (b) b.focus();
+          },
+        }));
+      },
+    }));
+  };
+
+  // Qué es y qué controla el producto elegido (de sus líneas de la etiqueta para el cultivo del plan).
+  function fichaRapida(p) {
+    const lineas = lineasDelProducto(usosCultivo, p.id);
+    const controla = [...new Set(lineas.flatMap((u) => u.objetivos || []))].map((t) => cat.objetivos.get(t)).filter(Boolean).map((o) => o.nombre);
+    const que = [p.categorias.map((c) => c.nombre).join(', '), p.formulacionCodigo, ingredientesTexto(p)].filter(Boolean).join(' · ');
+    const repetidos = repite(p);
+    return h('div', { class: 'ficha-rapida' },
+      h('p', null, h('span', { class: 'md-rotulo' }, 'Qué es'), que),
+      controla.length ? h('p', null, h('span', { class: 'md-rotulo' }, `Controla en ${nombreCultivoPlan(cat, plan)}`),
+        recortar(controla.slice(0, 12).join(' · '), 320), controla.length > 12 ? h('span', { class: 'tenue' }, ` y ${controla.length - 12} más`) : null) : null,
+      repetidos.length ? h('p', { class: 'nota nota-alerta' }, icono('alerta'), ` Repite ${repetidos.join(' y ')}, igual que la última aplicación. Para la misma plaga conviene otro código.`) : null);
+  }
+
   const pintarProducto = () => {
     vaciar(zonaProducto);
+    const paso = porObjetivo.size ? '2. ' : '';
     if (estado.productoId) {
       const p = cat.productos.get(estado.productoId);
-      zonaProducto.append(h('div', { class: 'campo' }, h('span', { class: 'campo-etiqueta' }, 'Producto'),
+      zonaProducto.append(h('div', { class: 'campo' }, h('span', { class: 'campo-etiqueta' }, `${paso}Producto`),
         h('div', { class: 'elegido' },
-          h('span', null, h('strong', null, p ? p.nombre : 'Producto'), ' ', p ? chipsMoa(p.moa) : null,
-            p ? h('span', { class: 'chico' }, ` · ${ingredientesTexto(p)}`) : null),
+          h('span', null, h('strong', null, p ? p.nombre : 'Producto'), ' ', p ? chipsMoa(p.moa) : null),
           h('button', { type: 'button', class: 'boton boton-chico', onclick: () => {
             estado.productoId = null; estado.linea = null; pintarProducto(); pintarUso(); avisos();
-          } }, 'Cambiar'))));
+          } }, 'Cambiar')),
+        p ? fichaRapida(p) : null));
       return;
     }
     if (estado.externo) {
@@ -389,19 +582,25 @@ function formulario(cat, plan, usosCultivo, pre, alAgregar) {
       return;
     }
     const conCultivo = P.cultivosDelPlan(plan).length && !estado.todos;
-    const base = conCultivo ? productosDelCultivo : [...cat.productos.values()];
+    const paraObjetivo = estado.objetivoId && !estado.todos ? porObjetivo.get(estado.objetivoId) : null;
+    const base = paraObjetivo ? productosDelCultivo.filter((p) => paraObjetivo.has(p.id)) : conCultivo ? productosDelCultivo : [...cat.productos.values()];
+    // Primero los que no repiten el código de la última aplicación; luego, los con más usos en la etiqueta.
+    const orden = (a, b) => (repite(a).length > 0) - (repite(b).length > 0) || (b.nLineas || 0) - (a.nLineas || 0);
     zonaProducto.append(buscadorOpciones({
       id: 'f-producto',
-      etiqueta: conCultivo ? `Producto (${plural(base.length, 'registrado', 'registrados')} para ${nombreCultivoPlan(cat, plan)})` : 'Producto',
+      etiqueta: paraObjetivo ? `${paso}Producto (${plural(base.length, 'lo controla', 'lo controlan')} según la etiqueta)`
+        : conCultivo ? `${paso}Producto (${plural(base.length, 'registrado', 'registrados')} para ${nombreCultivoPlan(cat, plan)})` : `${paso}Producto`,
       placeholder: 'Nombre, ingrediente o grupo (ej: FRAC 3)',
       opciones: (texto) => {
         const t = limpio(texto);
         const lista = t
           ? filtrar(base, t, palabrasDe, (p) => p.nLineas, 30)
-          : [...base].sort((a, b) => normalizar(a.nombre).localeCompare(normalizar(b.nombre), 'es')).slice(0, 15);
+          : paraObjetivo ? [...base].sort(orden).slice(0, 20)
+            : [...base].sort((a, b) => normalizar(a.nombre).localeCompare(normalizar(b.nombre), 'es')).slice(0, 15);
         const ops = lista.map((p) => ({
           etiqueta: p.nombre,
-          detalle: p.moa.length ? p.moa.join(' + ') : 'sin grupo',
+          clase: repite(p).length ? 'opcion-repite' : '',
+          detalle: `${p.moa.length ? p.moa.join(' + ') : 'sin grupo'}${repite(p).length ? ' · repite código' : ''}`,
           accion: () => {
             estado.productoId = p.id;
             estado.linea = null;
@@ -421,16 +620,17 @@ function formulario(cat, plan, usosCultivo, pre, alAgregar) {
     }));
     if (P.cultivosDelPlan(plan).length) {
       zonaProducto.append(h('button', { type: 'button', class: 'boton-texto', onclick: () => { estado.todos = !estado.todos; pintarProducto(); } },
-        estado.todos ? 'Ver solo los registrados para el cultivo' : 'Buscar entre todos los productos'));
+        estado.todos ? (paraObjetivo || estado.objetivoId ? 'Ver solo los que la controlan' : 'Ver solo los registrados para el cultivo') : 'Buscar entre todos los productos'));
     }
   };
 
+  const paso3 = porObjetivo.size ? '3. ' : '';
   const form = h('form', { class: 'tarjeta form-plan', novalidate: true },
     h('h2', { class: 'form-titulo' }, icono('mas'), 'Agregar una aplicación'),
+    zonaObjetivo, zonaProducto, zonaUso,
     h('div', { class: 'form-grid' },
-      h('div', { class: 'campo' }, h('label', { for: 'f-fecha' }, 'Fecha'), fecha),
+      h('div', { class: 'campo' }, h('label', { for: 'f-fecha' }, `${paso3}Fecha`), fecha),
       h('div', { class: 'campo' }, h('label', { for: 'f-dia' }, 'o día desde el trasplante'), dia)),
-    zonaProducto, zonaUso,
     h('div', { class: 'form-grid' },
       h('div', { class: 'campo' }, h('label', { for: 'f-dosis' }, 'Dosis de tu plan'), dosisPlan),
       h('div', { class: 'campo' }, h('label', { for: 'f-objetivo' }, 'Objetivo'), objetivo)),
@@ -449,6 +649,7 @@ function formulario(cat, plan, usosCultivo, pre, alAgregar) {
     alAgregar({ ...c, productoId: estado.productoId, externo: estado.externo, linea: estado.linea, dosisPlan: limpio(dosisPlan.value), objetivo: limpio(objetivo.value), nota: limpio(nota.value) });
   });
 
+  pintarObjetivo();
   pintarProducto();
   pintarUso();
   avisos();
@@ -633,6 +834,19 @@ export async function render(main, ctx) {
         h('strong', null, plan.aplicaciones.length ? plural(plan.aplicaciones.length, 'aplicación', 'aplicaciones') : 'Plan vacío'),
         plan.aplicaciones.length ? (graves.length ? ` · ${plural(graves.length, 'alerta', 'alertas')}${peligros ? ` (${peligros} ${peligros === 1 ? 'no cumple' : 'no cumplen'} la etiqueta)` : ''}` : ' · sin alertas') : '')));
 
+    // Línea de tiempo y qué no repetir (antes del formulario: ayudan a elegir la próxima aplicación).
+    const elegir = (id) => {
+      const el = document.getElementById(`ap-${id}`);
+      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus({ preventScroll: true }); }
+    };
+    const aps = P.ordenadas(plan);
+    if (aps.length) {
+      zona.append(h('h2', { class: 'titulo-seccion' }, 'Línea de tiempo'),
+        lineaDeTiempo(cat, plan, alertas, elegir)
+          || h('p', { class: 'nota nota-info' }, 'Pon la fecha de trasplante para ver las aplicaciones en la línea de tiempo.'),
+        noRepetir(cat, plan));
+    }
+
     // Formulario
     const alAgregar = (nueva) => {
       const lista = P.alertasDeNueva(plan, cat, nueva, { usosCultivo });
@@ -647,32 +861,26 @@ export async function render(main, ctx) {
     };
     zona.append(formulario(cat, plan, usosCultivo, opciones.pre || {}, alAgregar));
 
-    // Calendario (si hay fechas) y lista por día
-    const aps = P.ordenadas(plan);
+    // Lista por día y, plegado, el calendario del mes (si hay fechas).
     const conFecha = aps.filter((a) => P.fechaDe(plan, a));
-    const elegir = (id) => {
-      const el = document.getElementById(`ap-${id}`);
-      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus({ preventScroll: true }); }
-    };
-    zona.append(h('h2', { class: 'titulo-seccion' }, 'Calendario'));
+    let zonaCal = null;
     if (conFecha.length) {
       let mes = mesPorPlan.get(plan.id);
       if (!mes) {
         const proxima = conFecha.find((a) => P.fechaDe(plan, a) >= P.hoy()) || conFecha[conFecha.length - 1];
         mes = P.fechaDe(plan, proxima).slice(0, 7);
       }
-      const zonaCal = h('div');
+      const cal = h('div');
       const pintarCal = (m) => {
         mesPorPlan.set(plan.id, m);
-        vaciar(zonaCal).append(calendarioMes(cat, plan, alertas, m, pintarCal, elegir));
+        vaciar(cal).append(calendarioMes(cat, plan, alertas, m, pintarCal, elegir));
       };
       pintarCal(mes);
-      zona.append(zonaCal);
-    } else if (aps.length) {
-      zona.append(h('p', { class: 'nota nota-info' }, 'Pon la fecha de trasplante para ver las aplicaciones en el calendario.'));
+      zonaCal = h('details', { class: 'plegable-cal' }, h('summary', null, icono('calendario'), 'Ver el calendario del mes'), cal);
     }
     zona.append(
       h('h2', { class: 'titulo-seccion' }, 'Aplicaciones', h('span', { class: 'contador' }, `(${aps.length})`)),
+      zonaCal || h('span'),
       listaPorDia(cat, plan, alertas, usosCultivo, () => pintar()),
       h('div', { class: 'barra-plan barra-plan-pie' },
         h('button', { type: 'button', class: 'boton boton-chico', onclick: () => window.print() }, icono('imprimir'), 'Imprimir o guardar PDF'),

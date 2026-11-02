@@ -41,7 +41,7 @@ productores, muchas veces **desde el celular en el campo**.
    de la app todo este tipo de avisos»), junto con los textos de presentación de cada página, la nota del
    pie («Fuente…») y la página «Estado de los datos». No volver a agregar avisos generales ni textos
    explicativos largos. Se mantienen las etiquetas por dato (reglas 1–3) y las alertas del plan. Excepción pedida por
-   él el 01-11-2026: la página «Modos de acción» (`#/modos`), que es una explicación larga a propósito.
+   él el 01-11-2026: la explicación de FRAC, IRAC y HRAC (hoy el inicio, `#/`) y la página «Mezclas» (02-11-2026).
 5. **Nunca inventar ni completar datos agronómicos con conocimiento general.** Solo lo que dice la
    etiqueta, con cita (texto y página).
 6. Mientras la carencia esté incompleta: `noindex` (meta robots en `index.html`). Se comparte solo por link.
@@ -62,10 +62,11 @@ rechazo en destino o residuos sobre la tolerancia.
 - **Sin modo noche** (Cristóbal lo pidió quitar el 21-10-2026: «está muy de más»). Solo modo claro.
 - Marca: logo «CRM» (píldora negra con letras blancas y un punto verde) arriba a la izquierda, junto a
   «Agroquímicos CRM». Ícono de la pestaña: `assets/img/icono.svg` con la misma marca.
-- Se mantienen: letra de 17 px y alto contraste (se usa al sol), barra inferior en celular (Inicio, Modos, Plan y Trivia).
-- **Menú simple y tabla ancha (pedido del 27-10-2026):** «Inicio», «Modos de acción» (01-11-2026), «Plan de
-  aplicaciones» y «Trivia» (el «Mapa» se quitó por un tiempo el 31-10-2026, ver «El sitio»). El inicio usa todo el
-  ancho de la pantalla (`--ancho-max` 1600 px; `ANCHA = true` en la vista); el resto de las páginas, 1180 px.
+- Se mantienen: letra de 17 px y alto contraste (se usa al sol), barra inferior en celular (Inicio, Buscar, Mezclas,
+  Plan y Trivia).
+- **Menú (02-11-2026):** «Inicio» (la explicación de FRAC, IRAC y HRAC), «Buscador» (la tabla), «Mezclas», «Plan» y
+  «Trivia» (el «Mapa» se quitó por un tiempo el 31-10-2026, ver «El sitio»). El buscador usa todo el ancho de la
+  pantalla (`--ancho-max` 1600 px; `ANCHA = true` en la vista); el resto de las páginas, 1180 px.
 - Grupos de modo de acción con color propio: FRAC azul, IRAC verde, HRAC tierra.
 - **Pasada «unslop» (31-10-2026, Cristóbal: «mantén la estética de colores que yo te dije pero sigue las reglas de
   unslop»).** Dirección: catálogo según la etiqueta del SAG para quien decide qué aplicar en el campo; carácter exacto,
@@ -263,8 +264,38 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
 
 - `index.html`: una sola página, `noindex`, carga supabase-js y `assets/js/app.js`.
 - Rutas con `#` (funcionan en GitHub Pages sin configuración):
-  - `#/?cultivo=<id>&objetivo=<id>&oq=<texto>&cat=<id>&q=<texto>&empresa=<nombre corto>&moa=<clave>|sin&ing=<id>&orden=moa|nombre|empresa|tipo|ing|registro|cultivos&inv=1`
-    **Inicio = «¿Qué aplico?»** (rehecho el 27-10-2026 a pedido de Cristóbal; vista `assets/js/vistas/inicio.js`):
+  - `#/` **Inicio: FRAC, IRAC y HRAC** (01-11-2026; desde el 02-11-2026 es el inicio y «más visual, divertido de
+    entender», pedido de Cristóbal; `assets/js/vistas/modos.js`; `#/modos` antiguo abre aquí). Para que lo entienda un
+    agricultor sin estudios y un ingeniero esté de acuerdo: lo simple a la vista y lo técnico en desplegables «Para el
+    técnico». Partes: portada «Rota el código, no la marca» con un bloque de color y un dibujo por comité (hongo, insecto,
+    maleza: `DIBUJOS`; FRAC `--azul-bloque`, IRAC `--verde-claro`, HRAC `--hrac-bloque`); «La idea en un dibujo»: dos
+    productos reales del catálogo con el mismo código (=) y uno con otro (≠); **juego de rotación** (`JUEGO`: 40 hongos
+    de botrytis, 4 botones Marca A/B FRAC 7, C FRAC 12, D FRAC 9, 6 aplicaciones; al partir justo 2 de 40 aguantan cada
+    código; mueren los que no lo aguantan salvo 5 % que escapa; los vivos se multiplican y llega 20 % de vecinos; muestra el
+    % de control de cada aplicación: repitiendo FRAC 7 baja de ~93 % a ~20 %, rotando vuelve a ~95 %; es un modelo de
+    juguete y lo dice); tarjeta por comité (cómo leer el código, códigos con más productos del catálogo con link al
+    buscador filtrado y, plegada, la tabla de grupos frecuentes con sitio de acción, familia, ingredientes y riesgo FRAC);
+    «¿Rotaste o no?» (4 preguntas con respuesta al tocar: mismo código con otra marca, 1A/1B, HRAC A/1, mezcla 7+11 → 3);
+    4 palabras; 4 reglas de oro (+ «Más consejos» plegado); por qué importa; ejemplos (botrytis, arañita, ballica y un
+    producto real con dos códigos); cómo usarlo en el sitio (Buscador, Mezclas, Plan). Los grupos y ejemplos de
+    ingrediente están escritos a mano desde las listas oficiales (FRAC Code List, IRAC MoA Classification, HRAC 2020), no
+    de la base: en la base hay errores (glufosinato como HRAC 3, el protector cloquintocet como HRAC 4, «FRAC E3 GRUPO 2»;
+    se revisan en otra tarea con Cristóbal); los conteos del catálogo solo muestran códigos bien escritos (`CODIGO_VALIDO`).
+  - `#/mezclas?p=<id>,<id>…` **Mezclas** (02-11-2026, Cristóbal: «una vista y una tabla con la interacción de productos
+    que explique que no se pueden mezclar todas las cosas de WP y EC»; `assets/js/vistas/mezclas.js`). «Arma tu mezcla»:
+    hasta 6 productos del catálogo; los dibuja en un **estanque** en el orden de carga según su formulación
+    (`tipoFormulacion` en `db.js`: el código del dato o el del nombre); alerta si dos productos tienen el mismo código, si
+    uno no va al estanque (DP, GR, cebos, semillas, UL) o si no se sabe su tipo; y muestra lo que dice cada etiqueta
+    (`product_safety_profiles`: compatibilidad, incompatibilidad, preparación y fitotoxicidad, «Extraído automáticamente»
+    y link al PDF). Abajo: orden de carga en 7 pasos (agua y agitación; correctores; sólidos WG/WP/SG; suspensiones
+    SC/CS/SE/ZC; emulsiones y aceites EC/EW/ME/OD; solubles SL; coadyuvantes y completar), tabla de formulaciones (código,
+    nombre, cómo es, paso, cuidado), por qué una mezcla sale mal (física, química, fitotoxicidad, antagonismo) y la prueba
+    de la jarra. Cada paso tiene su color (agua celeste, sólidos beige, suspensiones verde, emulsiones crema, solubles azul).
+    Es explicación general: siempre dice que manda la etiqueta. Fertilizantes y bioestimulantes: «según su etiqueta».
+  - `#/buscar?cultivo=<id>&objetivo=<id>&oq=<texto>&cat=<id>&q=<texto>&empresa=<nombre corto>&moa=<clave>|sin&ing=<id>&orden=moa|nombre|empresa|tipo|ing|registro|cultivos&inv=1`
+    **Buscador** (fue el inicio hasta el 02-11-2026; los links antiguos al inicio con alguno de esos filtros, y
+    `#/aplicar`, `#/productos` y `#/mapa`, se abren aquí: `AL_BUSCADOR` y `FILTROS_TABLA` en `app.js`). «¿Qué aplico?»
+    (rehecho el 27-10-2026 a pedido de Cristóbal; vista `assets/js/vistas/inicio.js`):
     arriba el **buscador principal** («Buscar en la tabla», `q`; pedido del 31-10-2026): filtra mientras se escribe y
     busca en todas las columnas (nombre y categoría, empresa y su nombre completo, grupos de modo de acción y su código
     de la etiqueta, grupo químico, tipo y su nombre, ingredientes, registro, cultivos con sus sinónimos y el texto de
@@ -284,26 +315,12 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     combinación de grupos («FRAC 7 + FRAC 11») van juntos, bajo un título con el grupo, el grupo químico y cuántos son,
     y con una franja del color del sistema; los sin grupo al final. Se agrupa por **código actual y familia**: ver
     «Códigos de modo de acción» más abajo.
-  - `#/modos` **Modos de acción: FRAC, IRAC y HRAC** (01-11-2026, Cristóbal: «una pantalla de inicio que explique qué es
-    IRAC, FRAC y HRAC y por qué es importante… que la entienda un agricultor sin estudios y que un ingeniero esté de
-    acuerdo, con ejemplos y definiciones»; `assets/js/vistas/modos.js`). **Se abre sola la primera vez** que alguien entra
-    al inicio sin filtros (`esPrimeraVisita` en `app.js`, `localStorage` `bienvenida-v1`; un link compartido abre lo que
-    trae); después, desde el menú. Partes: portada con un bloque de color por comité (FRAC azul `--azul-bloque`, IRAC
-    verde `--verde-claro`, HRAC tierra `--hrac-bloque`); lo esencial en 4 frases; 4 palabras (ingrediente activo, modo de
-    acción, resistencia, resistencia cruzada), cada una en simple, con ejemplo y «en términos técnicos»; dibujo de cómo
-    aparece la resistencia (30 puntos por etapa, cantidades de ejemplo); por qué importa; una tarjeta por comité (qué
-    ordena, cómo se lee el código, tabla de grupos frecuentes con qué hace en simple y su sitio de acción, familia,
-    ingredientes de ejemplo y, en FRAC, riesgo; y cuántos productos del catálogo tienen cada código, con link a la tabla
-    filtrada); 8 reglas para el campo con «así no / así sí»; ejemplos (botrytis FRAC, arañita IRAC, ballica HRAC) y dos
-    sacados del catálogo (dos marcas con el mismo código; un producto con dos códigos); cómo aparecen en el sitio.
-    Los grupos y ejemplos de ingrediente de las tablas están escritos a mano desde las listas oficiales (FRAC Code List,
-    IRAC MoA Classification, HRAC 2020), no de la base: en la base hay errores (glufosinato como HRAC 3, el protector
-    cloquintocet como HRAC 4, «FRAC E3 GRUPO 2»); los conteos del catálogo solo muestran códigos bien escritos.
   - **Mapa quitado por un tiempo (31-10-2026, Cristóbal: «quita un rato el mapa»).** No está en el menú ni en la barra
-    del celular, la ficha ya no tiene «Ver en el mapa», `mapa.js` no se importa ni se precarga, y `#/mapa` abre el inicio
-    (`ANTIGUAS` en `app.js`). El código (`vistas/mapa.js`) y sus estilos siguen. Para volver a ponerlo: la línea en
-    `SECCIONES` y el `import` en `app.js`, sacar «mapa» de `ANTIGUAS`, el `modulepreload` en `index.html` y el botón de
-    la ficha (`producto.js`). Lo que sigue describe cómo era:
+    del celular, la ficha ya no tiene «Ver en el mapa», `mapa.js` no se importa ni se precarga, y `#/mapa` abre el
+    buscador (`AL_BUSCADOR` en `app.js`). El código (`vistas/mapa.js`) y sus estilos siguen. Para volver a ponerlo: la
+    línea en `SECCIONES` y el `import` en `app.js`, sacar «mapa» de `AL_BUSCADOR`, el `modulepreload` en `index.html` y el
+    botón de la ficha (`producto.js`); sus links usan `ruta('', …)`, que ahora es el inicio: cambiarlos a `ruta('buscar', …)`.
+    Lo que sigue describe cómo era:
   - `#/mapa?nodo=g:FRAC 3|i:<id>|p:<id>|c:<id>|o:<id>` **Mapa** (31-10-2026, Cristóbal pidió incorporar graphify y eligió
     «las dos»: esta página y la herramienta, ver «Mapa del código»; `assets/js/vistas/mapa.js`): dibujo interactivo de
     las conexiones del catálogo, al estilo de graphify. Se parte de un nodo (buscador o chips de grupos y cultivos con
@@ -348,6 +365,16 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
       etiquetas; tolera errores de tipeo); fertilizantes, bioestimulantes y coadyuvantes no tienen grupo.
       Aparecen antes de agregar y en un aviso emergente (`notificar` en `ui.js`).
     - Exporta a CSV para Excel (`;`, UTF-8 con BOM) e imprime la lista.
+    - **02-11-2026** (Cristóbal: «una metodología más fácil, una línea de tiempo, que aparezca rápido qué controla y qué
+      son, qué cosas no repetir»): **línea de tiempo** (`lineaDeTiempo`: del trasplante a la cosecha, una marca por día
+      con un cuadrito por producto del color de su comité, marcas de trasplante, hoy y cosecha, y debajo la carencia de
+      cada producto en carriles, roja si pasa la cosecha; en el celular se desliza); **«Qué no repetir»** (`noRepetir`:
+      códigos de la última aplicación y cuántas veces se usó cada código, por familia); el formulario parte por **«1. Qué
+      quieres controlar»** (plagas de las etiquetas para el cultivo del plan): muestra los productos que la controlan,
+      primero los que no repiten el código de la última aplicación (los que repiten van al final con «repite código»), y
+      elige solo el uso de la etiqueta para esa plaga; al elegir producto, **«Qué es» y «Controla en…»** (`fichaRapida`)
+      y aviso si repite código. En cada aplicación, «Controla:» en vez de «Uso:». El calendario del mes quedó plegado
+      bajo la lista.
 - **Códigos de modo de acción unidos (27-10-2026, con el «sí, únelos» de Cristóbal):** las etiquetas traen el mismo
   grupo con el código actual o con el antiguo (FRAC «G1» = 3, «C2» = 7, «C3» = 11…; HRAC «A» = 1, «B» = 2, «K3» = 15…).
   Tabla `moa_equivalencias` (sistema, código de la etiqueta, código actual, `ingrediente_id` si vale solo para un
