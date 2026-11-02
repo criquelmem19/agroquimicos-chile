@@ -19,7 +19,8 @@ Uso:  python -I scripts/recopilador/cargar.py <carpeta_json> [--ids 1,2,3] [--lo
 - --reemplazar (etiquetas ya «cargado», con una extracción nueva; solo con el «sí» de Cristóbal): oculta las líneas
   «pendiente» del documento (review_status «rechazado», no se borran) y carga las de la extracción nueva. No lo hace
   si quedarían menos líneas con dosis o con carencia (salvo --forzar). Con --ensayo muestra antes → después y los
-  cultivos que quedarían sin líneas.
+  cultivos que quedarían sin líneas. También sirve con una etiqueta «diferencias» (producto de la carga original):
+  oculta las líneas «pendiente» de todo el producto y carga las de la etiqueta del SAG en su documento.
 """
 import csv
 import datetime
@@ -535,20 +536,16 @@ from public.sag_inventario where id in ({','.join(map(str, ids)) or '0'})""", "i
         # --ensayo: aplica dentro de una transacción que se deshace y muestra cómo quedaría (no toca la base).
         reemplazar = "--reemplazar" in args
         modo = "reemplazar" if reemplazar else "completar"
-        docs = {r["id"]: r for r in sql(f"select id, producto_id, documento_id from public.sag_inventario "
-                                        f"where estado = 'cargado' and id in ({','.join(map(str, ids)) or '0'})")}
+        # --reemplazar también acepta «diferencias» (producto de la carga original con una etiqueta del SAG nueva):
+        # ahí se ocultan las líneas pendientes de todo el producto, no solo las del documento del SAG.
+        estados = "'cargado', 'diferencias'" if reemplazar else "'cargado'"
+        docs = {r["id"]: r for r in sql(f"select id, producto_id, documento_id, estado from public.sag_inventario "
+                                        f"where estado in ({estados}) and id in ({','.join(map(str, ids)) or '0'})")}
         for i in ids:
             if i not in docs:
-                print(f"{i}: se omite (no está «cargado»)")
+                print(f"{i}: se omite (no está «cargado»{' ni «diferencias»' if reemplazar else ''})")
         campos = ("lineas", "dosis", "carencia", "mojamiento", "intervalo", "metodo")
-        if reemplazar:
-            # En el ensayo: cultivos que tenían líneas y quedarían sin ninguna visible.
-            extra = """,
-  (select string_agg(distinct c.name::text, ', ') from antes_c a join public.crops c on c.id = a.crop_id
-   where a.review_status = 'pendiente' and not exists (select 1 from public.product_uses p
-     where p.source_document_id = a.source_document_id and p.review_status <> 'rechazado' and p.crop_id = a.crop_id))
-  as cultivos_perdidos"""
-        else:
+        if not reemplazar:
             # En el ensayo: líneas en que cambiaría un valor o una cita que ya estaba (debe ser 0).
             reemplazos = " or ".join([f"(a.{c} is not null and a.{c} is distinct from p.{c})" for c in (
                 "dose_min", "dose_max", "dose_unit", "dose_basis", "water_volume_min_l_ha", "water_volume_max_l_ha",
@@ -561,6 +558,19 @@ from public.sag_inventario where id in ({','.join(map(str, ids)) or '0'})""", "i
             extra = f""",
   (select count(*) from antes_c a join public.product_uses p using (id) where {reemplazos}) as reemplazados"""
         for i, r in docs.items():
+            if r["estado"] == "diferencias":
+                campo, valor = "product_id", r["producto_id"]
+            else:
+                campo, valor = "source_document_id", r["documento_id"]
+            alcance = f"{campo} = {lit(valor)}::uuid"
+            if reemplazar:
+                # En el ensayo: cultivos que tenían líneas y quedarían sin ninguna visible.
+                extra = f""",
+  (select string_agg(distinct c.name::text, ', ') from antes_c a join public.crops c on c.id = a.crop_id
+   where a.review_status = 'pendiente' and not exists (select 1 from public.product_uses p
+     where p.{campo} = a.{campo} and p.review_status <> 'rechazado' and p.crop_id = a.crop_id))
+  as cultivos_perdidos"""
+
             def medir(extra=""):  # solo líneas visibles en el sitio
                 return f"""select count(*) as lineas,
   count(*) filter (where btrim(coalesce(dose_raw, '')) <> '') as dosis,
@@ -568,7 +578,7 @@ from public.sag_inventario where id in ({','.join(map(str, ids)) or '0'})""", "i
   count(*) filter (where water_volume_min_l_ha is not null or water_volume_max_l_ha is not null) as mojamiento,
   count(*) filter (where interval_min_days is not null or interval_max_days is not null) as intervalo,
   count(*) filter (where application_method is not null) as metodo{extra}
-from public.product_uses where source_document_id = {lit(r['documento_id'])}::uuid and review_status <> 'rechazado';"""
+from public.product_uses where {alcance} and review_status <> 'rechazado';"""
             try:
                 ver = verificar.verificar_archivo(os.path.join(carpeta, f"{i}.json"), os.path.dirname(ruta("sag", "verificado", "x")))
                 carga = Carga(cat, invs[i], ver, modelo, lote,
@@ -577,7 +587,7 @@ from public.product_uses where source_document_id = {lit(r['documento_id'])}::uu
                 if reemplazar:
                     carga.sql.append(f"""update public.product_uses set review_status = 'rechazado',
   reviewed_by = {lit(f'recopilador: reemplazada por una lectura nueva (lote {lote})')}, reviewed_at = now()
-where source_document_id = {lit(carga.d_id)}::uuid and review_status = 'pendiente';""")
+where {alcance} and review_status = 'pendiente';""")
                     n = carga.usos()
                     carga.cierre("cargado", "Líneas reemplazadas por una lectura nueva; las anteriores quedaron "
                                             "«rechazado» (ocultas, no se borraron)", reemplazo=True)
@@ -595,8 +605,7 @@ values ({lit(carga.d_id)}, 'validado', {lit(EXTRACTOR)}, {lit(modelo)}, {lit({
                 texto_sql = "\n".join(carga.sql) + "\n"
                 with open(ruta("sag", "sql", f"{modo}_{i}.sql"), "w", encoding="utf-8") as f:
                     f.write("begin;\n" + texto_sql + "commit;\n")
-                copia = (f"create temp table antes_c on commit drop as select * from public.product_uses "
-                         f"where source_document_id = {lit(r['documento_id'])}::uuid;\n")
+                copia = f"create temp table antes_c on commit drop as select * from public.product_uses where {alcance};\n"
                 prueba = sql("begin;\n" + copia + texto_sql + medir(extra) + "\nrollback;\n", f"ensayo_{modo}_{i}")[0]
                 cambios = ", ".join(f"{c} {antes[c]}→{prueba[c]}" for c in campos)
                 if reemplazar:

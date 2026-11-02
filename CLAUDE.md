@@ -239,10 +239,15 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
 - 84 «cultivos» son frases mal leídas (instrucciones de uso) con 92 líneas en total; además hay nombres
   cortos que no son cultivos («ADVERTENCIAS», «Syngenta», «NOCIVO») o que juntan varios («Manzano, Peral.»).
   El sitio marca como frase los de >40 caracteres o >6 palabras y **no los muestra en el buscador ni en
-  «¿Qué aplico?»**; sus líneas sí se ven en la ficha del producto. **Ojo (02-11-2026):** esas líneas sí entran en la
-  dosis «desde – hasta» del inicio (`v_sitio_resumen_productos`): 387 líneas con dosis de 122 productos. En TOPAS
-  200 EW metían «3 – 15 L/ha» (eran n.° de aplicaciones e intervalos); sus 6 líneas se ocultaron (`rechazado`) con el
-  «sí» de Cristóbal, y se le agregó el penconazol que le faltaba (migración `correccion_topas_e_irac_romanos`).
+  «¿Qué aplico?»**; sus líneas sí se ven en la ficha del producto. **Revisión del 02-11-2026** (esas líneas sí entran
+  en la dosis «desde – hasta» del inicio): de 387 líneas con dosis, 334 son cultivos reales con nombre largo
+  («Vides (de mesa, para vino y para pisco)», «Plantaciones forestales (Pino…)») y dosis correctas; Dormex, KEEP y
+  Stimplex V1 tienen una frase que describe el uso pero dosis reales. Con el «sí» de Cristóbal se ocultaron
+  (`rechazado`) las de dosis falsas: TOPAS 200 EW (6, «3 – 15 L/ha»; además se le agregó el penconazol que le
+  faltaba, migración `correccion_topas_e_irac_romanos`) y KARATE CON TECNOLOGIA ZEON (5, «1 – 200 L/ha», migración
+  `correccion_karate_zeon_frases`); CUPROFORTE se reemplazó entero con la etiqueta del SAG (ver «Estado del
+  recopilador»). Queda: el criterio de «frase» esconde del filtro por cultivo esos 334 cultivos reales (por ejemplo,
+  «Vides (…)» no sale al filtrar por Vid).
 - Cultivos duplicados/variantes: «Repollito de Bruselas» / «Repollo de Bruselas» / «REPOLLODE BRUSELAS»,
   «Zarzaparrila» / «Zarzaparrilla», «Mango» (0 líneas) / «Mango Vides Forestales».
 - Objetivos con muchas variantes (ej. 50 «oídio» con distintos nombres científicos). El sitio ofrece
@@ -546,7 +551,9 @@ vigentes 1xxx, sin dato 2xxx, cancelados 3xxx; dentro, más nuevas primero. Lo n
    transacción que se deshace y cuenta los valores o citas que cambiarían (tiene que dar 0). `--reemplazar` (solo con
    el «sí» de Cristóbal): oculta las líneas «pendiente» del documento (`rechazado`, no se borran) y carga las de la
    extracción nueva; se niega si quedarían menos líneas con dosis o con carencia (salvo `--forzar`); con `--ensayo`
-   muestra antes → después y los cultivos que quedarían sin líneas.
+   muestra antes → después y los cultivos que quedarían sin líneas. Desde el 02-11-2026 también con etiquetas
+   «diferencias» (producto de la carga original): oculta las líneas «pendiente» de todo el producto y carga las de la
+   etiqueta del SAG (así se hizo con CUPROFORTE, 569).
 9. `reporte.py`: números para el informe (inventario, cobertura, autorizados sin etiqueta, problemas).
 Auxiliares: `comun.py`, `expandir.py` (fila × cultivo y su carencia; «cereza (7)» calza con «Cerezo»),
 `recorte.py` (zoom de una zona para los subagentes), `calce.py` (extracción nueva contra líneas cargadas),
@@ -723,8 +730,14 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   (3), 1725 VINCIT FLO (1 uso), 755, 1398, 1399, 1400 (dosis sin unidad); de la sesión 12: 1237 (Codex, 0 líneas), 1542
   (dosis de tomate), 157; de la sesión 13: 832 y 873 (0 líneas), 176 ACIGIB (falta uva de mesa), 470, 1621, 1351,
   888, 1386; de la sesión 14: 951 (0 líneas), 1010, 1000, 1306, 629, 1012, 507; de la sesión 15: 631, 632, 1171, 1297,
-  1691, 1741, 1743, 1004, 1209, 1211 (0 líneas: raticidas, madera, trampas), 523 («Uha»), 569 (sin cuadro aéreo), 986,
+  1691, 1741, 1743, 1004, 1209, 1211 (0 líneas: raticidas, madera, trampas), 523 («Uha»), 986,
   1567, 1648 (ver `docs/historia.md`).
+- **CUPROFORTE (569), 02-11-2026, con el «sí» de Cristóbal:** sus 59 líneas de la carga original eran texto OCR revuelto
+  (ningún cultivo real); `cargar.py --reemplazar --forzar` las ocultó y cargó 21 de la etiqueta del SAG (lote
+  `2026-11-02-cuproforte`). En `569.json` se separaron cultivos («Naranjo Limonero» → Naranjo y Limonero, «Nectarines y
+  Durazneros») y se agregaron a la cita las dosis de nogal y nectarines y la de avellano en cc/100 L, todas escritas en
+  la página (original en `569.antes.json`). Faltan olivo y berries: el PDF trae dos capas de texto revueltas
+  («AOrláivnodanos») y la verificación no los encuentra.
 - Falta: las diferencias de los productos que ya estaban (incluido ACABAN, inventario 161) y, al terminar, el
   workflow mensual.
 
