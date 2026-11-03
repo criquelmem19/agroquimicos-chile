@@ -97,6 +97,30 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
    que no la cumplen: al 20-10-2026 son 0).
 9. Medir cobertura antes y después. Meta: 80–90 % de las líneas con carencia resuelta y citada.
 
+## Recopilador: sesión 17 (03-11-2026, automática)
+
+~15:30–~18:05. 76 etiquetas cargadas (68 de subagentes + 8 de Codex: 1025, 1169, 1296, 1302, 1375, 1473, 1516, 1531) y 16
+con diferencias (productos que ya estaban: solo se agregó el documento), ~2.160 líneas, lotes `2026-11-03-17a` a `-17w`
+(Haiku; `-17a`, `-17o`, `-17s` y `-17v` con Sonnet) y `2026-11-03-17codex`. Se acabaron las vigentes nuevas fuera de UPL
+(que hace Codex): las últimas empresas chicas (Trical, ISK, Nutrien, Point, Anasac, Kimitec, Farmex, Nichino, Protecsa…).
+Después se empezó con las vigentes de productos que ya estaban. Como `lote.py` no excluye empresas, se usó un script en el
+scratchpad que filtraba `lote.cola()` sin UPL, Sumitomo y FMC ni las etiquetas problema conocidas y reservaba con
+`lote.reservar`. Uso: 5 h de 2 a 79 %, semanal de 50 a 61 %.
+- 776 y 1216 (pendientes de la sesión 16) cargadas con Sonnet desde la segunda lectura (18 y 35 líneas).
+- Cuadros en imagen: 306, 1389, 1391, 1577, 314, 1651, 1652, 277, 368, 411, 432 → `<id>.sin_cuadro.json`, `ocr.py
+  --tesseract --forzar` y Sonnet. Quedaron parciales: TRIFORM-30/35 (1651/1652) con 1 línea sin dosis (se quitó la fila
+  «Generales», cultivo mal partido; originales en `<id>.antes.json`), 1577 TENSCAP sin dosis, 1389/1391 sin varias filas de
+  malezas, 277 cereales sin dosis.
+- 1243 POKER 240 EC: remolacha con 113 días y también «no corresponde» (igual que 761) → se quitó la carencia de remolacha
+  del JSON antes de cargar (original en `1243.antes.json`).
+- Control al azar de las sesiones 16 y 17 (`sag/control/2026-11-03_1755_revision.json`): 18 de 30 sin observaciones, 0
+  valores que contradigan la etiqueta. Faltan: carencias de TAEX 3 (149, pino: «no es aplicable»), POWER 48 SL (1258,
+  nogal 3 días), ROUNDUP AMONIO (1389, tangelo «no tiene carencia») y CREZYMAX (551, uva); dosis de TENSCAP (1577, rosal
+  50 cc/hL) y PURE SPRAY 22 E (1313, peral); dosis sin unidad en PROBLAD (1278, manzano, L/ha) y POKER (1243, pecano, L/ha);
+  máximos de 305 y 550; mojamiento de 1116; la dosis de suelos livianos de BASAMID (326).
+- Flojas: 1636 (0 líneas), 901, 1365, 1673, 1208, 1210 (coadyuvante, feromonas y trampas sin cultivo: 0 líneas), 1605 (fila
+  15 sin cultivo tras el salto de página), 903 (manzano: dos dosis asignadas por orden de la celda).
+
 ## Recopilador: sesión 16 (03-11-2026, automática)
 
 ~13:15–~14:15. 100 etiquetas cargadas + 1 que no es etiqueta (1254, pliego de imprenta de POMARSOL), ~2.500 líneas,
