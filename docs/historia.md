@@ -97,6 +97,29 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
    que no la cumplen: al 20-10-2026 son 0).
 9. Medir cobertura antes y después. Meta: 80–90 % de las líneas con carencia resuelta y citada.
 
+## Recopilador: sesión 16 (03-11-2026, automática)
+
+~13:15–~14:15. 100 etiquetas cargadas + 1 que no es etiqueta (1254, pliego de imprenta de POMARSOL), ~2.500 líneas,
+lotes `2026-11-03-16a` a `-16zc` (Haiku; `-16x` con Sonnet). Empresas: Albaugh (las 8 que quedaban), Protección de
+Madera, Monsanto, Nutrien, ISK, Kerley, Comercial KPC, Trical, Urrejola, TotalEnergies, Quimetal, New Tech Agro,
+Agrium, Clariant, Eastman, Pilarquim, Keytox, Gastón Toledo, Díaz y García, BTS Intrade, Biogram, Newpat, YPF,
+Mitsui, Agria, AQL, Innoprint, CS Asesorías, Marketing Arm, Citrex, Agroenzymas y Agroconnexion.
+Uso: 5 h de 2 a ~76 %, semanal de 40 a ~50 %.
+- Control al azar de la sesión 15 (`sag/control/2026-11-03_1015_revision.json`): 14 de 30 sin observaciones, 0 valores
+  que contradigan la etiqueta; faltan máximos (7), mojamientos (3), objetivos (3), 2 carencias, 2 intervalos. Dudoso:
+  HARVISTA 1,3 SC (855) peral con máx. 1 aplicación que la etiqueta no dice; MAGISTER 20 SC (1009) pomelo y tangerina
+  con dosis sin unidad (cc/100 L); CAVALIER 240 EC (447) sin carencia y la etiqueta dice que no corresponde.
+- Cuadros imagen: 1632 y 1650 → Tesseract y nueva extracción (1650 quedó con 1 línea: el cuadro sigue sin cifras
+  citables). 474 (pág. 1 sin OCR) → `ocr.py --forzar` + Tesseract y cargada (7 líneas). 976 y 171 (Agrospec): Haiku
+  dejó la mitad de los cuadros → Sonnet (76 y 72 líneas). **Sin cargar, para la próxima sesión: 776 y 1216**
+  (cultivos solo en la imagen; ya tienen la segunda lectura de Tesseract; JSON parcial como `<id>.sin_cuadro.json`).
+- Flojas: 1650 TRIFORM-15 (1 línea), 1446 (coadyuvante sin cultivos, 0 líneas), 1443/1742/1744/1602/1603/1134–1136
+  (preservantes de madera, 0–1 línea), 600/601/1384 y 898 (raticidas y coadyuvante, 0 líneas), 984 y 1538
+  (coadyuvantes, 2 líneas; 1538 tiene marca de agua «BORRADOR»), 339 (avena sin dosis), 1390 ROUNDUP CONTROLMAX
+  (491 líneas: 35 cultivos × grupos de malezas) y 1218 (468 líneas, mismo caso), 1456 (carencia 120 días en el cuadro
+  y «60 días» en una nota: se cargó 120), 382 (carencia 0 días y «hasta 14 días antes de la cosecha»), 1522 (perales y
+  nogales con dos dosis apiladas: solo quedó la primera).
+
 ## Recopilador: sesión 15 (02-11-2026, automática)
 
 - ~13:20–~14:15 (hora de Chile). Uso al empezar: 5 h 2 %, semanal 27 %; al terminar: 5 h ~77 %, semanal ~37 % (se dejó

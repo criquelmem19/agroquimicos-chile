@@ -677,7 +677,7 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   del 25-10-2026): otra extracción numera las filas distinto y podía poner la dosis de una fila en otra del mismo
   cultivo. Ahora también exige la misma página y algún objetivo en común.
 
-## Estado del recopilador (02-11-2026, ~14:15, después de la sesión 15)
+## Estado del recopilador (03-11-2026, ~14:15, después de la sesión 16)
 
 - Frase de Cristóbal para seguir a mano: **«Sigue con el recopilador del SAG»** → «Cómo seguir». Ahora corre solo
   (ver «Sesiones automáticas»). El detalle de cada sesión va al final de `docs/historia.md` (la más nueva arriba).
@@ -692,26 +692,31 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   **Sesión 14** (02-11, ~08:00–~08:50): 72 etiquetas (Haiku), 1.993 líneas, lotes `2026-11-02-14a` a `-14q`; Solchem,
   Arysta, Acres y Sipcam terminadas. Uso: 5 h de 2 a 86 %, semanal de 14 a 26 %. **Sesión 15** (02-11, ~13:20–~14:15):
   95 etiquetas + 1 con diferencias (Haiku), 1.942 líneas, lotes `2026-11-02-15a` a `-15z`; Degesch, Gowan, AgroFresh,
-  Makhteshim Agan, Summit Agro y Oscar Ham terminadas, y varias empresas chicas. Uso: 5 h de 2 a ~77 %, semanal de 27 a ~37 %.
+  Makhteshim Agan, Summit Agro y Oscar Ham terminadas, y varias empresas chicas. Uso: 5 h de 2 a ~77 %, semanal de 27 a ~37 %. **Sesión 16** (03-11, ~13:15–~14:15): 100 etiquetas (Haiku; 2 con
+  Sonnet), ~2.500 líneas, lotes `2026-11-03-16a` a `-16zc`; ~32 empresas chicas (Albaugh, Protección de Madera, Monsanto,
+  Nutrien, ISK, Kerley, KPC, Trical, Urrejola, TotalEnergies…). Uso: 5 h de 2 a ~76 %, semanal de 40 a ~50 %.
 - **Codex:** 20 cargadas y **control al azar hecho** (30-10, `sag/control/2026-10-30_0804_revision.json`: 22 de 30 sin
   observaciones, 0 valores contradictorios, solo datos que faltan): se sigue cargando lo suyo normalmente. **Codex: UPL**.
-- **Empresa actual: la primera de `lote.py --empresas`** después de UPL (al 02-11: Albaugh Chile Agroquímica 7, Protección de
-  Madera 6, CSR Consulting, Monsanto, Nutrien…; quedan ~184 fuera de UPL, casi todas de empresas con 1–6). Anasac, Syngenta,
+- **Empresa actual: la primera de `lote.py --empresas`** después de UPL (al 03-11 quedan ~80 fuera de UPL, de empresas con
+  1–3; saltar Sumitomo y FMC, que son las etiquetas problema de abajo). **Pendientes de la sesión 16: 776 y 1216** (cultivos
+  solo en imagen, ya con Tesseract; JSON parcial `<id>.sin_cuadro.json`): darlas en un encargo con la nota de «segunda lectura». Anasac, Syngenta,
   Bayer, BASF, Agrospec, Sumitomo, Corteva, ADAMA, FMC, Point (salvo 509), Albaugh, Solchem, Arysta, Acres, Sipcam, Degesch,
   Gowan, AgroFresh, Makhteshim Agan, Summit Agro y Oscar Ham: terminadas. **Páginas de etiqueta marcadas como HDS por `textos.py`** (sin cargar, JSON como
   `<id>.pagina_hds.json`): 932 JANUS 480 FS (Bayer, cuadro en la pág. 19), 532 y 1692 VALIS M (FMC), 509 Clorotalonil
   720 SC (Point); hay que corregir la clasificación de esas páginas y volver a extraerlas. De Anasac, 1059/1060 METRICLAN.
   **Sumitomo sin cargar: 464 CHAMP DP WG, 648 DiTera WG y 817 GIBGRO 10LS** (pág. 1 escaneada de lado; ni Sonnet las lee:
   `ocr.py` tiene que probar el otro giro).
-- **Cola:** ~277 vigentes de productos nuevos (93 de UPL, de Codex); además ~110 de productos que ya estaban y 236
-  canceladas o que no figuran en la planilla. Ritmo: ~55–110 por sesión y ~650 por semana (límite semanal); Codex suma
-  aparte. Estimado: vigentes nuevas ~5–7 de noviembre; todo ~10–13 de noviembre.
-- Inventario: 1.634 filas; 641 en «texto», 861 cargadas, 14 diferencias, 63 no son etiqueta, 29 versiones
+- **Cola:** ~175 vigentes de productos nuevos (93 de UPL, de Codex); además ~110 de productos que ya estaban y 236
+  canceladas o que no figuran en la planilla. Ritmo: ~55–110 por sesión (~10 % del semanal cada una); Codex suma
+  aparte. Estimado: vigentes nuevas ~4–5 de noviembre; todo ~9–12 de noviembre.
+- Inventario: 1.634 filas; 543 en «texto», 962 cargadas, 13 diferencias, 64 no son etiqueta, 26 versiones
   anteriores, 14 sin PDF, 5 ilegibles, 5 duplicados, 2 ya en la base.
-- Base: 1.012 productos (976 con N° SAG), 30.945 líneas visibles; dosis 94,3 %, carencia 91,0 %; 102 MB.
-- Último control al azar: 02-11-2026 14:05, con ~840 cargadas, 30 líneas de la sesión 14
+- Base: 1.112 productos (1.075 con N° SAG), 33.444 líneas visibles; dosis 94,0 %, carencia 90,9 %; 108 MB.
+- Último control al azar: 03-11-2026 10:15, de la sesión 15 (`sag/control/2026-11-03_1015_revision.json`): 14 de 30 sin
+  observaciones, 0 valores que contradigan la etiqueta, casi todo datos que faltan (máximos, mojamientos). **El siguiente con
+  ~1.060 cargadas** (con `--lote "2026-11-03-16%"`). Antes: 02-11-2026 14:05, con ~840 cargadas, 30 líneas de la sesión 14
   (`sag/control/2026-11-02_1405_revision.json`): 20 sin observaciones, 3 valores que no calzan (ver preguntas), el resto
-  datos que faltan. **El siguiente con ~960 cargadas** (con `--lote "2026-11-02-15%"`). Antes: 02-11 08:34 (sesión 13, 21 de
+  datos que faltan. Antes: 02-11 08:34 (sesión 13, 21 de
   30 sin observaciones). Antes: 01-11 12:34
   (sesión 10, 16 de 30 sin observaciones, faltan mojamientos). Anterior: 29-10 08:48, con ~545 cargadas, 30 líneas de la sesión 8
   (`sag/control/2026-10-29_0848_revision.json`): 20 sin observaciones, 0 valores que contradigan la etiqueta; faltan datos
@@ -726,7 +731,9 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   (objetivo «#»), **1579 TERBUTILAZINA 75 DF** (nogal con «Siete venas» y «Chinilla», de la fila de avellano), **1154
   NUZOLE** (granado, dosis «60» sin unidad: cc/100 L); **1465/1467** (1-MCP: ¿«no aplica» por «no deja residuos
   detectables»?); ACTELLIC AGRO (188); Agrocup (207); revisar
-  `recopilador_revision`.
+  `recopilador_revision`; del control del 03-11: **855 HARVISTA** (peral, máx. 1 aplicación que la etiqueta no dice:
+  ¿quitar?), **1009 MAGISTER** (pomelo y tangerina, dosis sin unidad: cc/100 L), **447 CAVALIER** (carencia «no aplica»);
+  de la sesión 16: **1456** (carencia 120 días en el cuadro y «60 días» en una nota), **382** (0 días y «hasta 14 días antes»).
 - Etiquetas flojas: COLT 45 WP (515); BACIFRUIT SC (315); AQUILES 24 EC (261); TOXIMOL (1620, segundo cuadro pág. 4); 591;
   RANGO 480 SL (1337); NEXUS 50 SL (1129); 1717; 542; de la sesión 8: 828/829/830 GLIFOSPEC, 1382 RIPPER MAX, 1148 NUMEK,
   1176 OVERKILL (cuadro aéreo), 1452 SIMAZINA, 640, 940, 647, 1699; de la sesión 10: 197 y 1708 VERPEZU (0 líneas), 639,
@@ -735,7 +742,8 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   (dosis de tomate), 157; de la sesión 13: 832 y 873 (0 líneas), 176 ACIGIB (falta uva de mesa), 470, 1621, 1351,
   888, 1386; de la sesión 14: 951 (0 líneas), 1010, 1000, 1306, 629, 1012, 507; de la sesión 15: 631, 632, 1171, 1297,
   1691, 1741, 1743, 1004, 1209, 1211 (0 líneas: raticidas, madera, trampas), 523 («Uha»), 986,
-  1567, 1648 (ver `docs/historia.md`).
+  1567, 1648; de la sesión 16: 1650, 1446, 339, 1522, 1390 y 1218 (cientos de líneas), y las de madera, raticidas y
+  coadyuvantes con 0–2 líneas (ver `docs/historia.md`).
 - **CUPROFORTE (569), 02-11-2026, con el «sí» de Cristóbal:** sus 59 líneas de la carga original eran texto OCR revuelto
   (ningún cultivo real); `cargar.py --reemplazar --forzar` las ocultó y cargó 21 de la etiqueta del SAG (lote
   `2026-11-02-cuproforte`). En `569.json` se separaron cultivos («Naranjo Limonero» → Naranjo y Limonero, «Nectarines y
