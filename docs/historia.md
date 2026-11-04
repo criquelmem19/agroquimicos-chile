@@ -97,6 +97,19 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
    que no la cumplen: al 20-10-2026 son 0).
 9. Medir cobertura antes y después. Meta: 80–90 % de las líneas con carencia resuelta y citada.
 
+## Recopilador: sesión 18 (04-11-2026, automática)
+
+~11:00–~13:00. 93 etiquetas vigentes de productos que ya estaban en el catálogo, con 24 subagentes Haiku de 4 (lotes
+`2026-11-04-18a` a `-18x`): 91 quedaron «diferencias» (se agregó el documento del SAG y se anotaron las diferencias con
+las líneas que ya estaban, sin tocarlas; entre ellas ACABAN 050 SC, inventario 161, versión 16-06-2025, 13 diferencias)
+y 2 entraron como producto nuevo: 1130 NIMITZ 480 EC (3 líneas) y 714 (49 líneas, cuadro en imagen: `ocr.py --tesseract
+--forzar` y otro encargo citando desde la segunda lectura). El filtro de la sesión 17 quedó como
+`scripts/recopilador/lote_resto.py`. `lote.py --help` reservó 8 etiquetas por error (no tiene ayuda): se soltaron.
+Sin control al azar (no hubo líneas nuevas que revisar). Uso: 5 h de 2 a ~80 %, semanal de 61 a ~72 %.
+- Puntos a revisar cuando se comparen las diferencias: 1416 SCHOLAR 230 SC (arándano «350 - 1304 cc/100 L», posible
+  error de la etiqueta), 1504 STREPTO PLUS (nogal «120» sin unidad), 811 GESAPRIM 90 WG («por corresponde» = no corresponde),
+  1534 (carencia «para mercado local»), 1617 (vides «hasta 4» aplicaciones y máximo general 3).
+
 ## Recopilador: sesión 17 (03-11-2026, automática)
 
 ~15:30–~18:05. 76 etiquetas cargadas (68 de subagentes + 8 de Codex: 1025, 1169, 1296, 1302, 1375, 1473, 1516, 1531) y 16

@@ -677,7 +677,7 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   del 25-10-2026): otra extracción numera las filas distinto y podía poner la dosis de una fila en otra del mismo
   cultivo. Ahora también exige la misma página y algún objetivo en común.
 
-## Estado del recopilador (03-11-2026, ~18:05, después de la sesión 17)
+## Estado del recopilador (04-11-2026, ~13:00, después de la sesión 18)
 
 - Frase de Cristóbal para seguir a mano: **«Sigue con el recopilador del SAG»** → «Cómo seguir». Ahora corre solo
   (ver «Sesiones automáticas»). El detalle de cada sesión va al final de `docs/historia.md` (la más nueva arriba).
@@ -698,24 +698,29 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   **Sesión 17** (03-11, ~15:30–~18:05): 76 etiquetas cargadas (68 Haiku/Sonnet + 8 de Codex) y 16 con diferencias
   (productos que ya estaban), ~2.160 líneas, lotes `2026-11-03-17a` a `-17w` y `2026-11-03-17codex`; se acabaron las
   vigentes nuevas fuera de UPL y se empezó con las de productos que ya estaban. Uso: 5 h de 2 a 79 %, semanal de 50 a 61 %.
+  **Sesión 18** (04-11, ~11:00–~13:00): 93 etiquetas vigentes de productos que ya estaban (Haiku): 91 con diferencias
+  (solo documento y diferencias anotadas) y 2 cargadas como producto nuevo (1130 NIMITZ 480 EC, 3 líneas; 714, 49 líneas),
+  lotes `2026-11-04-18a` a `-18x`. Uso: 5 h de 2 a ~80 %, semanal de 61 a ~72 %.
 - **Codex:** 20 cargadas y **control al azar hecho** (30-10, `sag/control/2026-10-30_0804_revision.json`: 22 de 30 sin
   observaciones, 0 valores contradictorios, solo datos que faltan): se sigue cargando lo suyo normalmente. **Codex: UPL**.
-- **Siguiente: etiquetas vigentes de productos que ya estaban** (`--vigentes` sin `--nuevos`, ~116; sin UPL, que es de
-  Codex). Las vigentes nuevas fuera de UPL se acabaron el 03-11 (solo quedan las etiquetas problema de abajo y 2 de Anasac
-  y 1 de Bayer que son de esa lista). `lote.py` no tiene filtro para excluir empresas: la sesión 17 usó un script propio
-  que tomaba la cola de `lote.cola()` sin UPL/Sumitomo/FMC y reservaba con `lote.reservar`. Anasac, Syngenta,
+- **Siguiente: las últimas ~23 vigentes de productos que ya estaban y después las ~230 canceladas o sin planilla**, con
+  `scripts/recopilador/lote_resto.py 3 4` (y `--todas` cuando las vigentes se acaben): toma `lote.cola()` sin UPL (Codex),
+  Sumitomo, FMC ni las etiquetas problema, y reserva. **Ojo: `lote.py --help` no muestra ayuda, reserva 8 etiquetas**
+  (soltarlas con `lote_resto.py unreserve <ids>`). Las vigentes nuevas fuera de UPL se acabaron el 03-11. Anasac, Syngenta,
   Bayer, BASF, Agrospec, Sumitomo, Corteva, ADAMA, FMC, Point (salvo 509), Albaugh, Solchem, Arysta, Acres, Sipcam, Degesch,
   Gowan, AgroFresh, Makhteshim Agan, Summit Agro y Oscar Ham: terminadas. **Páginas de etiqueta marcadas como HDS por `textos.py`** (sin cargar, JSON como
   `<id>.pagina_hds.json`): 932 JANUS 480 FS (Bayer, cuadro en la pág. 19), 532 y 1692 VALIS M (FMC), 509 Clorotalonil
   720 SC (Point); hay que corregir la clasificación de esas páginas y volver a extraerlas. De Anasac, 1059/1060 METRICLAN.
   **Sumitomo sin cargar: 464 CHAMP DP WG, 648 DiTera WG y 817 GIBGRO 10LS** (pág. 1 escaneada de lado; ni Sonnet las lee:
   `ocr.py` tiene que probar el otro giro).
-- **Cola:** 454 en «texto»: ~84 vigentes nuevas de UPL (Codex), ~10 etiquetas problema, ~116 de productos que ya
-  estaban y 236 canceladas o que no figuran en la planilla. Ritmo: ~75–100 por sesión (~10 % del semanal cada una); Codex
-  suma aparte. Estimado: vigentes ~5–6 de noviembre; todo ~9–12 de noviembre (el semanal se renueva el 07-11).
-- Inventario: 1.634 filas; 454 en «texto», 1.038 cargadas, 29 diferencias, 64 no son etiqueta, 23 versiones
+- **Cola:** 362 en «texto»: ~84 vigentes nuevas de UPL (Codex), ~10 etiquetas problema, ~23 vigentes de productos que ya
+  estaban y ~230 canceladas o que no figuran en la planilla (fuera de UPL). Ritmo: ~75–100 por sesión (~10 % del semanal
+  cada una); Codex suma aparte. Estimado: vigentes ~5 de noviembre; todo ~9–11 de noviembre (el semanal se renueva el 07-11).
+- Inventario: 1.634 filas; 362 en «texto», 1.040 cargadas, 122 diferencias, 64 no son etiqueta, 20 versiones
   anteriores, 14 sin PDF, 5 ilegibles, 5 duplicados, 2 ya en la base.
-- Base: 1.188 productos (1.149 con N° SAG), 35.606 líneas visibles; dosis 94,1 %, carencia 90,6 %; 113 MB.
+- Base: 1.190 productos (1.151 con N° SAG), 35.658 líneas visibles; dosis 94,1 %, carencia 90,6 %; 113 MB.
+- Control al azar: la sesión 18 no lo hizo (casi todo fueron diferencias, sin líneas nuevas); sigue tocando con ~1.140
+  cargadas.
 - Último control al azar: 03-11-2026 17:55, de las sesiones 16 y 17 (`sag/control/2026-11-03_1755_revision.json`): 18 de
   30 sin observaciones, 0 valores que contradigan la etiqueta; faltan 6 dosis (o sin unidad), 4 carencias, 2 máximos, 1
   mojamiento. **El siguiente con ~1.140 cargadas**. Antes: 03-11-2026 10:15, de la sesión 15
