@@ -22,7 +22,7 @@ if a and a[0] == "unreserve":
 agentes, por = int(a[0]), int(a[1])
 vig = "--todas" not in a
 EXCL = ("upl", "sumitomo", "fmc")
-PROB = {464,509,532,1692,932,648,817,1059,1060,409}
+PROB = {464,509,532,1692,932,648,817,1059,1060,409,673,1123}
 listas = lote.hechas()
 filas = [f for f in lote.cola() if not any(e in (f["empresa"] or "").lower() for e in EXCL)
          and (not vig or lote.vigente(f)) and f["id"] not in PROB]

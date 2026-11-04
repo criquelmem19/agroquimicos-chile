@@ -97,6 +97,22 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
    que no la cumplen: al 20-10-2026 son 0).
 9. Medir cobertura antes y después. Meta: 80–90 % de las líneas con carencia resuelta y citada.
 
+## Recopilador: sesión 19 (04-11-2026, automática)
+
+- ~13:20–~15:20. 94 etiquetas. Codex: 10 cargadas de UPL (531 líneas, lote `2026-11-04-19codex`) y 1686 no es etiqueta.
+- Haiku (19 subagentes de 3–4 etiquetas, nunca más de 3 a la vez): las últimas 23 vigentes de productos que ya estaban
+  (todas «diferencias»: solo documento y diferencias anotadas) y luego canceladas o sin planilla con `lote_resto.py --todas`:
+  56 cargadas como producto nuevo (1.908 líneas), 4 más con diferencias. Lotes `2026-11-04-19a` a `-19v`.
+- Ajustes antes de cargar: 206 AGROCOPPER SP, Anasac «distribuidor» (deducido) → «otro» (`206.antes.json`); 938 KALIGREEN
+  TOP, fila 5 (tomate y otros): se quitó Botritis porque el subagente le puso la dosis del oídio (`938.antes.json`).
+- 335 y 354: cuadro en imagen → `ocr.py --tesseract --forzar` y nueva extracción citando la segunda lectura (3 y 29 líneas).
+- 673 DUOMAX 425 SC y 1123 NEMATON: pág. 1 de lado, OCR basura → `<id>.girada.json`, agregadas a `PROB` de `lote_resto.py`.
+- Flojas: 889 IMIDACLOPRID 70 % WP Agrospec (OCR dañado, faltan carencias; solo diferencias), 479 (faltan dosis; diferencias),
+  1050/1202/1665 (sin cuadro; diferencias), 334 (1 línea, fila 3 sin cultivo visible), 336 (cítricos «14.0000 ppm»),
+  512 COBRE PREMIUM (carencia «no aplica» por «frutales recomendados», incluye vides y berries), 977 (2 intervalos quitados),
+  1180 (berries sin carencia), 1178/1179 OXI-CUP (nota de mojamiento y máximo sin asignar).
+- Sin control al azar (paró por uso con 1.106 cargadas). Uso: 5 h de 12 a 74 %, semanal de 73 a 81 %.
+
 ## Recopilador: sesión 18 (04-11-2026, automática)
 
 ~11:00–~13:00. 93 etiquetas vigentes de productos que ya estaban en el catálogo, con 24 subagentes Haiku de 4 (lotes
