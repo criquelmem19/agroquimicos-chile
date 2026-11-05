@@ -727,7 +727,7 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   anteriores, 14 sin PDF, 5 ilegibles, 5 duplicados, 2 ya en la base.
 - Base: 1.292 productos (1.253 con N° SAG), 39.311 líneas visibles; dosis 94,0 %, carencia 91,0 %; 122 MB.
 - Último control al azar: 05-11-2026 08:15, de la sesión 19 (`sag/control/2026-11-05_0815_revision.json`): 19 de 30 sin
-  observaciones; 10 líneas con datos que faltan (dosis, carencia, máximos, intervalos, mojamiento) y 2 con objetivo «#» que la
+  observaciones; 9 líneas con datos que faltan (dosis, carencia, máximos, intervalos, mojamiento) y 2 con objetivo «#» que la
   etiqueta no trae (CARFEX, 438). **El siguiente con ~1.240 cargadas.**
 - Antes: 03-11-2026 17:55, de las sesiones 16 y 17 (`sag/control/2026-11-03_1755_revision.json`): 18 de
   30 sin observaciones, 0 valores que contradigan la etiqueta; faltan 6 dosis (o sin unidad), 4 carencias, 2 máximos, 1
