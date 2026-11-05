@@ -677,7 +677,7 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   del 25-10-2026): otra extracción numera las filas distinto y podía poner la dosis de una fila en otra del mismo
   cultivo. Ahora también exige la misma página y algún objetivo en común.
 
-## Estado del recopilador (05-11-2026, ~08:35, después de la sesión 20)
+## Estado del recopilador (05-11-2026, ~13:40, después de la sesión 21)
 
 - Frase de Cristóbal para seguir a mano: **«Sigue con el recopilador del SAG»** → «Cómo seguir». Ahora corre solo
   (ver «Sesiones automáticas»). El detalle de cada sesión va al final de `docs/historia.md` (la más nueva arriba).
@@ -707,9 +707,12 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   **Sesión 20** (05-11, ~08:12–~08:35): 36 etiquetas: 20 de Codex (UPL, 867 líneas) y 16 canceladas o sin planilla (Haiku,
   347 líneas), lotes `2026-11-05-20a` a `-20d` y `2026-11-05-20codex`, y control al azar; paró por el semanal. Uso: 5 h de 2 a
   16 %, semanal de 87 a 89 %.
+  **Sesión 21** (05-11, ~13:22–~13:40): 20 etiquetas: 8 de Codex (UPL, 492 líneas) y 12 canceladas o sin planilla (Haiku,
+  214 líneas), lotes `2026-11-05-21a` a `-21c`, `2026-11-05-21codex` y `-21codex2`; paró al llegar a 90 % semanal. Uso: 5 h de
+  2 a 9 %, semanal de 89 a 90 %.
 - **Codex:** 20 cargadas y **control al azar hecho** (30-10, `sag/control/2026-10-30_0804_revision.json`: 22 de 30 sin
   observaciones, 0 valores contradictorios, solo datos que faltan): se sigue cargando lo suyo normalmente. **Codex: UPL**.
-- **Siguiente: las ~134 canceladas o sin planilla que quedan** (las vigentes fuera de UPL se acabaron el 04-11), con
+- **Siguiente: las ~122 canceladas o sin planilla que quedan** (las vigentes fuera de UPL se acabaron el 04-11), con
   `scripts/recopilador/lote_resto.py 3 4 --todas`: toma `lote.cola()` sin UPL (Codex),
   Sumitomo, FMC ni las etiquetas problema, y reserva. **Ojo: `lote.py --help` no muestra ayuda, reserva 8 etiquetas**
   (soltarlas con `lote_resto.py unreserve <ids>`). Las vigentes nuevas fuera de UPL se acabaron el 03-11. Anasac, Syngenta,
@@ -720,12 +723,12 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   **Sumitomo sin cargar: 464 CHAMP DP WG, 648 DiTera WG y 817 GIBGRO 10LS** (pág. 1 escaneada de lado; ni Sonnet las lee:
   `ocr.py` tiene que probar el otro giro). Igual (sesión 19, JSON como `<id>.girada.json`, en `PROB` de `lote_resto.py`):
   673 DUOMAX 425 SC y 1123 NEMATON.
-- **Cola:** 239 en «texto»: ~54 de UPL (Codex), ~12 etiquetas problema y 134 canceladas o que no figuran en la planilla
+- **Cola:** 219 en «texto»: ~46 de UPL (Codex), ~12 etiquetas problema y 122 canceladas o que no figuran en la planilla
   (fuera de UPL; el resto reservadas o de Sumitomo/FMC). Ritmo: ~75–95 por sesión (~8–10 % del semanal); Codex suma aparte.
-  Estimado: todo ~9–11 de noviembre (el semanal está en 89 % y se renueva el 07-11 a mediodía).
-- Inventario: 1.634 filas; 239 en «texto», 1.142 cargadas, 149 diferencias, 65 no son etiqueta, 13 versiones
+  Estimado: todo ~9–11 de noviembre (el semanal está en 90 % y se renueva el 07-11 a mediodía).
+- Inventario: 1.634 filas; 219 en «texto», 1.162 cargadas, 149 diferencias, 65 no son etiqueta, 13 versiones
   anteriores, 14 sin PDF, 5 ilegibles, 5 duplicados, 2 ya en la base.
-- Base: 1.292 productos (1.253 con N° SAG), 39.311 líneas visibles; dosis 94,0 %, carencia 91,0 %; 122 MB.
+- Base: 1.312 productos (1.273 con N° SAG), 40.017 líneas visibles; dosis 94,1 %, carencia 91,1 %; 124 MB.
 - Último control al azar: 05-11-2026 08:15, de la sesión 19 (`sag/control/2026-11-05_0815_revision.json`): 19 de 30 sin
   observaciones; 9 líneas con datos que faltan (dosis, carencia, máximos, intervalos, mojamiento) y 2 con objetivo «#» que la
   etiqueta no trae (CARFEX, 438). **El siguiente con ~1.240 cargadas.**

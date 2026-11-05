@@ -97,6 +97,15 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
    que no la cumplen: al 20-10-2026 son 0).
 9. Medir cobertura antes y después. Meta: 80–90 % de las líneas con carencia resuelta y citada.
 
+## Recopilador: sesión 21 (05-11-2026, automática)
+
+~13:22–~13:40. Partió con el semanal en 89 % y llegó a 90 % con la primera tanda: no se lanzaron más subagentes.
+
+- Codex (UPL): 153, 154, 1431, 1481, 1656, 1660 (lote `2026-11-05-21codex`, 489 líneas) y 214, 383 (`-21codex2`, 3 líneas).
+- Haiku, canceladas o sin planilla: 1685, 1694, 1709, 1719 (`-21a`, 43 líneas); 1597, 1630, 1639, 1640 (`-21b`, 68); 1641, 1642, 1657, 1674 (`-21c`, 103).
+- Avisos de los subagentes: 1709 VERPEZU AYR escribe el ingrediente «Florilpicoxamida» (copiado tal cual); 1719 VEXOR 500 SC trae HRAC «Grupo 29 L» (tal cual); 1597 carozos con carencia condicionada (7 días fresco, 14 deshidratado) y sin mojamiento; 1685 sin mojamiento (depende del equipo); 1641 fila 13b con dosis mezclada con observaciones en el texto.
+- Sin control al azar: el siguiente toca con ~1.240 cargadas.
+
 ## Recopilador: sesión 20 (05-11-2026, automática)
 
 ~08:12–~08:35. Partió con el semanal en 87 % (subió 6 puntos desde la sesión 19 sin cargas del recopilador) y paró en 89 % para no pasar de 90 %.
