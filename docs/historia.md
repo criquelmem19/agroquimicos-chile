@@ -97,6 +97,15 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
    que no la cumplen: al 20-10-2026 son 0).
 9. Medir cobertura antes y después. Meta: 80–90 % de las líneas con carencia resuelta y citada.
 
+## Recopilador: sesión 20 (05-11-2026, automática)
+
+~08:12–~08:35. Partió con el semanal en 87 % (subió 6 puntos desde la sesión 19 sin cargas del recopilador) y paró en 89 % para no pasar de 90 %.
+
+- Codex: 20 etiquetas de UPL, 867 líneas (lote `2026-11-05-20codex`).
+- Haiku: 16 canceladas o sin planilla, 347 líneas (lotes `2026-11-05-20a` a `-20d`): 1303, 1304, 1321, 1359, 1510, 1511, 1514, 1523, 1387, 1428, 1432, 1468, 1527, 1551, 1589, 1590.
+- 1551 TAMENKILL quedó con 0 líneas: los 4 usos traían el cultivo con su paréntesis completo y `verificar.py` no lo encontró escrito así, porque en el cuadro está en varias líneas. El JSON sigue en `sag/extraido/1551.json`.
+- Control al azar de la sesión 19: 19 de 30 sin observaciones (`sag/control/2026-11-05_0815_revision.json`).
+
 ## Recopilador: sesión 19 (04-11-2026, automática)
 
 - ~13:20–~15:20. 94 etiquetas. Codex: 10 cargadas de UPL (531 líneas, lote `2026-11-04-19codex`) y 1686 no es etiqueta.
