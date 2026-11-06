@@ -430,8 +430,14 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     la página, salvo que la persona ya la haya tocado (`tocada` en `app.js`; lo nuevo se ve en la página siguiente).
     Sin conexión: queda la copia y aparece el aviso (supabase-js reintenta ~8 s antes de rendirse). Sin copia, se espera
     la descarga como antes. **Si cambia la forma de `descargarCatalogo`, subir `CLAVE_CACHE` (v4…).**
-  - `todas()` pide varias páginas a la vez (objetivos: 4; productos y resumen: 2; luego de a 3). Primera visita:
-    tabla en ~2,7 s (antes 3,5 s con la base despierta y >6 s dormida).
+  - **Caída del 06-11-2026:** con ~40 mil líneas y 150 mil `use_targets`, las vistas `v_sitio_*` recalculan todo en cada
+    consulta y, todas a la vez, pasaban los **3 s de `statement_timeout` de `anon`** (error 57014): el sitio decía «No se
+    pudieron cargar los datos» o «Sin conexión». Además, la fecha del pie venía de `v_estado_datos`, que ya no alcanza
+    nunca, y su error botaba todo el catálogo. Arreglo: `descargarCatalogo` pide **por etapas** (productos y listas
+    chicas; resumen y cultivos; objetivos de a 2 páginas), `todas()` reintenta hasta 3 veces el 57014, y la fecha sale de
+    `products.updated_at` y no es indispensable. Primera visita: ~6 s (5 de 5 sin cortes); con copia guardada, al tiro.
+    **Si vuelve a pasar o se quiere más rapidez:** copias ya calculadas (vistas materializadas `mv_sitio_*` renovadas
+    con pg_cron cada 15 minutos): propuesto, no aplicado; cambiar la base de producción necesita el «sí» de Cristóbal.
   - `index.html`: supabase-js con `defer`, `preconnect` a Supabase y `modulepreload` de todos los módulos (al
     agregar un módulo, sumarlo ahí).
 - **Íconos:** `icono.svg` (pestaña) + `icono-32.png` de respaldo, `icono-180.png` (iPhone, `apple-touch-icon`) e
@@ -445,7 +451,7 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
   «desde – hasta» con los números leídos (pedido de Cristóbal, 27-10-2026).
 - Seguridad del código: los textos de la base nunca se insertan como HTML (`h()` en `ui.js`).
 - Diseño: ver «Reglas de estética». La página «Estado de los datos» se eliminó (la vista
-  `v_estado_datos` sigue en la base: el pie usa su fecha de última actualización).
+  `v_estado_datos` sigue en la base, pero el sitio ya no la usa: pasa los 3 s de la llave pública).
 
 ## Planes guardados (link personal, sin cuentas)
 
@@ -676,6 +682,8 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
 - Calzar las líneas de una extracción nueva con las ya cargadas solo por n.° de fila y cultivo (`--completar` antes
   del 25-10-2026): otra extracción numera las filas distinto y podía poner la dosis de una fila en otra del mismo
   cultivo. Ahora también exige la misma página y algún objetivo en común.
+- Pedir todo el catálogo a la vez con la llave pública (06-11-2026): se cortan consultas a los 3 s. Y que un dato de
+  adorno (la fecha del pie) pueda botar el sitio: lo que no es indispensable no debe lanzar error.
 
 ## Estado del recopilador (05-11-2026, ~13:40, después de la sesión 21)
 

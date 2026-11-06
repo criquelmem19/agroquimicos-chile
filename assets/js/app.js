@@ -64,7 +64,7 @@ function pintarPie() {
   const p = document.querySelector('[data-actualizado]');
   if (!p || !catalogo) return;
   if (catalogo.fechaCache) {
-    p.textContent = `Sin conexión: se muestran los datos guardados en este equipo el ${fecha(catalogo.fechaCache)}`;
+    p.textContent = `Datos guardados en este equipo el ${fecha(catalogo.fechaCache)}`;
   } else {
     p.textContent = catalogo.actualizado ? `Última actualización de los datos: ${fecha(catalogo.actualizado)}` : '';
   }
@@ -72,7 +72,7 @@ function pintarPie() {
 
 function avisoSinConexion() {
   return h('div', { class: 'nota nota-alerta', role: 'status' },
-    `Sin conexión: estás viendo los datos guardados el ${fecha(catalogo.fechaCache)}. Pueden no estar al día.`);
+    `No se pudieron traer los datos al día (puede ser tu conexión o el servidor). Estás viendo los guardados el ${fecha(catalogo.fechaCache)}.`);
 }
 
 async function mostrar(evento) {

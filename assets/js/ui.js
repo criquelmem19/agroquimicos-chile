@@ -335,7 +335,7 @@ export function etiquetasCategoria(p) {
 export function mensajeError(err) {
   const texto = err && err.message ? err.message : String(err);
   return h('div', { class: 'nota nota-peligro', role: 'alert' },
-    h('p', null, h('strong', null, 'No se pudieron cargar los datos. '), 'Revisa tu conexión e intenta de nuevo.'),
+    h('p', null, h('strong', null, 'No se pudieron cargar los datos. '), 'Puede ser tu conexión o el servidor. Intenta de nuevo.'),
     h('p', { class: 'chico' }, `Detalle técnico: ${texto}`),
     h('button', { class: 'boton', type: 'button', onclick: () => location.reload() }, 'Reintentar'));
 }

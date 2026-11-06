@@ -32,17 +32,19 @@ export function cliente() {
 
 // Trae todas las filas de una consulta, de a 1.000 (máximo de la API).
 // `construir` recibe el cliente y devuelve una consulta con orden estable. Las páginas se piden varias a la vez:
-// `primeras` al comienzo (las que se esperan) y después de a 3 hasta que una venga incompleta. Una tras otra,
-// los ~4.000 objetivos demoraban 3 s en llegar.
-async function todas(construir, primeras = 1) {
+// `primeras` al comienzo (las que se esperan) y después de a `despues` hasta que una venga incompleta.
+// La base corta las consultas de más de 3 s (código 57014): con el servidor ocupado, otro intento suele pasar.
+async function todas(construir, primeras = 1, despues = 3) {
   const db = await cliente();
   const pagina = async (n) => {
-    const { data, error } = await construir(db).range(n * FILAS_POR_PAGINA, (n + 1) * FILAS_POR_PAGINA - 1);
-    if (error) throw error;
-    return data;
+    for (let intento = 1; ; intento += 1) {
+      const { data, error } = await construir(db).range(n * FILAS_POR_PAGINA, (n + 1) * FILAS_POR_PAGINA - 1);
+      if (!error) return data;
+      if (error.code !== '57014' || intento === 3) throw error;
+    }
   };
   const filas = [];
-  for (let n = 0, tanda = primeras; ; n += tanda, tanda = 3) {
+  for (let n = 0, tanda = primeras; ; n += tanda, tanda = despues) {
     const paginas = await Promise.all(Array.from({ length: tanda }, (_, i) => pagina(n + i)));
     for (const data of paginas) {
       filas.push(...data);
@@ -59,22 +61,27 @@ const CLAVE_CACHE = 'catalogo-v3';
 
 async function descargarCatalogo() {
   const db = await cliente();
-  const [productos, resumen, categorias, ingredientes, equivalencias, empresas, cultivos, objetivos, perfiles, estado] = await Promise.all([
+  // Por etapas: las vistas recalculan todo en cada consulta y, todas a la vez, pasan los 3 s que da la base.
+  const [productos, categorias, ingredientes, equivalencias, empresas, perfiles, estado] = await Promise.all([
     todas((c) => c.from('v_sitio_productos').select('*').order('id'), 2),
-    todas((c) => c.from('v_sitio_resumen_productos').select('id,cultivos,n_lineas,n_aprobadas,n_baja_confianza,dosis').order('id'), 2),
     todas((c) => c.from('categories').select('id,name').order('id')),
     todas((c) => c.from('active_ingredients').select('id,common_name,chemical_group,mechanism_group,mechanism_system').order('id')),
     todas((c) => c.from('moa_equivalencias').select('id,sistema,codigo,codigo_actual,ingrediente_id,nota').order('id')),
     todas((c) => c.from('companies').select('id,legal_name').order('id')),
-    todas((c) => c.from('v_sitio_cultivos').select('id,nombre,aliases,n_lineas,n_productos').order('id')),
-    todas((c) => c.from('v_sitio_objetivos').select('id,nombre,cientifico,n_lineas,n_productos').order('id'), 4),
     todas((c) => c.from('product_safety_profiles').select('product_id,reentry_hours').order('product_id')),
-    db.from('v_estado_datos').select('ultima_actualizacion').maybeSingle(),
+    // Fecha del pie: una consulta barata y que no es indispensable. Hasta el 06-11-2026 salía de v_estado_datos, que
+    // recorre toda la base: con 40 mil líneas pasó los 3 s que tiene la llave pública y botaba el sitio entero.
+    db.from('products').select('updated_at').order('updated_at', { ascending: false }).limit(1).maybeSingle(),
   ]);
-  if (estado.error) throw estado.error;
+  if (estado.error) console.warn('Sin fecha de actualización:', estado.error);
+  const [resumen, cultivos] = await Promise.all([
+    todas((c) => c.from('v_sitio_resumen_productos').select('id,cultivos,n_lineas,n_aprobadas,n_baja_confianza,dosis').order('id'), 2),
+    todas((c) => c.from('v_sitio_cultivos').select('id,nombre,aliases,n_lineas,n_productos').order('id')),
+  ]);
+  const objetivos = await todas((c) => c.from('v_sitio_objetivos').select('id,nombre,cientifico,n_lineas,n_productos').order('id'), 2, 2);
   return {
     productos, resumen, categorias, ingredientes, equivalencias, empresas, cultivos, objetivos, perfiles,
-    actualizado: estado.data ? estado.data.ultima_actualizacion : null,
+    actualizado: estado.data ? estado.data.updated_at : null,
   };
 }
 
