@@ -715,9 +715,10 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   `2026-11-09-22a` a `-22x` y `2026-11-09-22codex`; control al azar. Uso: 5 h de 2 a ~72 %, semanal de 0 a ~10 %.
   **BASTA 14 SL (inventario 327):** extracción nueva con Sonnet en `sag/extraido/327.json` (original `327.sonnet.json`;
   se corrigieron a mano las citas «O días» → «0 días», los cultivos de la fila del desmanche y el máximo por cultivo, filas
-  1b/2b); `cargar.py --reemplazar --ensayo` da 18 → 40 líneas, carencia 17 → 39. **Espera el «sí» de Cristóbal** para
-  `cargar.py … --ids 327 --lote 2026-11-09-basta --modelo claude-sonnet-5-5 --reemplazar`; después revisar que el producto
-  quede con N° SAG 3328 y glufosinato-amonio (HRAC 10): hoy no tiene ninguno de los dos.
+  1b/2b). **Hecho con el «sí» de Cristóbal (09-11):** `cargar.py --reemplazar` (lote `2026-11-09-basta`): 18 líneas
+  ocultas (`rechazado`), 40 visibles, carencia en 39 (bordes de canales no trae). `--reemplazar` no llena el producto: el
+  N° SAG 3328 (autorizado, vence 2030-05-18) y el glufosinato-amonio (15 % p/v, HRAC «10/H») se agregaron con la
+  migración `basta_registro_e_ingrediente` (solo campos vacíos, con cita).
 - **Codex:** 20 cargadas y **control al azar hecho** (30-10, `sag/control/2026-10-30_0804_revision.json`: 22 de 30 sin
   observaciones, 0 valores contradictorios, solo datos que faltan): se sigue cargando lo suyo normalmente. **Codex: UPL**.
 - **Siguiente: las 29 canceladas o sin planilla que quedan** (más 1464 SIZER 70 WG: cuadro en imagen, ya tiene la segunda
@@ -772,8 +773,7 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   **1363** (Botrytis: «hasta 3» y «hasta 4» aplicaciones; se cargó 3), **coadyuvantes, preservantes de madera y trampas sin
   cultivo** (901, 1365, 1673, 1208, 1210: quedan con 0 líneas; ¿cómo mostrarlos?); de la sesión 20: **1551 TAMENKILL** (0 líneas:
   el subagente puso cada cultivo con su paréntesis y la verificación los botó; arreglar el JSON y `--reemplazar`), **438 CARFEX**
-  (objetivo «#»: ¿quitar?), **1590** (autorización «2.747-O», cargada 2747); de la sesión 22: **BASTA 14 SL (327)**
-  (`--reemplazar`, ver arriba), **1667** (la «carencia» de 7 días es hasta el pastoreo; la etiqueta la titula «Período de
+  (objetivo «#»: ¿quitar?), **1590** (autorización «2.747-O», cargada 2747); de la sesión 22: **1667** (la «carencia» de 7 días es hasta el pastoreo; la etiqueta la titula «Período de
   carencia»), **1580 TERCEL 50 WP** (iprodiona con «FRAC F1» en la etiqueta: no está en `moa_equivalencias`).
 - Etiquetas flojas: COLT 45 WP (515); BACIFRUIT SC (315); AQUILES 24 EC (261); TOXIMOL (1620, segundo cuadro pág. 4); 591;
   RANGO 480 SL (1337); NEXUS 50 SL (1129); 1717; 542; de la sesión 8: 828/829/830 GLIFOSPEC, 1382 RIPPER MAX, 1148 NUMEK,

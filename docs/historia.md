@@ -116,7 +116,9 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
   ni ingrediente, sin cerezo, vid, canola ni bordes, sin la dosis de desmanche (2 %), sin máximos ni mojamiento; las carencias
   que tiene calzan con la etiqueta. Extracción nueva con Sonnet y arreglos a mano (citas «0 días» de la lectura de Windows,
   cultivos de la fila 2 en vez de `cultivos_de_fila`, filas 1b/2b para el máximo de 2 aplicaciones). Ensayo de `--reemplazar`:
-  18 → 40 líneas, carencia 17 → 39. Pendiente el «sí».
+  18 → 40 líneas, carencia 17 → 39. Con el «sí» de Cristóbal se aplicó `--reemplazar` (lote `2026-11-09-basta`) y la
+  migración `basta_registro_e_ingrediente` (N° SAG 3328 y glufosinato-amonio, que `--reemplazar` no llena). «Canola»
+  quedó en el cultivo Raps.
 - Control al azar (Sonnet, `sag/control/2026-11-09_1219_revision.json`): 21 de 30 sin observaciones; casi todo datos que
   faltan; 865 almendro con el intervalo de cerezo, 1607 objetivo «#», 1648 solo la dosis de suelo pesado.
 - Ojo con `cultivos_de_fila`: si se separa una fila en dos con distintos cultivos, quitar esa clave (verificar.py la usa en vez
