@@ -677,7 +677,7 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   del 25-10-2026): otra extracción numera las filas distinto y podía poner la dosis de una fila en otra del mismo
   cultivo. Ahora también exige la misma página y algún objetivo en común.
 
-## Estado del recopilador (05-11-2026, ~13:40, después de la sesión 21)
+## Estado del recopilador (09-11-2026, ~12:30, después de la sesión 22)
 
 - Frase de Cristóbal para seguir a mano: **«Sigue con el recopilador del SAG»** → «Cómo seguir». Ahora corre solo
   (ver «Sesiones automáticas»). El detalle de cada sesión va al final de `docs/historia.md` (la más nueva arriba).
@@ -710,9 +710,18 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   **Sesión 21** (05-11, ~13:22–~13:40): 20 etiquetas: 8 de Codex (UPL, 492 líneas) y 12 canceladas o sin planilla (Haiku,
   214 líneas), lotes `2026-11-05-21a` a `-21c`, `2026-11-05-21codex` y `-21codex2`; paró al llegar a 90 % semanal. Uso: 5 h de
   2 a 9 %, semanal de 89 a 90 %.
+  **Sesión 22** (09-11, ~10:20–~12:30; Cristóbal estuvo conectado y pidió revisar BASTA): 100 etiquetas: 6 de Codex (UPL, 185
+  líneas) y 94 canceladas o sin planilla (Haiku): 88 cargadas (1.557 líneas), 3 con diferencias y 3 que no son etiqueta; lotes
+  `2026-11-09-22a` a `-22x` y `2026-11-09-22codex`; control al azar. Uso: 5 h de 2 a ~72 %, semanal de 0 a ~10 %.
+  **BASTA 14 SL (inventario 327):** extracción nueva con Sonnet en `sag/extraido/327.json` (original `327.sonnet.json`;
+  se corrigieron a mano las citas «O días» → «0 días», los cultivos de la fila del desmanche y el máximo por cultivo, filas
+  1b/2b); `cargar.py --reemplazar --ensayo` da 18 → 40 líneas, carencia 17 → 39. **Espera el «sí» de Cristóbal** para
+  `cargar.py … --ids 327 --lote 2026-11-09-basta --modelo claude-sonnet-5-5 --reemplazar`; después revisar que el producto
+  quede con N° SAG 3328 y glufosinato-amonio (HRAC 10): hoy no tiene ninguno de los dos.
 - **Codex:** 20 cargadas y **control al azar hecho** (30-10, `sag/control/2026-10-30_0804_revision.json`: 22 de 30 sin
   observaciones, 0 valores contradictorios, solo datos que faltan): se sigue cargando lo suyo normalmente. **Codex: UPL**.
-- **Siguiente: las ~122 canceladas o sin planilla que quedan** (las vigentes fuera de UPL se acabaron el 04-11), con
+- **Siguiente: las 29 canceladas o sin planilla que quedan** (más 1464 SIZER 70 WG: cuadro en imagen, ya tiene la segunda
+  lectura de Tesseract; darla con la nota «citar desde la segunda lectura») (las vigentes fuera de UPL se acabaron el 04-11), con
   `scripts/recopilador/lote_resto.py 3 4 --todas`: toma `lote.cola()` sin UPL (Codex),
   Sumitomo, FMC ni las etiquetas problema, y reserva. **Ojo: `lote.py --help` no muestra ayuda, reserva 8 etiquetas**
   (soltarlas con `lote_resto.py unreserve <ids>`). Las vigentes nuevas fuera de UPL se acabaron el 03-11. Anasac, Syngenta,
@@ -722,16 +731,20 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   720 SC (Point); hay que corregir la clasificación de esas páginas y volver a extraerlas. De Anasac, 1059/1060 METRICLAN.
   **Sumitomo sin cargar: 464 CHAMP DP WG, 648 DiTera WG y 817 GIBGRO 10LS** (pág. 1 escaneada de lado; ni Sonnet las lee:
   `ocr.py` tiene que probar el otro giro). Igual (sesión 19, JSON como `<id>.girada.json`, en `PROB` de `lote_resto.py`):
-  673 DUOMAX 425 SC y 1123 NEMATON.
-- **Cola:** 219 en «texto»: ~46 de UPL (Codex), ~12 etiquetas problema y 122 canceladas o que no figuran en la planilla
-  (fuera de UPL; el resto reservadas o de Sumitomo/FMC). Ritmo: ~75–95 por sesión (~8–10 % del semanal); Codex suma aparte.
-  Estimado: todo ~9–11 de noviembre (el semanal está en 90 % y se renueva el 07-11 a mediodía).
-- Inventario: 1.634 filas; 219 en «texto», 1.162 cargadas, 149 diferencias, 65 no son etiqueta, 13 versiones
+  673 DUOMAX 425 SC y 1123 NEMATON; de la sesión 22, 602 DECCOAZOX 25 SC.
+- **Cola:** 123 en «texto»: ~40 de UPL (Codex), ~14 etiquetas problema, 29 canceladas o sin planilla y el resto de
+  Sumitomo/FMC o reservadas. Ritmo: ~95 por sesión (~10 % del semanal); Codex suma aparte. Estimado: lo de Claude se
+  termina en la próxima sesión (09 o 10-11); UPL depende de Codex.
+- Inventario: 1.634 filas; 123 en «texto», 1.256 cargadas, 152 diferencias, 68 no son etiqueta, 9 versiones
   anteriores, 14 sin PDF, 5 ilegibles, 5 duplicados, 2 ya en la base.
-- Base: 1.312 productos (1.273 con N° SAG), 40.017 líneas visibles; dosis 94,1 %, carencia 91,1 %; 124 MB.
-- Último control al azar: 05-11-2026 08:15, de la sesión 19 (`sag/control/2026-11-05_0815_revision.json`): 19 de 30 sin
+- Base: 1.406 productos (1.366 con N° SAG), 41.759 líneas visibles; dosis 94,0 %, carencia 91,3 %; 130 MB.
+- Último control al azar: 09-11-2026 12:19, con 1.256 cargadas (`sag/control/2026-11-09_1219_revision.json`): 21 de 30 sin
+  observaciones; faltan intervalos (4), mojamientos (4), 2 carencias (1152 guindo 1 día, 201 cerezo «no se considera»);
+  865 almendro con el intervalo de cerezo (20–30 días: ¿quitar?), 1607 TITAN SG objetivo «#», 1648 TRIFLUREX repollo
+  guarda solo la dosis de suelo pesado. **El siguiente al terminar la cola.**
+- Antes: 05-11-2026 08:15, de la sesión 19 (`sag/control/2026-11-05_0815_revision.json`): 19 de 30 sin
   observaciones; 9 líneas con datos que faltan (dosis, carencia, máximos, intervalos, mojamiento) y 2 con objetivo «#» que la
-  etiqueta no trae (CARFEX, 438). **El siguiente con ~1.240 cargadas.**
+  etiqueta no trae (CARFEX, 438).
 - Antes: 03-11-2026 17:55, de las sesiones 16 y 17 (`sag/control/2026-11-03_1755_revision.json`): 18 de
   30 sin observaciones, 0 valores que contradigan la etiqueta; faltan 6 dosis (o sin unidad), 4 carencias, 2 máximos, 1
   mojamiento. Antes: 03-11-2026 10:15, de la sesión 15
@@ -759,7 +772,9 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   **1363** (Botrytis: «hasta 3» y «hasta 4» aplicaciones; se cargó 3), **coadyuvantes, preservantes de madera y trampas sin
   cultivo** (901, 1365, 1673, 1208, 1210: quedan con 0 líneas; ¿cómo mostrarlos?); de la sesión 20: **1551 TAMENKILL** (0 líneas:
   el subagente puso cada cultivo con su paréntesis y la verificación los botó; arreglar el JSON y `--reemplazar`), **438 CARFEX**
-  (objetivo «#»: ¿quitar?), **1590** (autorización «2.747-O», cargada 2747).
+  (objetivo «#»: ¿quitar?), **1590** (autorización «2.747-O», cargada 2747); de la sesión 22: **BASTA 14 SL (327)**
+  (`--reemplazar`, ver arriba), **1667** (la «carencia» de 7 días es hasta el pastoreo; la etiqueta la titula «Período de
+  carencia»), **1580 TERCEL 50 WP** (iprodiona con «FRAC F1» en la etiqueta: no está en `moa_equivalencias`).
 - Etiquetas flojas: COLT 45 WP (515); BACIFRUIT SC (315); AQUILES 24 EC (261); TOXIMOL (1620, segundo cuadro pág. 4); 591;
   RANGO 480 SL (1337); NEXUS 50 SL (1129); 1717; 542; de la sesión 8: 828/829/830 GLIFOSPEC, 1382 RIPPER MAX, 1148 NUMEK,
   1176 OVERKILL (cuadro aéreo), 1452 SIMAZINA, 640, 940, 647, 1699; de la sesión 10: 197 y 1708 VERPEZU (0 líneas), 639,
