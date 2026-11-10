@@ -123,6 +123,15 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
   etiquetas distintas (lista en «Preguntas abiertas» de CLAUDE.md).
 - Sin control al azar (no tocaba). JSON repetidos de Codex: ninguno.
 - Uso al terminar: 5 h ~88 %, semanal ~45 %.
+- **Continuación (~17:30–~18:20)**, con la ventana de 5 h renovada; Cristóbal: «puedes seguir sin subagentes utilizando
+  solo Opus». El orquestador leyó las 6 últimas de UPL (lote `2026-11-10-24q`, `claude-opus-5-5`): 869 HOOK (5 líneas), 1061
+  METRIPHAR 480 SC (9, malezas con `objetivos_de_fila`), 155 ABAMITE ME (89 líneas; el cuadro solo estaba en la imagen y salió
+  de `ocr.py --tesseract --forzar`; 47 sin dosis porque esas cifras no aparecen en ninguna lectura), 1591 THIOPRON 825 SC (1),
+  442 CARPOVIRUSINE ULTRA (24; dos dosis por fila, 1a/1b) y 1495 STIK (coadyuvante, 0 líneas). 128 líneas.
+- N° SAG mal leídos en el inventario: 155 tenía 2460 (de CASORON) y es 1755; 1591 tenía 2000 (de MAULER 250 EC) y es 20023
+  según la planilla (la etiqueta dice «2.000-0023»). Al correr `ocr.py`, el cruce nuevo de `textos.py` marcó 1591 como versión
+  anterior de MAULER por ese número: se corrigió a mano. `verificar.NO_APLICA` acepta «no presenta restricciones» (THIOPRON).
+- UPL terminada salvo 1327 RADICAL. Quedan 13 en «texto», todas problema. Uso: 5 h de 0 a ~18 %, semanal de 46 a ~48 %.
 
 ## Recopilador: sesión 23 (10-11-2026, automática)
 
