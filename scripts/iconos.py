@@ -1,4 +1,4 @@
-"""Íconos PNG del sitio, con el dibujo de assets/img/icono.svg (cuadrado azul rey con una lista que brota, 10-11-2026).
+"""Íconos PNG del sitio, con el dibujo de assets/img/icono.svg (cuadrado verde esmeralda con una lista que brota, 10-11-2026).
 
 Uso (necesita Pillow: el Python del venv de la carpeta de datos):
   C:\\Users\\crisa\\agroquimicos-datos\\venv\\Scripts\\python.exe -I scripts/iconos.py
@@ -12,8 +12,8 @@ import os
 
 from PIL import Image, ImageDraw
 
-AZUL = "#154ecd"
-MARFIL = "#fefefd"
+VERDE = "#007f5b"  # verde esmeralda
+MARFIL = "#ffffff"
 AUMENTO = 8  # se dibuja más grande y se achica: bordes suaves
 CARPETA = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "img")
 
@@ -49,14 +49,14 @@ def pestana():
     k = lado / 64
     img = Image.new("RGBA", (lado, lado), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    d.rounded_rectangle((0, 0, lado - 1, lado - 1), radius=16 * k, fill=AZUL)
+    d.rounded_rectangle((0, 0, lado - 1, lado - 1), radius=16 * k, fill=VERDE)
     dibujo(d, k)
     return img.resize((32, 32), Image.LANCZOS)
 
 
 def celular(lado):
     total = lado * AUMENTO
-    img = Image.new("RGB", (total, total), AZUL)
+    img = Image.new("RGB", (total, total), VERDE)
     d = ImageDraw.Draw(img)
     escala = 0.78  # margen para el recorte del celular
     k = total / 64 * escala

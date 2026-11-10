@@ -53,26 +53,36 @@ productores, muchas veces **desde el celular en el campo**.
 Por qué importa: la carencia decide si se puede cosechar. En fruta de exportación un error significa
 rechazo en destino o residuos sobre la tolerancia.
 
-## Reglas de estética (rediseño del 10-11-2026, pedido de Cristóbal)
+## Reglas de estética (paleta del 10-11-2026, segunda pasada, pedido de Cristóbal)
 
-Mandó dos paletas de referencia, su logo y pidió «un diseño más moderno y un tono más limpio», que el buscador ocupe
-bien el espacio y que los códigos sean «colores prendidos, casi fluorescentes». Reemplaza la paleta verde/beige del
-21-10-2026 y el «sin modo noche» (ahora pidió modo oscuro).
-- **Modo claro:** marfil `#fefefd` (fondo), negro carbón `#080808` (letra, menú activo, pie) y **azul rey `#154ecd`**
-  (botones principales, acento de los controles: selección, foco, orden activo, progreso). Grises fríos para paneles.
-- **Modo oscuro:** negro O-Zone `#1e1a1f` y **amarillo `#ebf70f`** (botones y acento); en vez del lila de la referencia,
-  **verde y azul** (Cristóbal: «un verde que combine entre el negro y el amarillo y un azul también»).
-- Sigue al modo del equipo; el botón sol/luna de la cabecera lo cambia y lo recuerda (`localStorage` `tema`). `index.html`
-  pone `data-tema="claro|oscuro"` en `<html>` antes de dibujar (sin parpadeo); `app.js → ponerTema`. Todos los colores
-  son variables en `assets/css/app.css` (`:root` y `:root[data-tema="oscuro"]`): **no usar colores fijos**.
-- **Códigos FRAC/IRAC/HRAC fluorescentes, letra negra, iguales en los dos modos:** FRAC `#2ea6ff`, IRAC `#2ee57e`, HRAC
-  `#ebf70f`. Son la firma: los bloques de la portada, la franja a la izquierda de cada fila y grupo del buscador y el
-  dibujo de cada comité. **Todo código es un botón** que lleva a todos los productos de ese código (`ui.js → chipMoa`,
-  `#/buscar?moa=<familia>`), en cualquier página; solo dentro de otro link o botón va sin link (`enlace: false`).
+El mismo día, después de un primer rediseño (marfil, negro, azul rey y códigos fluorescentes), mandó un encargo completo
+con una paleta obligatoria: «moderno, minimalista, elegante y profesional», estilo aplicaciones SaaS, WCAG AA,
+~70 % fondos claros, ~20 % texto y estructura, ~10 % énfasis y categorías; sin degradés, sin sombras exageradas y sin
+colores eléctricos en superficies grandes. **Esta paleta manda** (reemplaza la del primer rediseño y la verde/beige del
+21-10-2026).
+- **Base:** fondo menta muy claro `#f2f8f4`; tarjetas, tablas, formularios y cabecera en blanco con borde `#dce8df` y
+  sombra muy suave; texto verde grafito `#19352e`; texto secundario `#5f7267` (el `#6a7d71` pedido, oscurecido para
+  cumplir AA sobre menta y blanco); bordes de campos y botones secundarios `#839a8d` (contraste 3:1). Pie en verde
+  grafito. Esquinas apenas redondeadas: tarjetas 12, avisos y opciones 10, campos 8, etiquetas 6; botones en píldora.
+- **Énfasis: verde esmeralda `#007f5b`** (texto blanco): botones principales, menú activo, selección, foco, orden activo y
+  progreso. Hover `#006b4d`, presionado `#005a41`, desactivado al 50 %. Texto esmeralda sobre fondo verde suave: `#00704f`.
+- **Categorías de modo de acción: FRAC azul `#096bff`, IRAC morado `#783dff`, HRAC naranja `#ff5c00`**, cada una con fondo
+  suave (`#e8f0ff`, `#f0eaff`, `#fff0e6`) y variante oscura para texto chico (`#0055d4`, `#6633e6`, `#b23f00`). El color
+  eléctrico va solo en franjas, bordes y dibujos: la franja a la izquierda de cada fila y tarjeta del buscador, el título de
+  cada grupo (fondo suave de su categoría), la franja de cada código y el cuadrito con el dibujo de cada comité.
+  **Todo código es un botón** que lleva a todos los productos de ese código (`ui.js → chipMoa`, `#/buscar?moa=<familia>`),
+  en cualquier página; solo dentro de otro link o botón va sin link (`enlace: false`).
+- Avisos: ok verde suave, información azul suave, alerta naranja suave, peligro rojo suave (el rojo es el único color
+  fuera de la paleta: hace falta para lo que no cumple la etiqueta).
+- **Modo oscuro** (pedido en el primer rediseño; se conserva): verde grafito muy oscuro `#0e1c17`, tarjetas `#13251f`,
+  esmeralda claro `#34c796` de énfasis y las mismas tres categorías más luminosas. Sigue al modo del equipo; el botón
+  sol/luna de la cabecera lo cambia y lo recuerda (`localStorage` `tema`). `index.html` pone `data-tema="claro|oscuro"` en
+  `<html>` antes de dibujar (sin parpadeo); `app.js → ponerTema`. Todos los colores son variables en `assets/css/app.css`
+  (`:root` y `:root[data-tema="oscuro"]`): **no usar colores fijos**.
 - **Logo:** el cuadrado de «lista que brota» (tres barras y una hoja; Cristóbal: «solo el cuadrado») en `index.html`
-  (`<symbol id="logo-crm">`), y **cambia de color para contrastar con el fondo** (`--logo-fondo`/`--logo-tinta`): azul
-  rey en la cabecera clara, amarillo en la oscura, amarillo en el pie negro del modo claro y verde en el del oscuro.
-  `assets/img/icono.svg` (azul; amarillo si el equipo está en modo oscuro) y los PNG (`scripts/iconos.py`).
+  (`<symbol id="logo-crm">`), y **cambia de color para contrastar con el fondo** (`--logo-fondo`/`--logo-tinta`): esmeralda
+  en la cabecera clara, esmeralda claro en la oscura, menta en el pie. `assets/img/icono.svg` (esmeralda; esmeralda claro
+  si el equipo está en modo oscuro) y los PNG (`scripts/iconos.py`).
 - Se mantiene: **Rubik**, 17 px y alto contraste (se usa al sol), botones y chips en píldora, barra inferior en celular
   (Inicio, Buscar, Mezclas, Plan y Trivia), solo información importante.
 - **Menú (02-11-2026):** «Inicio» (la explicación de FRAC, IRAC y HRAC), «Buscador» (la tabla), «Mezclas», «Plan» y
@@ -80,9 +90,9 @@ bien el espacio y que los códigos sean «colores prendidos, casi fluorescentes�
   pantalla (`--ancho-max` 1680 px; `ANCHA = true` en la vista); el resto de las páginas, 1180 px.
 - **Pasada «unslop» (31-10-2026):** sus reglas siguen: medidas en px sobre la grilla de 4 (2 px solo para ajustes dentro
   de controles chicos); títulos y etiquetas en minúscula normal, nunca en MAYÚSCULAS espaciadas (salvo datos de la
-  etiqueta como «CUIDADO»); pesos 400, 500 y 600; sin cursiva (las citas van en gris entre «…»); radios: tarjetas y
-  paneles 16, avisos y opciones 12, campos 10, etiquetas y códigos 6; íconos de línea de `ui.js` con trazo 1,5;
-  enlaces en el color de la letra con subrayado; un solo acento en los controles (azul rey o amarillo); «Extraído
+  etiqueta como «CUIDADO»); pesos 400, 500 y 600; sin cursiva (las citas van en gris entre «…»); radios: ver arriba;
+  íconos de línea de `ui.js` con trazo 1,5;
+  enlaces en el color de la letra con subrayado; un solo acento en los controles (verde esmeralda); «Extraído
   automáticamente» como texto gris sin caja; sin signos de exclamación ni punto final en textos cortos; transiciones
   solo de color/fondo/borde/transform (150 ms, `--curva`), nada que anime ancho o alto. El pie queda abajo aunque la
   página sea corta (`body` en columna).
@@ -288,7 +298,7 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     técnico». **10-11-2026 (Cristóbal):** parte explicando qué es un grupo y por qué dos marcas del mismo grupo son
     iguales; enseguida, los tres comités con «Para el técnico» **abierto**; el juego de la botrytis se quitó («no sirve de
     nada»). Partes: portada «Rota el código, no la marca» con «¿Qué es un grupo?» y «¿Por qué son iguales?» y un bloque
-    fluorescente con un dibujo por comité (hongo, insecto, maleza: `DIBUJOS`); «Un ejemplo con productos del catálogo»:
+    por comité (fondo suave y franja de su color, con un dibujo: hongo, insecto, maleza: `DIBUJOS`); «Un ejemplo con productos del catálogo»:
     dos productos reales con el mismo código (=) y uno con otro (≠); «Los tres comités»: tarjeta por comité (cómo leer
     el código, códigos con más productos del catálogo con link al buscador filtrado y, abierta, la tabla de grupos
     frecuentes con lo que hacen (`moa.js`), sitio de acción, familia, ingredientes y riesgo FRAC);
@@ -307,7 +317,7 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     y link al PDF). Abajo: orden de carga en 7 pasos (agua y agitación; correctores; sólidos WG/WP/SG; suspensiones
     SC/CS/SE/ZC; emulsiones y aceites EC/EW/ME/OD; solubles SL; coadyuvantes y completar), tabla de formulaciones (código,
     nombre, cómo es, paso, cuidado), por qué una mezcla sale mal (física, química, fitotoxicidad, antagonismo) y la prueba
-    de la jarra. Cada paso tiene su color (agua celeste, sólidos beige, suspensiones verde, emulsiones crema, solubles azul).
+    de la jarra. Cada paso tiene su fondo suave (agua azul, sólidos gris verdoso, suspensiones verde, emulsiones naranja, solubles morado).
     Es explicación general: siempre dice que manda la etiqueta. Fertilizantes y bioestimulantes: «según su etiqueta».
   - `#/buscar?cultivo=<id>&objetivo=<id>&oq=<texto>&cat=<id>&q=<texto>&empresa=<nombre corto>&moa=<clave>|sin&ing=<id>&orden=moa|nombre|empresa|tipo|ing|registro|cultivos&inv=1`
     **Buscador** (fue el inicio hasta el 02-11-2026; los links antiguos al inicio con alguno de esos filtros, y
@@ -451,7 +461,7 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     con pg_cron cada 15 minutos): propuesto, no aplicado; cambiar la base de producción necesita el «sí» de Cristóbal.
   - `index.html`: supabase-js con `defer`, `preconnect` a Supabase y `modulepreload` de todos los módulos (al
     agregar un módulo, sumarlo ahí).
-- **Íconos:** `icono.svg` (pestaña; el logo nuevo del 10-11-2026, azul o amarillo según el modo del equipo) +
+- **Íconos:** `icono.svg` (pestaña; el logo nuevo del 10-11-2026, esmeralda, más claro si el equipo está en modo oscuro) +
   `icono-32.png` de respaldo, `icono-180.png` (iPhone, `apple-touch-icon`) e `icono-192/512.png` (Android,
   `manifest.webmanifest`, sin `display`: se abre como página normal para poder copiar el link). Los PNG se hacen con
   `scripts/iconos.py` (Pillow del venv), con el mismo dibujo que `#logo-crm` de `index.html`.
