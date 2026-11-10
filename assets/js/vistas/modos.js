@@ -385,7 +385,7 @@ function enEsteSitio() {
       h('a', { class: 'md-uso', href: '#/plan' }, icono('calendario'), h('strong', null, 'Plan de aplicaciones'),
         h('span', null, 'Te avisa si repites un código en la mezcla o en la aplicación anterior.'))),
     h('p', { class: 'md-muestras' }, chipsMoa(['FRAC 11', 'IRAC 4A', 'HRAC 9']), chipsMoa(['HRAC 1'], new Map([['HRAC 1', ['HRAC A']]])),
-      h('span', null, 'Azul FRAC, morado IRAC, naranja HRAC. Toca un código para ver todos sus productos. Entre paréntesis, el código antiguo que trae la etiqueta. La etiqueta siempre manda.')));
+      h('span', null, 'Azul FRAC, coral IRAC, amarillo HRAC. Toca un código para ver todos sus productos. Entre paréntesis, el código antiguo que trae la etiqueta. La etiqueta siempre manda.')));
 }
 
 export async function render(main, ctx) {

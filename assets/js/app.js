@@ -144,7 +144,7 @@ async function mostrar(evento) {
 
 // Modo claro y oscuro (pedido de Cristóbal, 10-11-2026). index.html pone el modo antes de dibujar; el botón de la
 // cabecera lo cambia y lo recuerda en este equipo. Si la persona nunca eligió, sigue al modo de su equipo.
-const COLOR_BARRA = { claro: '#ffffff', oscuro: '#13251f' };
+const COLOR_BARRA = { claro: '#ffffff', oscuro: '#202725' };
 function ponerTema(tema, guardar) {
   document.documentElement.setAttribute('data-tema', tema);
   const meta = document.querySelector('meta[name="theme-color"]');

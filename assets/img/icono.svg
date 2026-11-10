@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <style>.f{fill:#007f5b}.t{fill:#ffffff}@media (prefers-color-scheme: dark){.f{fill:#34c796}.t{fill:#0e1c17}}</style>
+  <style>.f{fill:#007f5b}.t{fill:#ffffff}@media (prefers-color-scheme: dark){.f{fill:#3dcb98}.t{fill:#141a19}}</style>
   <rect class="f" width="64" height="64" rx="16"/>
   <g class="t">
     <rect x="11" y="23.5" width="28" height="5" rx="2.5"/>

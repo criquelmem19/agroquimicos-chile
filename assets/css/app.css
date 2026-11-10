@@ -1,74 +1,72 @@
 /* Agroquímicos CRM — estilos
-   Paleta del 10-11-2026 (segunda pasada, pedido de Cristóbal): moderno, minimalista y profesional, al estilo de las
-   aplicaciones SaaS. Menta muy claro de fondo, tarjetas blancas, letra verde grafito y verde esmeralda como único
-   color de énfasis (botones, selección, navegación). Tres colores eléctricos identifican las categorías de modo de
-   acción: FRAC azul, IRAC morado, HRAC naranja; cada uno con su fondo suave y una variante oscura para texto chico
-   (WCAG AA). Proporción: ~70 % fondos claros, ~20 % texto y estructura, ~10 % énfasis y categorías. Sin degradés ni
-   colores eléctricos en superficies grandes; sombras muy suaves.
-   Hay modo oscuro (botón sol/luna; index.html pone data-tema antes de dibujar): las mismas familias de color sobre un
-   verde grafito muy oscuro. Todo color va como variable aquí: no usar colores fijos en el resto del archivo. */
+   Paleta «Tech Premium» (10-11-2026, tercera pasada, pedido de Cristóbal): moderna, minimalista, de alto contraste y
+   sin saturación visual. Fondos neutros (blanco con un matiz verde casi imperceptible y gris carbón en el modo oscuro),
+   tarjetas blancas o carbón, texto verde grafito y verde #007f5b solo para botones y acciones. Tres colores intensos
+   diferencian las categorías de modo de acción y los destacados: FRAC azul, IRAC coral, HRAC amarillo; cada uno con
+   su fondo suave y una variante oscura para texto chico (contraste AA). Bordes discretos, esquinas redondeadas y
+   sombras suaves. Modo claro y oscuro con la misma paleta (botón sol/luna; index.html pone data-tema antes de dibujar).
+   Todo color va como variable aquí: no usar colores fijos en el resto del archivo. */
 
 :root {
   color-scheme: light;
-  --fondo: #f2f8f4;          /* verde menta muy claro */
-  --superficie: #ffffff;     /* tarjetas, tablas, formularios */
-  --superficie-2: #f7fbf8;   /* cabeceras de tabla, zonas dentro de una tarjeta */
-  --superficie-3: #e6f0e9;   /* esqueletos, barras de progreso */
-  --tinta: #19352e;          /* verde grafito: títulos y texto */
-  --tinta-2: #2f4a42;
-  --tinta-3: #5f7267;        /* texto secundario (#6a7d71 oscurecido para cumplir AA sobre menta y blanco) */
-  --linea: #dce8df;          /* bordes y separadores */
-  --linea-fuerte: #c6d8cc;
-  --linea-campo: #839a8d;    /* borde de campos y botones secundarios (contraste 3:1) */
-  --marca: #007f5b;          /* verde esmeralda: botones principales */
+  --fondo: #f8faf9;          /* blanco con un matiz verde casi imperceptible */
+  --superficie: #ffffff;     /* tarjetas, tablas, formularios, cabecera */
+  --superficie-2: #f4f6f5;   /* cabeceras de tabla, zonas dentro de una tarjeta */
+  --superficie-3: #eaeeec;   /* esqueletos, barras de progreso */
+  --tinta: #19352e;          /* texto */
+  --tinta-2: #34433f;
+  --tinta-3: #5e6865;        /* texto secundario (AA sobre fondo y tarjetas) */
+  --linea: #e3e8e6;          /* bordes discretos */
+  --linea-fuerte: #cdd5d2;
+  --linea-campo: #858f8c;    /* borde de campos y botones secundarios (contraste 3:1) */
+  --marca: #007f5b;          /* verde principal: botones y acciones */
   --marca-hover: #006b4d;
   --marca-activo: #005a41;
   --marca-tinta: #ffffff;
   --acento: #007f5b;         /* el único énfasis de los controles: selección, foco, orden activo, progreso */
   --acento-texto: #00704f;
-  --acento-suave: #dff5e9;
-  --acento-linea: #9fd8bc;
+  --acento-suave: #e3f4ec;
+  --acento-linea: #a6d9c2;
   --invertido: #19352e;
-  --invertido-tinta: #f2f8f4;
+  --invertido-tinta: #f8faf9;
   --logo-fondo: #007f5b;     /* el cuadrado del logo contrasta con el fondo donde está */
   --logo-tinta: #ffffff;
   --pie-logo-fondo: #f2f8f4;
-  --pie-logo-tinta: #19352e;
+  --pie-logo-tinta: #141a19;
   --verde: #007f5b;
   --verde-fuerte: #00704f;
-  --verde-claro: #dff5e9;
-  --verde-suave: #dff5e9;
-  --azul: #096bff;
-  --azul-fuerte: #0055d4;
-  --azul-bloque: #e8f0ff;
-  --azul-suave: #e8f0ff;
-  --morado-suave: #f0eaff;
+  --verde-claro: #e3f4ec;
+  --verde-suave: #e3f4ec;
+  --azul: #2672ff;
+  --azul-fuerte: #1a5ae0;
+  --azul-suave: #eaf1ff;
+  --azul-bloque: #dce7ff;
   --enlace: #19352e;         /* enlaces en el color de la letra, con subrayado */
   --foco: #007f5b;
-  --pie-fondo: #19352e;
-  --pie-tinta: #e6f0e9;
-  --pie-tinta-2: #a9bfb2;
-  --pie-linea: #2c4a41;
+  --pie-fondo: #141a19;      /* gris carbón */
+  --pie-tinta: #e4ebe8;
+  --pie-tinta-2: #9aa5a1;
+  --pie-linea: #2a3331;
 
-  --ok-fondo: #dff5e9;   --ok-tinta: #0b5a41;   --ok-linea: #9fd8bc;
-  --info-fondo: #e8f0ff; --info-tinta: #0b47a8; --info-linea: #b3ccfa;
-  --alerta-fondo: #fff0e6; --alerta-tinta: #9a3600; --alerta-linea: #ffc199;
-  --peligro-fondo: #fdecec; --peligro-tinta: #a3201a; --peligro-linea: #f2a9a4;
+  --ok-fondo: #e3f4ec;   --ok-tinta: #0b5a41;   --ok-linea: #a6d9c2;
+  --info-fondo: #eaf1ff; --info-tinta: #1a4fc2; --info-linea: #b7cdfb;
+  --alerta-fondo: #fff6d6; --alerta-tinta: #6e5000; --alerta-linea: #f0d27a;
+  --peligro-fondo: #fdecea; --peligro-tinta: #a8201a; --peligro-linea: #f1aaa4;
   --peligro-punto: #d93a32;
 
-  /* Categorías de modo de acción: color eléctrico (franjas, bordes, íconos), fondo suave y variante oscura para texto. */
-  --frac: #096bff;  --frac-fondo: #e8f0ff;  --frac-texto: #0055d4;   /* fungicidas: azul */
-  --irac: #783dff;  --irac-fondo: #f0eaff;  --irac-texto: #6633e6;   /* insecticidas y acaricidas: morado */
-  --hrac: #ff5c00;  --hrac-fondo: #fff0e6;  --hrac-texto: #b23f00;   /* herbicidas: naranja */
-  --sobre-color: #ffffff;    /* dibujos sobre un color de categoría */
-  --otro: #4e6359;  --otro-fondo: #edf3ef;
+  /* Categorías de modo de acción: color intenso (franjas, bordes, íconos), fondo suave, variante oscura para texto
+     chico y el color del dibujo que va sobre el color intenso. */
+  --frac: #2672ff;  --frac-fondo: #eaf1ff;  --frac-texto: #1a5ae0;  --frac-sobre: #ffffff;   /* fungicidas: azul */
+  --irac: #ff4864;  --irac-fondo: #ffebee;  --irac-texto: #c8203d;  --irac-sobre: #ffffff;   /* insecticidas: coral */
+  --hrac: #e5ae00;  --hrac-fondo: #fff6d6;  --hrac-texto: #876200;  --hrac-sobre: #19352e;   /* herbicidas: amarillo */
+  --otro: #4f5b58;  --otro-fondo: #eef1f0;
 
-  --radio: 12px;             /* tarjetas y paneles: esquinas apenas redondeadas */
+  --radio: 14px;             /* tarjetas y paneles */
   --radio-medio: 10px;       /* avisos, opciones y listas desplegables */
   --radio-chico: 8px;        /* campos y selectores */
   --radio-tag: 6px;          /* etiquetas y códigos */
-  --sombra: 0 1px 2px rgba(25, 53, 46, .05), 0 1px 3px rgba(25, 53, 46, .04);
-  --sombra-flotante: 0 12px 28px rgba(25, 53, 46, .14);
+  --sombra: 0 1px 2px rgba(20, 26, 25, .04), 0 2px 8px rgba(20, 26, 25, .04);
+  --sombra-flotante: 0 12px 32px rgba(20, 26, 25, .14);
   --curva: cubic-bezier(.22, 1, .36, 1);
   --rapido: 150ms;
   --letra: "Rubik", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
@@ -79,61 +77,59 @@
   --alto-nav-inf: 64px;
 }
 
-/* Modo oscuro: verde grafito muy oscuro, esmeralda más claro de énfasis y las mismas tres categorías, más luminosas. */
+/* Modo oscuro: gris carbón de fondo, tarjetas carbón, la misma paleta con las categorías más luminosas para texto. */
 :root[data-tema="oscuro"] {
   color-scheme: dark;
-  --fondo: #0e1c17;
-  --superficie: #13251f;
-  --superficie-2: #182d26;
-  --superficie-3: #20382f;
-  --tinta: #eaf3ee;
-  --tinta-2: #c3d4ca;
-  --tinta-3: #8fa89a;
-  --linea: #233b33;
-  --linea-fuerte: #2f4b42;
-  --linea-campo: #4f6f63;
-  --marca: #34c796;
-  --marca-hover: #52d6a9;
-  --marca-activo: #6be0b8;
-  --marca-tinta: #06231a;
-  --acento: #34c796;
-  --acento-texto: #52d6a9;
-  --acento-suave: rgba(52, 199, 150, .14);
-  --acento-linea: rgba(52, 199, 150, .45);
-  --invertido: #eaf3ee;
-  --invertido-tinta: #0e1c17;
-  --logo-fondo: #34c796;
-  --logo-tinta: #0e1c17;
-  --pie-logo-fondo: #eaf3ee;
-  --pie-logo-tinta: #0e1c17;
-  --verde: #34c796;
-  --verde-fuerte: #52d6a9;
-  --verde-claro: rgba(52, 199, 150, .14);
-  --verde-suave: rgba(52, 199, 150, .14);
-  --azul: #4d8fff;
-  --azul-fuerte: #8db8ff;
-  --azul-bloque: rgba(61, 139, 255, .16);
-  --azul-suave: rgba(61, 139, 255, .16);
-  --morado-suave: rgba(154, 107, 255, .16);
-  --enlace: #eaf3ee;
-  --foco: #52d6a9;
-  --pie-fondo: #0a1511;
-  --pie-tinta: #dbe8e0;
-  --pie-tinta-2: #8fa89a;
-  --pie-linea: #1d332b;
+  --fondo: #141a19;          /* gris carbón */
+  --superficie: #202725;     /* tarjetas oscuras */
+  --superficie-2: #262e2c;
+  --superficie-3: #2e3734;
+  --tinta: #f2f8f4;
+  --tinta-2: #c9d2cf;
+  --tinta-3: #9aa5a1;
+  --linea: #2f3836;
+  --linea-fuerte: #3b4542;
+  --linea-campo: #66716e;
+  --marca: #007f5b;          /* el mismo verde para botones y acciones */
+  --marca-hover: #00936a;
+  --marca-activo: #00a576;
+  --marca-tinta: #ffffff;
+  --acento: #3dcb98;         /* foco, selección y texto de énfasis: más claro para que se lea sobre carbón */
+  --acento-texto: #5fd8ab;
+  --acento-suave: rgba(61, 203, 152, .13);
+  --acento-linea: rgba(61, 203, 152, .42);
+  --invertido: #f2f8f4;
+  --invertido-tinta: #141a19;
+  --logo-fondo: #3dcb98;
+  --logo-tinta: #141a19;
+  --pie-logo-fondo: #f2f8f4;
+  --pie-logo-tinta: #141a19;
+  --verde: #3dcb98;
+  --verde-fuerte: #5fd8ab;
+  --verde-claro: rgba(61, 203, 152, .13);
+  --verde-suave: rgba(61, 203, 152, .13);
+  --azul: #5b93ff;
+  --azul-fuerte: #8db3ff;
+  --azul-suave: rgba(38, 114, 255, .16);
+  --azul-bloque: rgba(38, 114, 255, .24);
+  --enlace: #f2f8f4;
+  --foco: #5fd8ab;
+  --pie-fondo: #0e1312;
+  --pie-tinta: #dfe6e3;
+  --pie-tinta-2: #9aa5a1;
+  --pie-linea: #222a28;
 
-  --ok-fondo: rgba(52, 199, 150, .13); --ok-tinta: #86e3c0; --ok-linea: rgba(52, 199, 150, .4);
-  --info-fondo: rgba(61, 139, 255, .14); --info-tinta: #a9c8ff; --info-linea: rgba(61, 139, 255, .42);
-  --alerta-fondo: rgba(255, 122, 46, .13); --alerta-tinta: #ffb27f; --alerta-linea: rgba(255, 122, 46, .42);
-  --peligro-fondo: rgba(255, 92, 92, .13); --peligro-tinta: #ff9d95; --peligro-linea: rgba(255, 92, 92, .42);
-  --peligro-punto: #ff6b62;
+  --ok-fondo: rgba(61, 203, 152, .13); --ok-tinta: #8ae6c1; --ok-linea: rgba(61, 203, 152, .4);
+  --info-fondo: rgba(38, 114, 255, .16); --info-tinta: #a9c6ff; --info-linea: rgba(38, 114, 255, .45);
+  --alerta-fondo: rgba(229, 174, 0, .14); --alerta-tinta: #f2cf62; --alerta-linea: rgba(229, 174, 0, .45);
+  --peligro-fondo: rgba(240, 82, 72, .14); --peligro-tinta: #ff9d95; --peligro-linea: rgba(240, 82, 72, .45);
+  --peligro-punto: #f05248;
 
-  --frac: #3d8bff;  --frac-fondo: rgba(61, 139, 255, .16);  --frac-texto: #9cc2ff;
-  --irac: #9a6bff;  --irac-fondo: rgba(154, 107, 255, .17); --irac-texto: #c8b1ff;
-  --hrac: #ff7a2e;  --hrac-fondo: rgba(255, 122, 46, .15);  --hrac-texto: #ffae80;
-  --sobre-color: #0e1c17;
-  --otro: #c3d4ca;  --otro-fondo: #20382f;
-  --sombra: none;
+  --frac: #2672ff;  --frac-fondo: rgba(38, 114, 255, .17);  --frac-texto: #9cbcff;  --frac-sobre: #ffffff;
+  --irac: #ff4864;  --irac-fondo: rgba(255, 72, 100, .16);  --irac-texto: #ffa0ae;  --irac-sobre: #ffffff;
+  --hrac: #e5ae00;  --hrac-fondo: rgba(229, 174, 0, .16);   --hrac-texto: #f4cd55;  --hrac-sobre: #141a19;
+  --otro: #c9d2cf;  --otro-fondo: #2e3734;
+  --sombra: 0 1px 2px rgba(0, 0, 0, .25);
   --sombra-flotante: 0 12px 32px rgba(0, 0, 0, .5);
 }
 
@@ -928,7 +924,7 @@ ul.tarjeta.lista-simple { padding: 16px 20px; }
 .trivia-progreso { height: 8px; border-radius: 999px; background: var(--superficie-3); overflow: hidden; margin-bottom: 16px; }
 .trivia-progreso > span { display: block; height: 100%; background: var(--acento); border-radius: 999px; }
 /* La pregunta: bloque de color plano (azul), el momento de color de la página. */
-.trivia-pregunta { background: var(--azul-bloque); border-radius: var(--radio); padding: 20px; margin-bottom: 16px; }
+.trivia-pregunta { background: var(--azul-suave); border-radius: var(--radio); padding: 20px; margin-bottom: 16px; }
 .trivia-enunciado { font-size: clamp(20px, 1rem + 1vw, 24px); font-weight: 500; line-height: 1.3; margin: 0 0 4px; overflow-wrap: anywhere; }
 .trivia-pregunta .chico { margin: 0; color: var(--tinta-2); }
 .trivia-opciones { display: grid; gap: 12px; }
@@ -993,10 +989,10 @@ ul.tarjeta.lista-simple { padding: 16px 20px; }
   background: var(--md-fondo); color: var(--tinta); cursor: pointer;
 }
 .md-bloque:hover { transform: translateX(4px); }
-.md-bloque-frac { --md-color: var(--frac); --md-fondo: var(--frac-fondo); --md-texto: var(--frac-texto); }
-.md-bloque-irac { --md-color: var(--irac); --md-fondo: var(--irac-fondo); --md-texto: var(--irac-texto); }
-.md-bloque-hrac { --md-color: var(--hrac); --md-fondo: var(--hrac-fondo); --md-texto: var(--hrac-texto); }
-.md-bloque .md-dibujo { width: 56px; height: 56px; flex: none; padding: 8px; border-radius: var(--radio-medio); background: var(--md-color); color: var(--sobre-color); }
+.md-bloque-frac { --md-color: var(--frac); --md-fondo: var(--frac-fondo); --md-texto: var(--frac-texto); --md-sobre: var(--frac-sobre); }
+.md-bloque-irac { --md-color: var(--irac); --md-fondo: var(--irac-fondo); --md-texto: var(--irac-texto); --md-sobre: var(--irac-sobre); }
+.md-bloque-hrac { --md-color: var(--hrac); --md-fondo: var(--hrac-fondo); --md-texto: var(--hrac-texto); --md-sobre: var(--hrac-sobre); }
+.md-bloque .md-dibujo { width: 56px; height: 56px; flex: none; padding: 8px; border-radius: var(--radio-medio); background: var(--md-color); color: var(--md-sobre); }
 .md-bloque-sigla { color: var(--md-texto); }
 .md-bloque-texto { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .md-bloque-sigla { font-family: var(--mono); font-size: 28px; font-weight: 600; line-height: 1.1; }
@@ -1049,11 +1045,11 @@ a.md-envase:hover { border-color: var(--tinta); }
 .md-sigla-irac { border-left-color: var(--irac); }
 .md-sigla-hrac { border-left-color: var(--hrac); }
 .md-sigla-cabeza { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
-.md-sigla-dibujo { display: grid; place-items: center; flex: none; width: 64px; height: 64px; border-radius: var(--radio-medio); color: var(--sobre-color); }
+.md-sigla-dibujo { display: grid; place-items: center; flex: none; width: 64px; height: 64px; border-radius: var(--radio-medio); }
 .md-sigla-dibujo .md-dibujo { width: 44px; height: 44px; }
-.md-sigla-frac .md-sigla-dibujo { background: var(--frac); }
-.md-sigla-irac .md-sigla-dibujo { background: var(--irac); }
-.md-sigla-hrac .md-sigla-dibujo { background: var(--hrac); }
+.md-sigla-frac .md-sigla-dibujo { background: var(--frac); color: var(--frac-sobre); }
+.md-sigla-irac .md-sigla-dibujo { background: var(--irac); color: var(--irac-sobre); }
+.md-sigla-hrac .md-sigla-dibujo { background: var(--hrac); color: var(--hrac-sobre); }
 .md-sigla-cabeza h3 { margin: 0; font-size: 18px; }
 .md-sigla-nombre { display: block; font-family: var(--mono); font-size: 26px; font-weight: 600; line-height: 1.1; }
 .md-sigla-frac .md-sigla-nombre { color: var(--frac-texto); }
@@ -1168,7 +1164,7 @@ a.md-envase:hover { border-color: var(--tinta); }
 .mz-paso-4 { background: var(--verde-suave); }
 .mz-paso-5 { background: var(--hrac-fondo); }
 .mz-paso-1 .mz-capa-n, .mz-paso-2 .mz-capa-n, .mz-paso-7 .mz-capa-n { border-color: var(--linea-fuerte); }
-.mz-paso-6 { background: var(--morado-suave); }
+.mz-paso-6 { background: var(--azul-bloque); }
 .mz-paso-x { border: 1px dashed var(--linea-fuerte); background: var(--superficie); }
 .mz-capa .mz-capa-n { background: var(--superficie); }
 

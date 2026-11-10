@@ -53,36 +53,38 @@ productores, muchas veces **desde el celular en el campo**.
 Por qué importa: la carencia decide si se puede cosechar. En fruta de exportación un error significa
 rechazo en destino o residuos sobre la tolerancia.
 
-## Reglas de estética (paleta del 10-11-2026, segunda pasada, pedido de Cristóbal)
+## Reglas de estética (paleta «Tech Premium» del 10-11-2026, pedido de Cristóbal)
 
-El mismo día, después de un primer rediseño (marfil, negro, azul rey y códigos fluorescentes), mandó un encargo completo
-con una paleta obligatoria: «moderno, minimalista, elegante y profesional», estilo aplicaciones SaaS, WCAG AA,
-~70 % fondos claros, ~20 % texto y estructura, ~10 % énfasis y categorías; sin degradés, sin sombras exageradas y sin
-colores eléctricos en superficies grandes. **Esta paleta manda** (reemplaza la del primer rediseño y la verde/beige del
-21-10-2026).
-- **Base:** fondo menta muy claro `#f2f8f4`; tarjetas, tablas, formularios y cabecera en blanco con borde `#dce8df` y
-  sombra muy suave; texto verde grafito `#19352e`; texto secundario `#5f7267` (el `#6a7d71` pedido, oscurecido para
-  cumplir AA sobre menta y blanco); bordes de campos y botones secundarios `#839a8d` (contraste 3:1). Pie en verde
-  grafito. Esquinas apenas redondeadas: tarjetas 12, avisos y opciones 10, campos 8, etiquetas 6; botones en píldora.
-- **Énfasis: verde esmeralda `#007f5b`** (texto blanco): botones principales, menú activo, selección, foco, orden activo y
-  progreso. Hover `#006b4d`, presionado `#005a41`, desactivado al 50 %. Texto esmeralda sobre fondo verde suave: `#00704f`.
-- **Categorías de modo de acción: FRAC azul `#096bff`, IRAC morado `#783dff`, HRAC naranja `#ff5c00`**, cada una con fondo
-  suave (`#e8f0ff`, `#f0eaff`, `#fff0e6`) y variante oscura para texto chico (`#0055d4`, `#6633e6`, `#b23f00`). El color
-  eléctrico va solo en franjas, bordes y dibujos: la franja a la izquierda de cada fila y tarjeta del buscador, el título de
-  cada grupo (fondo suave de su categoría), la franja de cada código y el cuadrito con el dibujo de cada comité.
+El 10-11-2026 hubo tres pasadas el mismo día: primero marfil, negro, azul rey y códigos fluorescentes; después una
+paleta menta/esmeralda estilo SaaS; al final pidió esta, **que es la que manda**: «moderna, minimalista y estilo Tech
+Premium, con colores de alto contraste… fondos neutros, evitando que predomine el verde… colores intensos solo para
+elementos destacados… bordes discretos, esquinas redondeadas y sombras suaves… limpia, elegante, tecnológica y
+profesional, sin saturación visual». Se mantienen de las pasadas anteriores: buen contraste (AA), ~70 % fondos claros,
+sin degradés ni colores intensos en superficies grandes.
+- **Claro:** fondo `#f8faf9` (blanco con un matiz verde casi imperceptible); tarjetas, tablas, formularios y cabecera
+  `#ffffff` con borde `#e3e8e6` y sombra suave; texto `#19352e`; texto secundario gris neutro `#5e6865` (AA); bordes de
+  campos y botones secundarios `#858f8c` (contraste 3:1); pie gris carbón `#141a19`.
+- **Oscuro:** fondo gris carbón `#141a19`, tarjetas `#202725`, texto `#f2f8f4`, secundario `#9aa5a1`. Mismos botones verdes;
+  foco, selección y texto de énfasis en un verde más claro (`#3dcb98`) para que se lea sobre carbón.
+- **Verde principal `#007f5b`** (texto blanco) solo para botones y acciones: botones principales, menú activo, selección,
+  foco, orden activo y progreso. Hover `#006b4d` (`#00936a` en oscuro), presionado `#005a41`, desactivado al 50 %.
+- **Categorías de modo de acción: FRAC azul `#2672ff`, IRAC coral `#ff4864`, HRAC amarillo `#e5ae00`**, cada una con
+  fondo suave (`#eaf1ff`, `#ffebee`, `#fff6d6`) y variante oscura para texto chico (`#1a5ae0`, `#c8203d`, `#876200`).
+  El color intenso va solo en franjas, bordes y dibujos: la franja a la izquierda de cada fila y tarjeta del buscador, el
+  título de cada grupo (fondo suave de su categoría), la franja de cada código y el cuadrito con el dibujo de cada comité
+  (dibujo blanco sobre azul y coral, grafito sobre amarillo: `--*-sobre`).
   **Todo código es un botón** que lleva a todos los productos de ese código (`ui.js → chipMoa`, `#/buscar?moa=<familia>`),
   en cualquier página; solo dentro de otro link o botón va sin link (`enlace: false`).
-- Avisos: ok verde suave, información azul suave, alerta naranja suave, peligro rojo suave (el rojo es el único color
+- Avisos: ok verde suave, información azul suave, alerta amarillo suave, peligro rojo suave (el rojo es el único color
   fuera de la paleta: hace falta para lo que no cumple la etiqueta).
-- **Modo oscuro** (pedido en el primer rediseño; se conserva): verde grafito muy oscuro `#0e1c17`, tarjetas `#13251f`,
-  esmeralda claro `#34c796` de énfasis y las mismas tres categorías más luminosas. Sigue al modo del equipo; el botón
-  sol/luna de la cabecera lo cambia y lo recuerda (`localStorage` `tema`). `index.html` pone `data-tema="claro|oscuro"` en
-  `<html>` antes de dibujar (sin parpadeo); `app.js → ponerTema`. Todos los colores son variables en `assets/css/app.css`
-  (`:root` y `:root[data-tema="oscuro"]`): **no usar colores fijos**.
+- Esquinas: tarjetas 14, avisos y opciones 10, campos 8, etiquetas 6; botones en píldora.
+- Sigue al modo del equipo; el botón sol/luna de la cabecera lo cambia y lo recuerda (`localStorage` `tema`). `index.html`
+  pone `data-tema="claro|oscuro"` en `<html>` antes de dibujar (sin parpadeo); `app.js → ponerTema`. Todos los colores son
+  variables en `assets/css/app.css` (`:root` y `:root[data-tema="oscuro"]`): **no usar colores fijos**.
 - **Logo:** el cuadrado de «lista que brota» (tres barras y una hoja; Cristóbal: «solo el cuadrado») en `index.html`
-  (`<symbol id="logo-crm">`), y **cambia de color para contrastar con el fondo** (`--logo-fondo`/`--logo-tinta`): esmeralda
-  en la cabecera clara, esmeralda claro en la oscura, menta en el pie. `assets/img/icono.svg` (esmeralda; esmeralda claro
-  si el equipo está en modo oscuro) y los PNG (`scripts/iconos.py`).
+  (`<symbol id="logo-crm">`), y **cambia de color para contrastar con el fondo** (`--logo-fondo`/`--logo-tinta`): verde en
+  la cabecera clara, verde claro en la oscura, casi blanco en el pie carbón. `assets/img/icono.svg` (verde; verde claro si
+  el equipo está en modo oscuro) y los PNG (`scripts/iconos.py`).
 - Se mantiene: **Rubik**, 17 px y alto contraste (se usa al sol), botones y chips en píldora, barra inferior en celular
   (Inicio, Buscar, Mezclas, Plan y Trivia), solo información importante.
 - **Menú (02-11-2026):** «Inicio» (la explicación de FRAC, IRAC y HRAC), «Buscador» (la tabla), «Mezclas», «Plan» y
@@ -92,7 +94,7 @@ colores eléctricos en superficies grandes. **Esta paleta manda** (reemplaza la 
   de controles chicos); títulos y etiquetas en minúscula normal, nunca en MAYÚSCULAS espaciadas (salvo datos de la
   etiqueta como «CUIDADO»); pesos 400, 500 y 600; sin cursiva (las citas van en gris entre «…»); radios: ver arriba;
   íconos de línea de `ui.js` con trazo 1,5;
-  enlaces en el color de la letra con subrayado; un solo acento en los controles (verde esmeralda); «Extraído
+  enlaces en el color de la letra con subrayado; un solo acento en los controles (el verde principal); «Extraído
   automáticamente» como texto gris sin caja; sin signos de exclamación ni punto final en textos cortos; transiciones
   solo de color/fondo/borde/transform (150 ms, `--curva`), nada que anime ancho o alto. El pie queda abajo aunque la
   página sea corta (`body` en columna).
@@ -317,7 +319,7 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     y link al PDF). Abajo: orden de carga en 7 pasos (agua y agitación; correctores; sólidos WG/WP/SG; suspensiones
     SC/CS/SE/ZC; emulsiones y aceites EC/EW/ME/OD; solubles SL; coadyuvantes y completar), tabla de formulaciones (código,
     nombre, cómo es, paso, cuidado), por qué una mezcla sale mal (física, química, fitotoxicidad, antagonismo) y la prueba
-    de la jarra. Cada paso tiene su fondo suave (agua azul, sólidos gris verdoso, suspensiones verde, emulsiones naranja, solubles morado).
+    de la jarra. Cada paso tiene su fondo suave (agua azul claro, sólidos gris, suspensiones verde, emulsiones amarillo, solubles azul).
     Es explicación general: siempre dice que manda la etiqueta. Fertilizantes y bioestimulantes: «según su etiqueta».
   - `#/buscar?cultivo=<id>&objetivo=<id>&oq=<texto>&cat=<id>&q=<texto>&empresa=<nombre corto>&moa=<clave>|sin&ing=<id>&orden=moa|nombre|empresa|tipo|ing|registro|cultivos&inv=1`
     **Buscador** (fue el inicio hasta el 02-11-2026; los links antiguos al inicio con alguno de esos filtros, y

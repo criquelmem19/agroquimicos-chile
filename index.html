@@ -16,7 +16,7 @@
       try { t = localStorage.getItem('tema'); } catch (e) {}
       if (t !== 'claro' && t !== 'oscuro') t = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'oscuro' : 'claro';
       document.documentElement.setAttribute('data-tema', t);
-      document.querySelector('meta[name="theme-color"]').setAttribute('content', t === 'oscuro' ? '#13251f' : '#ffffff');
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', t === 'oscuro' ? '#202725' : '#ffffff');
     })();
   </script>
   <meta property="og:title" content="Agroquímicos CRM">
