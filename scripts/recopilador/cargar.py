@@ -1,7 +1,7 @@
 """Paso 5 del recopilador: verifica y carga a la base las etiquetas extraídas. Sin IA.
 
 Uso:  python -I scripts/recopilador/cargar.py <carpeta_json> [--ids 1,2,3] [--lote NOMBRE] [--modelo MODELO] [--ensayo]
-                                             [--completar | --reemplazar [--forzar]]
+                                             [--completar | --agregar | --reemplazar [--forzar]]
 
 - Toma <carpeta_json>/<id>.json (lo que escribieron los subagentes), lo verifica (verificar.py) y lo carga
   en una transacción por etiqueta. --ensayo solo escribe el SQL en <datos>/sag/sql/ (no toca la base).
@@ -16,6 +16,9 @@ Uso:  python -I scripts/recopilador/cargar.py <carpeta_json> [--ids 1,2,3] [--lo
 - --completar (etiquetas ya «cargado», con una extracción nueva): solo llena campos vacíos de las líneas que
   calzan (página, fila, cultivo y objetivo); no agrega líneas ni reemplaza valores o citas. Muestra cuánto ganó.
   Con --ensayo lo aplica en una transacción que se deshace y cuenta los valores que cambiarían (debe ser 0).
+- --agregar (etiquetas ya «cargado»; 10-11-2026): carga solo las líneas que faltan, es decir, las de la extracción
+  cuya página, n.° de fila y cultivo no están en el documento (p. ej., filas que la verificación había botado por el
+  nombre del cultivo y se corrigieron en el JSON). No toca ninguna línea cargada. --ensayo: muestra cómo quedaría.
 - --reemplazar (etiquetas ya «cargado», con una extracción nueva; solo con el «sí» de Cristóbal): oculta las líneas
   «pendiente» del documento (review_status «rechazado», no se borran) y carga las de la extracción nueva. No lo hace
   si quedarían menos líneas con dosis o con carencia (salvo --forzar). Con --ensayo muestra antes → después y los
@@ -166,6 +169,7 @@ class Carga:
         self.revision = []  # (tipo, nombre, motivo)
         self.p_id, self.d_id = str(uuid.uuid4()), str(uuid.uuid4())
         self.completar_doc = None  # documento ya cargado cuyas líneas solo se completan (--completar)
+        self.agregar_doc = None  # documento ya cargado al que solo se le agregan las líneas que faltan (--agregar)
 
     def fuente(self, p):
         return "hds" if p in self.hds else ("ocr" if p in self.ocr else None)
@@ -390,6 +394,11 @@ where pu.source_document_id = {lit(self.completar_doc)}::uuid and pu.source_tabl
        or exists (select 1 from o join public.targets t on t.common_name = o.comun
                   join public.use_targets ut on ut.target_id = t.id and ut.product_use_id = pu.id where o.u = v.id::uuid));""")
             return len(filas)
+        falta = ""
+        if self.agregar_doc:
+            falta = f"""
+where not exists (select 1 from public.product_uses pu where pu.source_document_id = {lit(self.agregar_doc)}::uuid
+  and pu.source_page = v.pagina and pu.source_table_row = v.fila and pu.crop_id = c.id and pu.review_status <> 'rechazado')"""
         if filas:
             self.sql.append(f"""insert into public.product_uses (id, product_id, crop_id, source_use_code, dose_raw, dose_min, dose_max,
   dose_unit, dose_basis, water_volume_min_l_ha, water_volume_max_l_ha, application_method, application_timing,
@@ -401,10 +410,11 @@ select v.id::uuid, {lit(self.p_id)}::uuid, c.id, v.codigo, v.dosis, v.dmin, v.dm
   v.confianza, 'pendiente', v.citas
 from (values {','.join(filas)}) as v(id, cultivo, codigo, dosis, dmin, dmax, unidad, base, mmin, mmax, metodo, momento,
   obs, dias, na, raw, maxap, imin, imax, pagina, fila, fuente, confianza, citas)
-join public.crops c on c.name = v.cultivo;""")
-        if objetivos:
+join public.crops c on c.name = v.cultivo{falta};""")
+        if objetivos:  # el join con product_uses deja fuera los objetivos de líneas que --agregar no insertó
             self.sql.append(f"""insert into public.use_targets (product_use_id, target_id)
 select v.u, t.id from (values {','.join(objetivos)}) as v(u, comun, cient)
+join public.product_uses pu on pu.id = v.u
 join public.targets t on t.common_name = v.comun and t.scientific_name is not distinct from v.cient::citext
 on conflict do nothing;""")
         return len(filas)
@@ -529,13 +539,14 @@ from public.sag_inventario where id in ({','.join(map(str, ids)) or '0'})""", "i
     cat = Catalogo()
     csv_dif = ruta("sag", "diferencias.csv")
     total = {"cargadas": 0, "diferencias": 0, "no_etiqueta": 0, "omitidas": 0, "errores": 0, "lineas": 0}
-    if "--completar" in args or "--reemplazar" in args:
+    if "--completar" in args or "--reemplazar" in args or "--agregar" in args:
         # Etiquetas ya «cargado» con una extracción nueva. --completar: llena campos vacíos de las líneas que calzan.
         # --reemplazar: oculta las líneas pendientes del documento («rechazado», no se borran) y carga las nuevas;
         # no lo hace si quedarían menos líneas con dosis o con carencia (salvo --forzar).
         # --ensayo: aplica dentro de una transacción que se deshace y muestra cómo quedaría (no toca la base).
         reemplazar = "--reemplazar" in args
-        modo = "reemplazar" if reemplazar else "completar"
+        agregar = "--agregar" in args
+        modo = "reemplazar" if reemplazar else "agregar" if agregar else "completar"
         # --reemplazar también acepta «diferencias» (producto de la carga original con una etiqueta del SAG nueva):
         # ahí se ocultan las líneas pendientes de todo el producto, no solo las del documento del SAG.
         estados = "'cargado', 'diferencias'" if reemplazar else "'cargado'"
@@ -592,13 +603,16 @@ where {alcance} and review_status = 'pendiente';""")
                     carga.cierre("cargado", "Líneas reemplazadas por una lectura nueva; las anteriores quedaron "
                                             "«rechazado» (ocultas, no se borraron)", reemplazo=True)
                 else:
-                    carga.completar_doc = r["documento_id"]
+                    if agregar:
+                        carga.agregar_doc = r["documento_id"]
+                    else:
+                        carga.completar_doc = r["documento_id"]
                     n = carga.usos()
                     notas = ver.get("verificacion", [])
                     carga.sql.append(f"""insert into public.extraction_runs (document_id, status, extractor_version, model_name, raw_output,
   started_at, finished_at)
 values ({lit(carga.d_id)}, 'validado', {lit(EXTRACTOR)}, {lit(modelo)}, {lit({
-                        "completar": True, "lote": lote, "usos": len(ver.get("usos", [])), "lineas": n,
+                        modo: True, "lote": lote, "usos": len(ver.get("usos", [])), "lineas": n,
                         "descartados": sum(1 for x in notas if "descartado" in x["estado"]), "notas": notas[:60],
                         "problemas": ver.get("problemas", [])[:20]})}, now(), now());""")
                 antes = sql(medir(), f"medir_{i}")[0]

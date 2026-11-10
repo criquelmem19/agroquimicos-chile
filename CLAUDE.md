@@ -563,7 +563,9 @@ vigentes 1xxx, sin dato 2xxx, cancelados 3xxx; dentro, más nuevas primero. Lo n
    extracción nueva; se niega si quedarían menos líneas con dosis o con carencia (salvo `--forzar`); con `--ensayo`
    muestra antes → después y los cultivos que quedarían sin líneas. Desde el 02-11-2026 también con etiquetas
    «diferencias» (producto de la carga original): oculta las líneas «pendiente» de todo el producto y carga las de la
-   etiqueta del SAG (así se hizo con CUPROFORTE, 569).
+   etiqueta del SAG (así se hizo con CUPROFORTE, 569). `--agregar` (10-11-2026): con una etiqueta ya «cargado»,
+   carga solo las líneas que faltan (página, n.° de fila y cultivo que el documento no tiene), sin tocar las cargadas; sirve
+   cuando la verificación botó filas por el nombre del cultivo y se corrigió el JSON (antes `--ensayo`: 0 valores cambiados).
 9. `reporte.py`: números para el informe (inventario, cobertura, autorizados sin etiqueta, problemas).
 Auxiliares: `comun.py`, `expandir.py` (fila × cultivo y su carencia; «cereza (7)» calza con «Cerezo»),
 `recorte.py` (zoom de una zona para los subagentes), `calce.py` (extracción nueva contra líneas cargadas),
@@ -642,6 +644,9 @@ extraido_codex --sin-base`; luego la primera de `--empresas`), escribe solo JSON
 verifica con `verificar.py`; Claude carga lo suyo en el paso 3 con la misma verificación. Codex **no tiene acceso
 a la base** (en su entorno no está `LOCALAPPDATA` y la CLI de Supabase no aparece: 26-10-2026, `FileNotFoundError`):
 `lote.py` lee la cola de la copia `sag/cola.json`, que se renueva cada vez que Claude corre `lote.py`.
+**Desde el 10-11-2026 Codex no tiene cola** (Cristóbal pidió que Claude hiciera las de UPL): las sesiones no esperan a Codex.
+Un JSON de Codex de una etiqueta que ya está «cargado» no se carga de nuevo (`--sin-cargar` solo entrega las que siguen en
+«texto»): moverlo a `sag/extraido_codex/repetidos/` (autorizado por Cristóbal; no se borra). Al 10-11 no había ninguno.
 
 **Estado del recopilador:** ver el final de este archivo.
 
@@ -684,8 +689,13 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   cultivo. Ahora también exige la misma página y algún objetivo en común.
 - Pedir todo el catálogo a la vez con la llave pública (06-11-2026): se cortan consultas a los 3 s. Y que un dato de
   adorno (la fecha del pie) pueda botar el sitio: lo que no es indispensable no debe lanzar error.
+- Cargar una tanda sin mirar antes qué descarta la verificación (10-11-2026): se pierden filas enteras por una llamada «(*)»
+  en el nombre del cultivo o dosis por no citar el encabezado de la columna, y ya cargadas solo se arreglan con `--agregar`
+  o con `--reemplazar` (que necesita el «sí» de Cristóbal).
+- Correr `ocr.py`/`textos.py` creyendo que no tocan el inventario: al final rehacen el cruce por N° SAG (versiones anteriores
+  y producto de cada fila). Desde el 10-11-2026 ese cruce no cambia las filas ya cargadas.
 
-## Estado del recopilador (10-11-2026, ~11:00, después de la sesión 23)
+## Estado del recopilador (10-11-2026, ~13:30, después de la sesión 24)
 
 - Frase de Cristóbal para seguir a mano: **«Sigue con el recopilador del SAG»** → «Cómo seguir». Ahora corre solo
   (ver «Sesiones automáticas»). El detalle de cada sesión va al final de `docs/historia.md` (la más nueva arriba).
@@ -730,21 +740,35 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   **Sesión 23** (10-11, ~10:10–~11:00): 44 etiquetas (Haiku): las 29 canceladas o sin planilla que quedaban y 15 de
   Sumitomo/FMC que `lote_resto.py` excluía (ya no las excluye); 38 cargadas y 6 con diferencias, 944 líneas, lotes
   `2026-11-10-23a` a `-23j`; control al azar. Uso: 5 h de 0 a ~32 %, semanal de 28 a ~33 %.
+  **Sesión 24** (10-11, ~12:40–~13:30; Cristóbal: «haz tú los de Codex… sube todo lo que quede de UPL»): 61 etiquetas de
+  UPL (16 subagentes Haiku): 59 cargadas y 2 con diferencias (180, 183), 1.430 líneas, lotes `2026-11-10-24a` a `-24p` y
+  `-24agregar`. Paró por el tope de uso (5 h de 0 a ~88 %, semanal de 33 a ~45 %) con 6 de UPL sin terminar. Código nuevo:
+  `"objetivos_de_fila"` (celda de malezas compartida), `cargar.py --agregar`, y el cruce de `textos.py` ya no devuelve a
+  «texto» una versión antigua cuando la más nueva está cargada ni le cambia el producto a una etiqueta cargada.
 - **Codex:** 20 cargadas y **control al azar hecho** (30-10, `sag/control/2026-10-30_0804_revision.json`: 22 de 30 sin
-  observaciones, 0 valores contradictorios, solo datos que faltan): se sigue cargando lo suyo normalmente. **Codex: UPL**.
-- **Siguiente: la cola de Claude se terminó** (salvo las etiquetas problema). Quedan 79 en «texto»: 67 de UPL (Codex) y 12
-  etiquetas problema. Próximo trabajo, en este orden: (1) las etiquetas problema, que necesitan arreglar código:
-  **páginas de etiqueta marcadas como HDS por `textos.py`** (JSON como `<id>.pagina_hds.json`): 932 JANUS 480 FS (Bayer,
-  cuadro en la pág. 19), 532 y 1692 VALIS M (FMC), 509 Clorotalonil 720 SC (Point); de Anasac, 1059/1060 METRICLAN;
+  observaciones, 0 valores contradictorios, solo datos que faltan): lo suyo quedó todo cargado. **Codex ya no tiene cola** (10-11-2026: Claude tomó UPL; `encargo_codex.md` le dice que no pida más).
+- **Siguiente (en este orden):** (1) **terminar UPL, 6 etiquetas** (ya no se espera a Codex): con
+  `lote.py --ids 155,869,1061,1591,442,1495 --agentes 2 --por 3` y esta nota en el encargo para 442 y 1495: «el cuadro de usos
+  es una imagen; ya tiene una segunda lectura al final del texto de la página, tras "--- segunda lectura (Tesseract) ---":
+  cita desde ahí» (sus intentos sin cuadro quedaron como `<id>.sin_cuadro.json`). 155 ABAMITE ME estaba mal marcada como
+  versión anterior de CASORON 4G. **Antes de cargar, mirar qué bota la verificación** (`verificar.py`): si bota filas por el
+  nombre del cultivo («Trigo (*)», un paréntesis cortado) o dosis porque la unidad está en el encabezado («g/100 L»), corregir
+  el JSON (cultivo como está escrito en la página; encabezado agregado a `c`; original como `<id>.antes.json`) y recién
+  cargar; si ya se cargó, `cargar.py --agregar` suma las filas que faltan. Y comparar el N° SAG del JSON con el del
+  inventario (ver «productos que juntan etiquetas» en las preguntas). (2) Las etiquetas problema, que necesitan arreglar
+  código: **páginas de etiqueta marcadas como HDS por `textos.py`** (JSON como `<id>.pagina_hds.json`): 932 JANUS 480 FS
+  (Bayer, cuadro en la pág. 19), 532 y 1692 VALIS M (FMC), 509 Clorotalonil 720 SC (Point); de Anasac, 1059/1060 METRICLAN;
   **páginas escaneadas de lado** que `ocr.py` no gira bien (ni Sonnet las lee): 464 CHAMP DP WG, 648 DiTera WG, 817 GIBGRO
   10LS (Sumitomo), 673 DUOMAX 425 SC, 1123 NEMATON y 602 DECCOAZOX 25 SC (JSON como `<id>.girada.json`/`.sin_cuadro.json`);
-  todas en `PROB` de `lote_resto.py`. (2) Cargar lo de Codex (paso 3). (3) Las diferencias de los productos que ya estaban
-  y el workflow mensual (ver «Falta»). `lote_resto.py 3 4 --todas` toma lo que quede fuera de UPL y de `PROB`.
-  **Ojo: `lote.py --help` no muestra ayuda, reserva 8 etiquetas** (soltarlas con `lote_resto.py unreserve <ids>`).
-- **Cola:** 79 en «texto»: 67 de UPL (Codex) y 12 etiquetas problema. Lo de UPL depende de Codex (~6–20 por sesión).
-- Inventario: 1.634 filas; 79 en «texto», 1.295 cargadas, 157 diferencias, 68 no son etiqueta, 9 versiones
+  y **1327 RADICAL (UPL)**: escaneada, el OCR (también Tesseract) no lee las dosis ni la carencia (`1327.sin_cuadro.json`);
+  todas en `PROB` de `lote_resto.py`, que ya no excluye UPL. (3) Las diferencias de los productos que ya estaban y el
+  workflow mensual (ver «Falta»). **Ojo: `lote.py --help` no muestra ayuda, reserva 8 etiquetas** (soltarlas con
+  `lote_resto.py unreserve <ids>`).
+- **Cola:** 19 en «texto»: 6 de UPL por terminar y 13 etiquetas problema (12 de antes + 1327).
+- Inventario: 1.634 filas; 19 en «texto», 1.354 cargadas, 159 diferencias, 68 no son etiqueta, 8 versiones
   anteriores, 14 sin PDF, 5 ilegibles, 5 duplicados, 2 ya en la base.
-- Base: 1.444 productos (1.405 con N° SAG), 42.725 líneas visibles; dosis 94,0 %, carencia 90,0 %; 133 MB.
+- Base: 1.503 productos (1.463 con N° SAG), 44.155 líneas visibles; dosis 93,9 %, carencia 90,2 %; 136 MB.
+- Control al azar de la sesión 24: no tocaba (59 cargadas desde el último); el próximo, con las de UPL de esta sesión.
 - Último control al azar: 10-11-2026 10:31, de la sesión 23 (`sag/control/2026-11-10_1031_revision.json`): 29 de 30 sin
   observaciones (24 de FLECHA 9.6 EC, 747); falta la dosis de papa de ACECLAN 70 WP (167: 90–110 g/ha, el OCR de la pág. 2
   está revuelto). El siguiente, con lo nuevo de Codex.
@@ -785,7 +809,17 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   (objetivo «#»: ¿quitar?), **1590** (autorización «2.747-O», cargada 2747); de la sesión 22: **1667** (la «carencia» de 7 días es hasta el pastoreo; la etiqueta la titula «Período de
   carencia»), **1580 TERCEL 50 WP** (iprodiona con «FRAC F1» en la etiqueta: no está en `moa_equivalencias`); de la sesión 23:
   **284** (carencia «N.C.» sin leyenda en la etiqueta: quedó sin carencia; ¿«no aplica»?), **646 DIPEL WG** melón y sandía
-  (dosis 250–500 y 500 de una celda: se cargó 250–500 para los dos).
+  (dosis 250–500 y 500 de una celda: se cargó 250–500 para los dos).; de la sesión 24: **BIRD SHIELD
+  con el N° SAG 1880, que es de ACRAMITE 480 SC** (su etiqueta, 378, no trae número y el cargador tomó el del inventario, que
+  estaba mal): ACRAMITE 480 SC (180) quedó como «diferencias» de BIRD SHIELD y no entró como producto; ¿quitarle el número a
+  BIRD SHIELD y cargar ACRAMITE 480 SC (10 usos ya leídos en `extraido/180.json`)?; **OXUS (1181), RAPTOR (1344) y RIPPER
+  FULL SL (1380)** sin malezas por fila (celda compartida): ¿volver a leerlas y `--reemplazar`?; **SEMPRA y SEMPRA WG (1424,
+  1425)**: «No se establece período de carencia» (¿«no aplica»?); **productos que juntan etiquetas distintas** porque
+  `sag_inventario.registro_sag` estaba mal (el número no está en el texto de 51 de 1.379 etiquetas): 1880 BIRD SHIELD + SULTAN
+  (1516) + ACRAMITE, 3590 TIGER 700 EC + ASULOX (274), 1615 RIMON + NIMITZ + PEDESTAL, 2857 RAPIZENT + CADILAC, 1591 DIAZOL +
+  ETANIS, 2426 ORIUS + ATLAS, 2756 AZUFRE FLO + AZUFRE FLOABLE AN: revisar uno por uno con él (y que `cargar.py` no use el
+  número del inventario si no está escrito en la etiqueta); **N° SAG con «-O»** guardados como «1648-» o «2460-0»: no
+  calzan con la planilla del SAG y el producto queda «no figura» (unos 40 productos): ¿normalizarlos?
 - Etiquetas flojas: COLT 45 WP (515); BACIFRUIT SC (315); AQUILES 24 EC (261); TOXIMOL (1620, segundo cuadro pág. 4); 591;
   RANGO 480 SL (1337); NEXUS 50 SL (1129); 1717; 542; de la sesión 8: 828/829/830 GLIFOSPEC, 1382 RIPPER MAX, 1148 NUMEK,
   1176 OVERKILL (cuadro aéreo), 1452 SIMAZINA, 640, 940, 647, 1699; de la sesión 10: 197 y 1708 VERPEZU (0 líneas), 639,
@@ -801,7 +835,12 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   desordenados), 1523 (dosis sin unidad); de la sesión 23: 1331 RAK Pomáceas (0 líneas: feromona en
   cápsulas/ha), 1488 STATUS DP (sin dosis: la segunda lectura tampoco lee «2,0 – 2,5 kg/ha»; en `PROB`), 167 ACECLAN 70 WP
   (OCR revuelto: varias filas sin dosis), 166 (misma etiqueta sin cuadro, quedó como diferencias), 1464 SIZER 70 WG (sin dosis:
-  el OCR lee «25» por «2,5»), 1612 (dosis «15a2,0»), 747 FLECHA 9.6 EC (568 líneas, revisada en el control: bien).
+  el OCR lee «25» por «2,5»), 1612 (dosis «15a2,0»), 747 FLECHA 9.6 EC (568 líneas, revisada en el control: bien).; de la sesión 24 (UPL): 1585 TERWEED (38 de 60 líneas sin dosis: celda combinada),
+  444 CASORON 4G (sin dosis: g/m² solo en la imagen), 583 CYANAMIDA 50% (OCR dañado: solo vides con dosis), 564 CUPROBORDOLES
+  (6 sin dosis), 1188 PANTERA 12 EC (dosis por zona en observaciones), 785 FUNGICUP WG (sin carencia), 866 HIDROXICOBRE 50% WG
+  (20 sin objetivo), 319 BALEAR 720 SC y 1072 MICROTHIOL (falta el cuadro aéreo), 558 CRUSADER (vides sin dosis), 1083 MIXER y
+  1684 UNIFILM 707 (coadyuvantes, 0 líneas), 1236/1238/1240 PODASTIK (pasta para cortes, sin dosis numérica), 212 ALIADO
+  (faltan cereales).
 - **CUPROFORTE (569), 02-11-2026, con el «sí» de Cristóbal:** sus 59 líneas de la carga original eran texto OCR revuelto
   (ningún cultivo real); `cargar.py --reemplazar --forzar` las ocultó y cargó 21 de la etiqueta del SAG (lote
   `2026-11-02-cuproforte`). En `569.json` se separaron cultivos («Naranjo Limonero» → Naranjo y Limonero, «Nectarines y

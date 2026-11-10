@@ -97,6 +97,33 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
    que no la cumplen: al 20-10-2026 son 0).
 9. Medir cobertura antes y después. Meta: 80–90 % de las líneas con carencia resuelta y citada.
 
+## Recopilador: sesión 24 (10-11-2026, a pedido de Cristóbal: UPL sin esperar a Codex)
+
+- ~12:40–~13:30, desde una sesión abierta por Cristóbal («haz tú los de Codex, me da igual si se repiten… sube todo lo que
+  quede de UPL»). Uso al empezar: 5 h 0 %, semanal 33 %. Codex no tenía nada escrito sin cargar; ninguna de las 67 de UPL
+  estaba reservada. Se reservaron todas para esta sesión y se repartieron con `--ids`.
+- 16 subagentes Haiku (14 de 4 y 2 de 5; 3 a la vez): lotes `2026-11-10-24a` a `-24p`. 61 etiquetas: 59 cargadas y 2 con
+  diferencias (180 ACRAMITE 480 SC, 183 ACRAMITE 50 WP); 1.430 líneas (1.303 con dosis, 1.387 con carencia, 1.130 con objetivo).
+- Arreglos a mano antes de cargar (original como `<id>.antes.json`): 558 CRUSADER (dosis comparadas con la imagen; la unidad
+  se cita como la lee el OCR, «9/100 L de agua»), 785, 866, 1072 y 564 (encabezado «g/100 L» agregado a la cita de la fila),
+  446 («Arándanos»), 1684 UNIFILM 707 (su «cultivo» era «Mezclas con Insecticidas…»: se cargó sin líneas, como los otros
+  coadyuvantes). Después de cargar, con `--agregar` (lote `-24agregar`): 1367 RELIK +3 líneas, 377 BIOZYME TF +2, 660 DOGMA +2.
+- Sin cargar: 1327 RADICAL (escaneada; ni Tesseract lee dosis ni carencia: a `PROB`), 442 CARPOVIRUSINE ULTRA y 1495 STIK
+  (cuadro como imagen; se les hizo `ocr.py --tesseract --forzar` y quedaron listas para releer). Sin leer por el tope de uso:
+  869 HOOK, 1061 METRIPHAR 480 SC, 1591 THIOPRON 825 SC y 155 ABAMITE ME. 212 ALIADO y 1238 PODASTIK PLUS se releyeron en la
+  misma sesión con la segunda lectura y se cargaron.
+- Código: `verificar.py` acepta `"objetivos_de_fila"` (y las instrucciones lo piden para la celda de malezas compartida);
+  `cargar.py --agregar`; `textos.py`: el cruce ya no pasa a «texto» una versión antigua cuando la más nueva está cargada (al
+  correr `ocr.py` volvieron 181, 445 y 559: se devolvieron a «versión anterior») ni cambia el producto de una fila cargada;
+  `lote_resto.py` ya no excluye UPL; `encargo_codex.md` le dice a Codex que no pida más.
+- Inventario: en 14 etiquetas de la sesión el N° SAG del inventario se corrigió al de la etiqueta (p. ej. 1711 VERTICAL 2763
+  → 2924, 444 CASORON 4G 2460 → 3668, 441 190 → 1903).
+- Hallazgo (no corregido, pregunta para Cristóbal): `cargar.py` usa el N° SAG del inventario cuando el JSON no trae uno, y en
+  algunas filas ese número estaba mal: «BIRD SHIELD» quedó con el 1880 de ACRAMITE 480 SC, y hay otros 6 productos que juntan
+  etiquetas distintas (lista en «Preguntas abiertas» de CLAUDE.md).
+- Sin control al azar (no tocaba). JSON repetidos de Codex: ninguno.
+- Uso al terminar: 5 h ~88 %, semanal ~45 %.
+
 ## Recopilador: sesión 23 (10-11-2026, automática)
 
 - ~10:10–~11:00. Sin etiquetas nuevas del SAG ni extracciones sin cargar. Uso al empezar: 5 h 0 %, semanal 28 %.

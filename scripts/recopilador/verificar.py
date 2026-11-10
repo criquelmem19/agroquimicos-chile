@@ -306,7 +306,11 @@ def limpiar(j, doc):
             v.nota(campo, "descartado", "sin cultivos verificados")
             continue
         objetivos = []
-        for o in u.get("objetivos") or []:
+        lista_obj = u.get("objetivos") or []
+        if not lista_obj and isinstance(u.get("objetivos_de_fila"), str):  # «mismos objetivos que la fila N» (celda compartida)
+            previa = next((x for x in j.get("usos") or [] if str(x.get("fila")) == u["objetivos_de_fila"]), None)
+            lista_obj = (previa or {}).get("objetivos") or []
+        for o in lista_obj:
             if not isinstance(o, dict) or not o.get("nombre"):
                 continue
             if doc.escrito(o["nombre"], p) or (o.get("cientifico") and doc.escrito(o["cientifico"], p)):

@@ -240,13 +240,15 @@ with p as (
   update public.sag_inventario i set producto_id = pr.id, actualizado = now()
   from public.products pr
   where pr.registration_number = i.registro_sag and i.producto_id is distinct from pr.id
+    and i.estado not in ('cargado', 'diferencias')  -- las ya cargadas conservan el producto que les puso cargar.py
   returning i.id
 ) select count(*) n from p;""", "cruce_productos")
     ver = sql("""
 with orden as (
   select id, registro_sag, row_number() over (partition by registro_sag
            order by coalesce(fecha_etiqueta, make_date(coalesce(anio, 2000), 1, 1)) desc, id desc) n
-  from public.sag_inventario where registro_sag is not null and estado in ('texto', 'version_anterior')
+  from public.sag_inventario where registro_sag is not null
+    and estado in ('texto', 'version_anterior', 'cargado', 'diferencias')  -- una versión ya cargada también cuenta
 ), ver as (
   update public.sag_inventario i set
     estado = case when o.n = 1 then 'texto' else 'version_anterior' end,
@@ -254,7 +256,8 @@ with orden as (
                         else (select o2.id from orden o2 where o2.registro_sag = o.registro_sag and o2.n = 1) end,
     motivo = case when o.n = 1 then null else 'Hay una etiqueta más nueva del mismo N° SAG' end,
     actualizado = now()
-  from orden o where o.id = i.id and i.estado <> case when o.n = 1 then 'texto' else 'version_anterior' end
+  from orden o where o.id = i.id and i.estado in ('texto', 'version_anterior')  -- nunca cambia una ya cargada
+    and i.estado <> case when o.n = 1 then 'texto' else 'version_anterior' end
   returning i.id
 ) select count(*) n from ver;""", "versiones")
     return {"cruzadas": a[0]["n"], "con_producto_en_base": p[0]["n"], "cambios_de_version": ver[0]["n"]}

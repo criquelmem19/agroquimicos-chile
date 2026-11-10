@@ -1,5 +1,12 @@
 # Encargo para Codex: extraer etiquetas del SAG (en paralelo con Claude)
 
+> **Desde el 10-11-2026 Codex no tiene cola.** Cristóbal pidió que Claude terminara las etiquetas de UPL que
+> estaban reservadas para Codex, y así se hizo. **Si te pegaron este encargo: no pidas etiquetas ni escribas JSON.**
+> Respóndele a Cristóbal: «No queda nada para mí: Claude ya cargó las de UPL». Lo que sigue queda como referencia,
+> por si Cristóbal y Claude vuelven a repartir trabajo (Claude avisaría aquí qué empresa tomar).
+> Un JSON tuyo de una etiqueta que Claude ya cargó no se carga de nuevo: Claude lo aparta en
+> `sag\extraido_codex\repetidos\`.
+
 Desde el 26-10-2026 Codex ayuda a Claude a leer etiquetas de plaguicidas publicadas por el SAG. Claude trabaja con
 su propio límite de uso; Codex con el suyo. Codex **solo escribe archivos JSON**: Claude los verifica y los carga a
 la base. Trabaja con cuidado: la carencia decide si se puede cosechar.
@@ -23,7 +30,7 @@ la base. Trabaja con cuidado: la carencia decide si se puede cosechar.
 - Una tanda de 4 a la vez. Si se te acaba el uso a medias, para: lo que quedó sin JSON vuelve solo a la cola en
   12 horas. La próxima vez, sigue desde el paso 1.
 
-## Cómo trabajar (repetir mientras tengas uso)
+## Cómo trabajar (solo si el aviso de arriba ya no está; repetir mientras tengas uso)
 
 1. Pide las siguientes 4 etiquetas (quedan reservadas para ti 12 horas; Claude no las toma):
    `python -I scripts\recopilador\lote.py --empresa upl --nuevos --vigentes --agentes 1 --por 4 --salida extraido_codex --sin-base`

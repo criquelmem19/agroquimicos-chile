@@ -162,7 +162,10 @@ Escríbelo con la herramienta Write en la ruta que te indican, UTF-8. Omite las 
     herbicidas con listas largas), escribe la lista completa solo en la primera de esas filas y en las demás
     pon `"cultivos_de_fila": "1"` (el número de esa primera fila) en vez de `cultivos`.
   - `objetivos`: plagas, enfermedades o malezas; `cientifico` solo si la etiqueta lo trae.
-    `tipo_objetivo`: plaga, enfermedad, maleza u otro (según el encabezado de la columna).
+    `tipo_objetivo`: plaga, enfermedad, maleza u otro (según el encabezado de la columna). Si una celda de
+    objetivos vale para varias filas de la misma página (típico: la lista de malezas de un herbicida), escribe
+    la lista completa solo en la primera de esas filas y en las demás pon `"objetivos_de_fila": "1"` (el número
+    de esa primera fila) en vez de `objetivos`.
   - `dosis.texto`: la dosis como se lee en la etiqueta («50 - 75 g/100 L», «1,5 - 3 kg/ha»). Si la cifra
     está en la celda y la unidad en el encabezado de la columna («Dosis cc/hL» … «185»), júntalas
     («185 cc/hL») y pon en `c` los dos fragmentos (encabezado y celda). `min`/`max` (iguales si es una sola
