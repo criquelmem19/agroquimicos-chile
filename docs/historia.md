@@ -97,6 +97,22 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
    que no la cumplen: al 20-10-2026 son 0).
 9. Medir cobertura antes y después. Meta: 80–90 % de las líneas con carencia resuelta y citada.
 
+## Recopilador: sesión 23 (10-11-2026, automática)
+
+- ~10:10–~11:00. Sin etiquetas nuevas del SAG ni extracciones sin cargar. Uso al empezar: 5 h 0 %, semanal 28 %.
+- Las 29 canceladas o sin planilla que quedaban (`lote_resto.py`, 6 subagentes Haiku de 4–5): lotes `2026-11-10-23a` a
+  `-23g`. 1464 SIZER 70 WG con la nota «citar desde la segunda lectura»: 10 líneas, pero sin dosis (Tesseract lee «25»
+  por «2,5»). 1488 STATUS DP: `ocr.py --tesseract --forzar` no agregó nada (ya tenía la segunda lectura y tampoco lee la
+  dosis); se cargó sin dosis y quedó en `PROB`. 166 y 167 ACECLAN 70 WP (mismo N° SAG): se cargó primero 167 (con cuadro,
+  37 líneas) y 166 (sin cuadro) quedó como diferencias. 284: «N.C.» sin leyenda, sin carencia (pregunta). 747 FLECHA 9.6 EC:
+  568 líneas (herbicida con lista larga de cultivos).
+- `lote_resto.py` excluía Sumitomo y FMC desde la sesión 18 y dejó fuera 15 etiquetas sin JSON (5 vigentes de productos que
+  ya estaban y 10 canceladas de Sumitomo). Se reservaron a mano y se hicieron con 3 Haiku (lotes `-23h` a `-23j`): 11
+  cargadas, 4 con diferencias. Ahora `EXCL` solo tiene UPL.
+- Control al azar (Sonnet) de 30 líneas de la sesión: 29 bien; falta la dosis de papa de 167 (90–110 g/ha).
+- Total: 44 etiquetas, 38 cargadas y 6 con diferencias, 944 líneas. Quedan 79 en «texto»: 67 de UPL (Codex) y 12 problema.
+- Uso al terminar: 5 h ~32 %, semanal ~33 %.
+
 ## Recopilador: sesión 22 (09-11-2026, automática, con Cristóbal conectado)
 
 ~10:20–~12:30. Uso: 5 h de 2 a ~72 %, semanal de 0 a ~10 %. 100 etiquetas: 94 cargadas, 3 con diferencias, 3 no son etiqueta.

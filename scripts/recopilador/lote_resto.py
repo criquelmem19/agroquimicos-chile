@@ -3,7 +3,7 @@
 Uso:  python -I scripts/recopilador/lote_resto.py <agentes> <por> [--todas] [--contar]
       python -I scripts/recopilador/lote_resto.py unreserve 1,2,3
 
-- Toma la cola de lote.cola() sin UPL (Codex), Sumitomo ni FMC y sin las etiquetas problema de «Estado del recopilador»
+- Toma la cola de lote.cola() sin UPL (Codex) y sin las etiquetas problema de «Estado del recopilador»
   (PROB). Solo vigentes salvo --todas. Reserva lo que entrega (lote.reservar) e imprime los encargos de lote.encargo().
 - --contar: solo cuenta las pendientes. unreserve: suelta reservas hechas por error.
 """
@@ -21,8 +21,8 @@ if a and a[0] == "unreserve":
     escribir_json(lote.RESERVAS, r); print("ok"); sys.exit()
 agentes, por = int(a[0]), int(a[1])
 vig = "--todas" not in a
-EXCL = ("upl", "sumitomo", "fmc")
-PROB = {602,464,509,532,1692,932,648,817,1059,1060,409,673,1123}
+EXCL = ("upl",)  # Sumitomo y FMC se terminaron en la sesión 23 (10-11-2026)
+PROB = {602,464,509,532,1692,932,648,817,1059,1060,409,673,1123,1488}
 listas = lote.hechas()
 filas = [f for f in lote.cola() if not any(e in (f["empresa"] or "").lower() for e in EXCL)
          and (not vig or lote.vigente(f)) and f["id"] not in PROB]
