@@ -97,6 +97,49 @@ Inmersión, Aplicación terrestre, Aplicación aérea (varios se unen con « / �
    que no la cumplen: al 20-10-2026 son 0).
 9. Medir cobertura antes y después. Meta: 80–90 % de las líneas con carencia resuelta y citada.
 
+## Recopilador: sesión 23 (10-11-2026, automática)
+
+- ~10:10–~11:00. Sin etiquetas nuevas del SAG ni extracciones sin cargar. Uso al empezar: 5 h 0 %, semanal 28 %.
+- Las 29 canceladas o sin planilla que quedaban (`lote_resto.py`, 6 subagentes Haiku de 4–5): lotes `2026-11-10-23a` a
+  `-23g`. 1464 SIZER 70 WG con la nota «citar desde la segunda lectura»: 10 líneas, pero sin dosis (Tesseract lee «25»
+  por «2,5»). 1488 STATUS DP: `ocr.py --tesseract --forzar` no agregó nada (ya tenía la segunda lectura y tampoco lee la
+  dosis); se cargó sin dosis y quedó en `PROB`. 166 y 167 ACECLAN 70 WP (mismo N° SAG): se cargó primero 167 (con cuadro,
+  37 líneas) y 166 (sin cuadro) quedó como diferencias. 284: «N.C.» sin leyenda, sin carencia (pregunta). 747 FLECHA 9.6 EC:
+  568 líneas (herbicida con lista larga de cultivos).
+- `lote_resto.py` excluía Sumitomo y FMC desde la sesión 18 y dejó fuera 15 etiquetas sin JSON (5 vigentes de productos que
+  ya estaban y 10 canceladas de Sumitomo). Se reservaron a mano y se hicieron con 3 Haiku (lotes `-23h` a `-23j`): 11
+  cargadas, 4 con diferencias. Ahora `EXCL` solo tiene UPL.
+- Control al azar (Sonnet) de 30 líneas de la sesión: 29 bien; falta la dosis de papa de 167 (90–110 g/ha).
+- Total: 44 etiquetas, 38 cargadas y 6 con diferencias, 944 líneas. Quedan 79 en «texto»: 67 de UPL (Codex) y 12 problema.
+- Uso al terminar: 5 h ~32 %, semanal ~33 %.
+
+## Recopilador: sesión 22 (09-11-2026, automática, con Cristóbal conectado)
+
+~10:20–~12:30. Uso: 5 h de 2 a ~72 %, semanal de 0 a ~10 %. 100 etiquetas: 94 cargadas, 3 con diferencias, 3 no son etiqueta.
+
+- Codex (UPL): 635, 645, 668, 992, 1006, 1029 (lote `2026-11-09-22codex`, 185 líneas).
+- Haiku, canceladas o sin planilla (lotes `-22a` a `-22x`, 1.557 líneas): 1726, 1727, 1749, 248, 251, 266, 294, 296, 297, 318,
+  332, 375, 603, 658, 672, 393, 394, 431, 562, 691, 696, 697, 783, 934, 959, 1005, 1036, 800, 810, 839, 933, 1251, 1366, 1410,
+  1185, 1227, 1233, 1246, 1102, 1104, 1119, 1144, 1549, 1618, 1619, 1667, 1702, 1703, 1747, 1751, 1486, 398, 1637, 477, 624,
+  585, 1139, 1241, 1305, 1350, 1638, 864, 925, 975, 1317, 1643, 316, 1112, 1430, 848, 1057, 931, 1085, 298, 916, 769, 1245,
+  1580, 1659, 1027, 1330, 1007, 1195, 1476, 1489, 1490, 1492, 1581. Diferencias: 1033, 392, 1454. No son etiqueta: 169
+  (embalaje de exportación), 1555 (tarifas del SAG), 728 (resolución).
+- Arreglos antes de cargar: 1749 arándano sin mojamiento («entre 600 L», sin máximo); 1410 sin mojamiento (eran volúmenes de
+  riego). 1486: la pág. 2 era imagen con 92 letras de capa; `ocr.py --forzar` y `--tesseract --forzar`, y se volvió a extraer.
+- Apartadas: 602 DECCOAZOX (escaneo de lado, `602.girada.json`, en `PROB` de `lote_resto.py`); 1464 SIZER 70 WG (cuadro en
+  imagen, `1464.sin_cuadro.json`; ya tiene la segunda lectura de Tesseract y se soltó la reserva).
+- BASTA 14 SL (327): Cristóbal pidió revisarlo. El producto viene de la carga original: 18 líneas con confianza 0,74, sin N° SAG
+  ni ingrediente, sin cerezo, vid, canola ni bordes, sin la dosis de desmanche (2 %), sin máximos ni mojamiento; las carencias
+  que tiene calzan con la etiqueta. Extracción nueva con Sonnet y arreglos a mano (citas «0 días» de la lectura de Windows,
+  cultivos de la fila 2 en vez de `cultivos_de_fila`, filas 1b/2b para el máximo de 2 aplicaciones). Ensayo de `--reemplazar`:
+  18 → 40 líneas, carencia 17 → 39. Con el «sí» de Cristóbal se aplicó `--reemplazar` (lote `2026-11-09-basta`) y la
+  migración `basta_registro_e_ingrediente` (N° SAG 3328 y glufosinato-amonio, que `--reemplazar` no llena). «Canola»
+  quedó en el cultivo Raps.
+- Control al azar (Sonnet, `sag/control/2026-11-09_1219_revision.json`): 21 de 30 sin observaciones; casi todo datos que
+  faltan; 865 almendro con el intervalo de cerezo, 1607 objetivo «#», 1648 solo la dosis de suelo pesado.
+- Ojo con `cultivos_de_fila`: si se separa una fila en dos con distintos cultivos, quitar esa clave (verificar.py la usa en vez
+  de `cultivos`).
+
 ## Recopilador: sesión 21 (05-11-2026, automática)
 
 ~13:22–~13:40. Partió con el semanal en 89 % y llegó a 90 % con la primera tanda: no se lanzaron más subagentes.
