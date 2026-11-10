@@ -1,9 +1,11 @@
 // Inicio: qué son FRAC, IRAC y HRAC y por qué importan (pedido de Cristóbal, 01-11-2026: «que lo entienda un agricultor
 // sin estudios y que un ingeniero esté de acuerdo»; 02-11-2026: «más visual, divertido de entender» y que sea el inicio).
-// Lo simple va a la vista, con dibujos, un juego de rotación y un «¿rotaste o no?»; lo técnico queda en «Para el técnico»
-// (desplegables). Los textos explican las clasificaciones oficiales (FRAC Code List, IRAC MoA Classification, HRAC MoA
-// Classification); los productos y las cantidades del catálogo salen de la base, nunca inventados.
-import { h, icono, ruta, plural, claseMoa, chipsMoa, vaciar } from '../ui.js';
+// 10-11-2026 (Cristóbal): parte explicando qué son los grupos y por qué son iguales; enseguida, los tres comités con
+// «Para el técnico» abierto; sin el juego de la botrytis («no sirve de nada»). Los códigos son botones al buscador.
+// Los textos explican las clasificaciones oficiales (FRAC Code List, IRAC MoA Classification, HRAC MoA Classification);
+// lo que hace cada grupo sale de moa.js; los productos y las cantidades del catálogo salen de la base, nunca inventados.
+import { h, icono, ruta, plural, claseMoa, chipMoa, chipsMoa, vaciar } from '../ui.js';
+import { queHace } from '../moa.js';
 
 // Dibujos de línea de cada comité (64 × 64): hongo, insecto y maleza.
 const DIBUJOS = {
@@ -36,18 +38,18 @@ const SIGLAS = [
     ],
     hace: 'Qué le hace al hongo',
     grupos: [
-      { codigo: 'FRAC 1', que: 'Frena la división de sus células', sitio: 'β-tubulina', familia: 'Benzimidazoles', ejemplos: 'carbendazima, tiabendazol', riesgo: 'Alto' },
-      { codigo: 'FRAC 3', que: 'Frena la fabricación de su membrana', sitio: 'C14-desmetilasa de esteroles', familia: 'Triazoles (DMI)', ejemplos: 'tebuconazol, difenoconazol, propiconazol', riesgo: 'Medio' },
-      { codigo: 'FRAC 4', que: 'Frena la fabricación de su material genético', sitio: 'ARN polimerasa I', familia: 'Fenilamidas', ejemplos: 'metalaxil', riesgo: 'Alto' },
-      { codigo: 'FRAC 7', que: 'Le corta la respiración', sitio: 'succinato deshidrogenasa (complejo II)', familia: 'Carboxamidas (SDHI)', ejemplos: 'boscalid, fluopiram, fluxapiroxad', riesgo: 'Medio a alto' },
-      { codigo: 'FRAC 9', que: 'Frena la fabricación de un aminoácido', sitio: 'síntesis de metionina (propuesto)', familia: 'Anilinopirimidinas', ejemplos: 'ciprodinilo, pirimetanilo', riesgo: 'Medio' },
-      { codigo: 'FRAC 11', que: 'Le corta la respiración en otro punto', sitio: 'citocromo bc1, sitio Qo (complejo III)', familia: 'Estrobilurinas (QoI)', ejemplos: 'azoxistrobina, piraclostrobina, trifloxistrobina', riesgo: 'Alto' },
-      { codigo: 'FRAC 12', que: 'Le altera las señales internas', sitio: 'transducción de señal osmótica', familia: 'Fenilpirroles', ejemplos: 'fludioxonilo', riesgo: 'Bajo a medio' },
-      { codigo: 'FRAC 17', que: 'Frena la fabricación de su membrana en otro punto', sitio: '3-ceto reductasa de esteroles', familia: 'Hidroxianilidas', ejemplos: 'fenhexamida', riesgo: 'Bajo a medio' },
-      { codigo: 'FRAC M01', que: 'Ataca muchos puntos a la vez', sitio: 'multisitio', familia: 'Cobre', ejemplos: 'oxicloruro de cobre, hidróxido de cobre', riesgo: 'Bajo' },
-      { codigo: 'FRAC M02', que: 'Ataca muchos puntos a la vez', sitio: 'multisitio', familia: 'Azufre', ejemplos: 'azufre, polisulfuro de calcio', riesgo: 'Bajo' },
-      { codigo: 'FRAC M03', que: 'Ataca muchos puntos a la vez', sitio: 'multisitio', familia: 'Ditiocarbamatos', ejemplos: 'mancozeb, metiram, propineb', riesgo: 'Bajo' },
-      { codigo: 'FRAC M05', que: 'Ataca muchos puntos a la vez', sitio: 'multisitio', familia: 'Cloronitrilos', ejemplos: 'clorotalonilo', riesgo: 'Bajo' },
+      { codigo: 'FRAC 1', sitio: 'β-tubulina', familia: 'Benzimidazoles', ejemplos: 'carbendazima, tiabendazol', riesgo: 'Alto' },
+      { codigo: 'FRAC 3', sitio: 'C14-desmetilasa de esteroles', familia: 'Triazoles (DMI)', ejemplos: 'tebuconazol, difenoconazol, propiconazol', riesgo: 'Medio' },
+      { codigo: 'FRAC 4', sitio: 'ARN polimerasa I', familia: 'Fenilamidas', ejemplos: 'metalaxil', riesgo: 'Alto' },
+      { codigo: 'FRAC 7', sitio: 'succinato deshidrogenasa (complejo II)', familia: 'Carboxamidas (SDHI)', ejemplos: 'boscalid, fluopiram, fluxapiroxad', riesgo: 'Medio a alto' },
+      { codigo: 'FRAC 9', sitio: 'síntesis de metionina (propuesto)', familia: 'Anilinopirimidinas', ejemplos: 'ciprodinilo, pirimetanilo', riesgo: 'Medio' },
+      { codigo: 'FRAC 11', sitio: 'citocromo bc1, sitio Qo (complejo III)', familia: 'Estrobilurinas (QoI)', ejemplos: 'azoxistrobina, piraclostrobina, trifloxistrobina', riesgo: 'Alto' },
+      { codigo: 'FRAC 12', sitio: 'transducción de señal osmótica', familia: 'Fenilpirroles', ejemplos: 'fludioxonilo', riesgo: 'Bajo a medio' },
+      { codigo: 'FRAC 17', sitio: '3-ceto reductasa de esteroles', familia: 'Hidroxianilidas', ejemplos: 'fenhexamida', riesgo: 'Bajo a medio' },
+      { codigo: 'FRAC M01', sitio: 'multisitio', familia: 'Cobre', ejemplos: 'oxicloruro de cobre, hidróxido de cobre', riesgo: 'Bajo' },
+      { codigo: 'FRAC M02', sitio: 'multisitio', familia: 'Azufre', ejemplos: 'azufre, polisulfuro de calcio', riesgo: 'Bajo' },
+      { codigo: 'FRAC M03', sitio: 'multisitio', familia: 'Ditiocarbamatos', ejemplos: 'mancozeb, metiram, propineb', riesgo: 'Bajo' },
+      { codigo: 'FRAC M05', sitio: 'multisitio', familia: 'Cloronitrilos', ejemplos: 'clorotalonilo', riesgo: 'Bajo' },
     ],
   },
   {
@@ -63,15 +65,15 @@ const SIGLAS = [
     ],
     hace: 'Qué le hace al insecto o ácaro',
     grupos: [
-      { codigo: 'IRAC 1', que: 'Bloquea una enzima de los nervios', sitio: 'acetilcolinesterasa', familia: 'Carbamatos (1A) y organofosforados (1B)', ejemplos: 'pirimicarb, oxamilo (1A); profenofós (1B)' },
-      { codigo: 'IRAC 3', que: 'Deja los nervios disparando sin parar', sitio: 'canal de sodio', familia: 'Piretroides (3A)', ejemplos: 'lambda-cihalotrina, alfacipermetrina, deltametrina' },
-      { codigo: 'IRAC 4', que: 'Imita la señal de los nervios y los satura', sitio: 'receptor nicotínico de acetilcolina', familia: 'Neonicotinoides (4A) y sulfoximinas (4C)', ejemplos: 'imidacloprid, acetamiprid, tiametoxam (4A); sulfoxaflor (4C)' },
-      { codigo: 'IRAC 5', que: 'Sobreexcita los nervios', sitio: 'receptor nicotínico, sitio alostérico', familia: 'Espinosinas', ejemplos: 'espinosad, espinetoram' },
-      { codigo: 'IRAC 6', que: 'Lo paraliza', sitio: 'canal de cloro activado por glutamato', familia: 'Avermectinas', ejemplos: 'abamectina, emamectina' },
-      { codigo: 'IRAC 10', que: 'Frena el desarrollo de huevos y ninfas de ácaros', sitio: 'inhibidores del crecimiento de ácaros (CHS1)', familia: 'Clofentezina y hexitiazox (10A), etoxazol (10B)', ejemplos: 'hexitiazox, clofentezina, etoxazol' },
-      { codigo: 'IRAC 15', que: 'No deja que forme su nueva cubierta al mudar', sitio: 'síntesis de quitina (CHS1)', familia: 'Benzoilureas', ejemplos: 'lufenurón, novalurón, triflumurón' },
-      { codigo: 'IRAC 23', que: 'Frena la fabricación de sus grasas', sitio: 'acetil-CoA carboxilasa', familia: 'Ácidos tetrónicos y tetrámicos', ejemplos: 'espirodiclofeno, espirotetramato' },
-      { codigo: 'IRAC 28', que: 'Contrae sus músculos sin control y deja de comer', sitio: 'receptor de rianodina', familia: 'Diamidas', ejemplos: 'clorantraniliprol, ciantraniliprol' },
+      { codigo: 'IRAC 1', sitio: 'acetilcolinesterasa', familia: 'Carbamatos (1A) y organofosforados (1B)', ejemplos: 'pirimicarb, oxamilo (1A); profenofós (1B)' },
+      { codigo: 'IRAC 3', sitio: 'canal de sodio', familia: 'Piretroides (3A)', ejemplos: 'lambda-cihalotrina, alfacipermetrina, deltametrina' },
+      { codigo: 'IRAC 4', sitio: 'receptor nicotínico de acetilcolina', familia: 'Neonicotinoides (4A) y sulfoximinas (4C)', ejemplos: 'imidacloprid, acetamiprid, tiametoxam (4A); sulfoxaflor (4C)' },
+      { codigo: 'IRAC 5', sitio: 'receptor nicotínico, sitio alostérico', familia: 'Espinosinas', ejemplos: 'espinosad, espinetoram' },
+      { codigo: 'IRAC 6', sitio: 'canal de cloro activado por glutamato', familia: 'Avermectinas', ejemplos: 'abamectina, emamectina' },
+      { codigo: 'IRAC 10', sitio: 'inhibidores del crecimiento de ácaros (CHS1)', familia: 'Clofentezina y hexitiazox (10A), etoxazol (10B)', ejemplos: 'hexitiazox, clofentezina, etoxazol' },
+      { codigo: 'IRAC 15', sitio: 'síntesis de quitina (CHS1)', familia: 'Benzoilureas', ejemplos: 'lufenurón, novalurón, triflumurón' },
+      { codigo: 'IRAC 23', sitio: 'acetil-CoA carboxilasa', familia: 'Ácidos tetrónicos y tetrámicos', ejemplos: 'espirodiclofeno, espirotetramato' },
+      { codigo: 'IRAC 28', sitio: 'receptor de rianodina', familia: 'Diamidas', ejemplos: 'clorantraniliprol, ciantraniliprol' },
     ],
   },
   {
@@ -87,15 +89,15 @@ const SIGLAS = [
     ],
     hace: 'Qué le hace a la maleza',
     grupos: [
-      { codigo: 'HRAC 1', antes: 'A', que: 'Frena la fabricación de sus grasas; solo afecta a gramíneas', sitio: 'ACCasa', familia: 'Ariloxifenoxipropionatos («fop») y ciclohexanodionas («dim»)', ejemplos: 'quizalofop-P-etilo, haloxifop, cletodima' },
-      { codigo: 'HRAC 2', antes: 'B', que: 'Frena la fabricación de aminoácidos', sitio: 'ALS', familia: 'Sulfonilureas e imidazolinonas', ejemplos: 'metsulfurón-metilo, nicosulfurón, imazamox' },
-      { codigo: 'HRAC 4', antes: 'O', que: 'Imita una hormona de crecimiento: la maleza crece deformada', sitio: 'auxinas sintéticas', familia: 'Fenoxiácidos y ácidos piridincarboxílicos', ejemplos: '2,4-D, MCPA, clopiralid, picloram' },
-      { codigo: 'HRAC 5', antes: 'C1, C2', que: 'Frena la fotosíntesis', sitio: 'fotosistema II', familia: 'Triazinas, triazinonas y ureas', ejemplos: 'simazina, atrazina, metribuzina, diurón' },
-      { codigo: 'HRAC 9', antes: 'G', que: 'Frena la fabricación de aminoácidos en otro punto', sitio: 'EPSPS', familia: 'Glicinas', ejemplos: 'glifosato' },
-      { codigo: 'HRAC 10', antes: 'H', que: 'Frena una enzima clave para usar el nitrógeno', sitio: 'glutamina sintetasa', familia: 'Ácidos fosfínicos', ejemplos: 'glufosinato de amonio' },
-      { codigo: 'HRAC 14', antes: 'E', que: 'Rompe sus membranas con la luz del sol', sitio: 'PPO', familia: 'Difeniléteres y otros', ejemplos: 'oxifluorfeno, saflufenacilo' },
-      { codigo: 'HRAC 15', antes: 'K3', que: 'Frena el crecimiento de la plántula recién nacida', sitio: 'ácidos grasos de cadena muy larga', familia: 'Cloroacetamidas y otros', ejemplos: 'S-metolacloro, flufenacet' },
-      { codigo: 'HRAC 22', antes: 'D', que: 'Quema el tejido verde en horas', sitio: 'fotosistema I', familia: 'Bipiridilos', ejemplos: 'diquat' },
+      { codigo: 'HRAC 1', antes: 'A', sitio: 'ACCasa', familia: 'Ariloxifenoxipropionatos («fop») y ciclohexanodionas («dim»)', ejemplos: 'quizalofop-P-etilo, haloxifop, cletodima' },
+      { codigo: 'HRAC 2', antes: 'B', sitio: 'ALS', familia: 'Sulfonilureas e imidazolinonas', ejemplos: 'metsulfurón-metilo, nicosulfurón, imazamox' },
+      { codigo: 'HRAC 4', antes: 'O', sitio: 'auxinas sintéticas', familia: 'Fenoxiácidos y ácidos piridincarboxílicos', ejemplos: '2,4-D, MCPA, clopiralid, picloram' },
+      { codigo: 'HRAC 5', antes: 'C1, C2', sitio: 'fotosistema II', familia: 'Triazinas, triazinonas y ureas', ejemplos: 'simazina, atrazina, metribuzina, diurón' },
+      { codigo: 'HRAC 9', antes: 'G', sitio: 'EPSPS', familia: 'Glicinas', ejemplos: 'glifosato' },
+      { codigo: 'HRAC 10', antes: 'H', sitio: 'glutamina sintetasa', familia: 'Ácidos fosfínicos', ejemplos: 'glufosinato de amonio' },
+      { codigo: 'HRAC 14', antes: 'E', sitio: 'PPO', familia: 'Difeniléteres y otros', ejemplos: 'oxifluorfeno, saflufenacilo' },
+      { codigo: 'HRAC 15', antes: 'K3', sitio: 'ácidos grasos de cadena muy larga', familia: 'Cloroacetamidas y otros', ejemplos: 'S-metolacloro, flufenacet' },
+      { codigo: 'HRAC 22', antes: 'D', sitio: 'fotosistema I', familia: 'Bipiridilos', ejemplos: 'diquat' },
     ],
   },
 ];
@@ -126,14 +128,6 @@ const PALABRAS = [
     tecnico: 'Pasa porque comparten el sitio de acción. En algunos grupos es parcial (por ejemplo, entre algunos SDHI, FRAC 7), pero los comités recomiendan planificar como si todo el grupo fuera uno solo.',
   },
 ];
-
-// Juego: 40 individuos de botrytis. Cada uno aguanta o no cada código (5 % de partida, al azar). Al aplicar un código
-// mueren los que no lo aguantan (salvo un 5 % que escapa por mala cobertura); los que quedan se multiplican y llega un
-// 20 % de vecinos. Es un modelo de juguete para mostrar la idea, no un cálculo real.
-const JUEGO = {
-  opciones: [['Marca A', 'FRAC 7'], ['Marca B', 'FRAC 7'], ['Marca C', 'FRAC 12'], ['Marca D', 'FRAC 9']],
-  total: 40, base: 0.05, escapan: 0.05, vecinos: 0.2, aplicaciones: 6,
-};
 
 const ROTASTE = [
   { antes: ['FRAC 11'], despues: ['FRAC 11'], marcas: ['Marca A', 'Marca B'], rota: false, explica: 'Es el mismo código. Aunque cambie la marca, para el hongo es el mismo golpe.' },
@@ -177,7 +171,8 @@ const disponibles = (cat) => [...cat.productos.values()].filter((p) => !p.noDisp
 const masUsados = (a, b) => (b.nLineas || 0) - (a.nLineas || 0);
 const solos = (cat, k) => disponibles(cat).filter((p) => p.ings.length === 1 && p.familias.length === 1 && p.familias[0] === k).sort(masUsados);
 
-const codigo = (k) => h('span', { class: claseMoa(k) }, k);
+// Un código: botón que lleva a todos sus productos (enlace = false solo dentro de otro link).
+const codigo = (k, enlace = true) => chipMoa(k, { enlace });
 
 function seccion(id, titulo, ...hijos) {
   return h('section', { class: 'md-seccion', id: `md-${id}`, 'aria-labelledby': `md-${id}-t` },
@@ -189,20 +184,27 @@ function irA(id) {
   if (el) el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
 }
 
-function tecnico(...hijos) {
-  return h('details', { class: 'md-tecnico' }, h('summary', null, 'Para el técnico'), h('div', null, hijos));
+// abierto: los de los comités se ven de entrada (Cristóbal, 10-11-2026: «abierto al tiro»).
+function tecnico(abierto, ...hijos) {
+  return h('details', { class: 'md-tecnico', open: abierto }, h('summary', null, 'Para el técnico'), h('div', null, hijos));
 }
 
 // ---------- Portada ----------
 
+// Parte por lo esencial: qué es un grupo y por qué dos marcas del mismo grupo son iguales.
 function portada() {
   return h('header', { class: 'md-cabeza' },
     h('div', { class: 'md-cabeza-texto' },
+      h('p', { class: 'md-sobre' }, 'FRAC · IRAC · HRAC'),
       h('h1', null, 'Rota el código, no la marca'),
-      h('p', { class: 'md-bajada' }, 'FRAC, IRAC y HRAC son los códigos que dicen cómo mata cada producto. Si se repite el mismo código, la plaga se hace resistente y el producto deja de servir.'),
+      h('dl', { class: 'md-explica' },
+        h('div', null, h('dt', null, '¿Qué es un grupo?'),
+          h('dd', null, 'Cada agroquímico trae en su etiqueta un código FRAC (fungicidas), IRAC (insecticidas y acaricidas) o HRAC (herbicidas). Ese código es su grupo: dice en qué punto ataca a la plaga.')),
+        h('div', null, h('dt', null, '¿Por qué son iguales?'),
+          h('dd', null, 'Dos marcas con el mismo código atacan el mismo punto. Si la plaga aguanta una, aguanta la otra: para ella son el mismo producto. Por eso se rota el código y no la marca.'))),
       h('div', { class: 'acciones' },
         h('a', { class: 'boton boton-primario', href: '#/buscar' }, icono('buscar'), 'Buscar un producto'),
-        h('button', { type: 'button', class: 'boton', onclick: () => irA('juego') }, 'Aprender jugando'))),
+        h('button', { type: 'button', class: 'boton', onclick: () => irA('siglas') }, 'Ver los grupos'))),
     h('div', { class: 'md-bloques' }, SIGLAS.map((s) => h('button', {
       type: 'button', class: `md-bloque md-bloque-${s.clase}`, onclick: () => irA(s.clase),
       'aria-label': `${s.sistema}: ${s.para}. Ir a la explicación`,
@@ -221,7 +223,7 @@ function tarjetaProducto(p, k, generico) {
     icono('frasco'),
     h('span', { class: 'md-envase-nombre' }, p ? p.nombre : generico),
     h('span', { class: 'md-envase-ing' }, p ? p.ings[0].ing.nombre.toLowerCase() : 'otro ingrediente'),
-    codigo(k));
+    codigo(k, false));
 }
 
 function idea(cat) {
@@ -238,107 +240,11 @@ function idea(cat) {
   const fila = (izq, signo, der, texto, bien) => h('div', { class: 'md-igual' },
     izq, h('span', { class: 'md-signo', 'aria-hidden': 'true' }, signo), der,
     h('p', { class: `md-veredicto ${bien ? 'md-bien' : 'md-mal'}` }, icono(bien ? 'check' : 'cerrar'), texto));
-  return seccion('idea', 'La idea en un dibujo',
+  return seccion('idea', 'Un ejemplo con productos del catálogo',
     fila(tarjetaProducto(par && par.a, k1, 'Marca A'), '=', tarjetaProducto(par && par.b, k1, 'Marca B'),
       'Marcas e ingredientes distintos, mismo código: alternar entre ellos no es rotar', false),
     fila(tarjetaProducto(par && par.a, k1, 'Marca A'), '≠', tarjetaProducto(otro, otroK, 'Marca C'),
       'Códigos distintos: atacan puntos distintos. Esto sí es rotar', true));
-}
-
-// ---------- Juego de rotación ----------
-
-function juego() {
-  const codigos = [...new Set(JUEGO.opciones.map(([, k]) => k))];
-  const nuevo = () => Object.fromEntries(codigos.map((k) => [k, Math.random() < JUEGO.base]));
-  let poblacion = [];
-  let historial = [];
-  let ocupado = false;
-
-  const puntos = h('div', { class: 'md-poblacion', 'aria-hidden': 'true' });
-  const mensaje = h('p', { class: 'md-juego-mensaje', 'aria-live': 'polite' });
-  const linea = h('ol', { class: 'md-historial' });
-  const leyenda = h('p', { class: 'md-juego-leyenda' });
-  const botones = JUEGO.opciones.map(([marca, k]) => h('button', {
-    type: 'button', class: 'md-opcion', onclick: () => aplicar(k, marca),
-  }, h('span', null, marca), codigo(k)));
-  const reiniciar = h('button', { type: 'button', class: 'boton boton-chico', onclick: () => empezar() }, icono('rotar'), 'Jugar de nuevo');
-
-  // vivos: null = antes de aplicar; si no, el estado de cada uno. marca: el código que se muestra en negro.
-  function pintar(estados, marcaK) {
-    vaciar(puntos);
-    poblacion.forEach((ind, i) => {
-      const e = estados ? estados[i] : (marcaK && ind[marcaK] ? 'aguanta' : 'sensible');
-      puntos.append(h('span', { class: `md-punto md-${e}` }));
-    });
-    leyenda.textContent = marcaK ? `Negro: aguantan ${marcaK}. Verde: mueren con ${marcaK}.` : 'Cada punto es un hongo. Verde: muere con el producto.';
-  }
-
-  function empezar() {
-    // De partida, justo el 5 % aguanta cada código (en lugares al azar), para que el juego siempre muestre la idea.
-    poblacion = Array.from({ length: JUEGO.total }, () => Object.fromEntries(codigos.map((k) => [k, false])));
-    for (const k of codigos) {
-      const lugares = poblacion.map((_, i) => i).sort(() => Math.random() - 0.5);
-      for (const i of lugares.slice(0, Math.round(JUEGO.total * JUEGO.base))) poblacion[i][k] = true;
-    }
-    historial = [];
-    vaciar(linea);
-    mensaje.textContent = `Tienes ${JUEGO.aplicaciones} aplicaciones contra botrytis. Elige el producto de cada una.`;
-    reiniciar.hidden = true;
-    botones.forEach((b) => { b.disabled = false; });
-    pintar(null, null);
-  }
-
-  function aplicar(k, marca) {
-    if (ocupado || historial.length >= JUEGO.aplicaciones) return;
-    ocupado = true;
-    botones.forEach((b) => { b.disabled = true; });
-    const estados = poblacion.map((ind) => (ind[k] ? 'aguanta' : Math.random() < JUEGO.escapan ? 'sensible' : 'muerto'));
-    const muertos = estados.filter((e) => e === 'muerto').length;
-    const control = Math.round((muertos / JUEGO.total) * 100);
-    const repetido = historial.length && historial[historial.length - 1].k === k;
-    historial.push({ k, marca, control });
-    pintar(estados, k);
-    linea.append(h('li', { class: control >= 80 ? 'md-bien' : control >= 50 ? 'md-regular' : 'md-mal' },
-      h('span', { class: 'md-historial-n' }, `${historial.length}.ª`), codigo(k), h('strong', null, `${control} %`)));
-    mensaje.textContent = `Controlaste el ${control} %. ${repetido ? `Repetiste ${k}: los que lo aguantaron la vez pasada ahora son más.`
-      : control >= 80 ? 'Buen control.' : `Ojo: muchos ya aguantan ${k}.`}`;
-    // Los que quedan vivos se multiplican y llegan vecinos.
-    const vivos = poblacion.filter((_, i) => estados[i] !== 'muerto');
-    const hijos = Math.round(JUEGO.total * (1 - JUEGO.vecinos));
-    const espera = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1200;
-    setTimeout(() => {
-      poblacion = [
-        ...Array.from({ length: vivos.length ? hijos : 0 }, () => ({ ...vivos[Math.floor(Math.random() * vivos.length)] })),
-        ...Array.from({ length: JUEGO.total - (vivos.length ? hijos : 0) }, nuevo),
-      ];
-      pintar(null, k);
-      ocupado = false;
-      if (historial.length >= JUEGO.aplicaciones) terminar();
-      else botones.forEach((b) => { b.disabled = false; });
-    }, espera);
-  }
-
-  function terminar() {
-    const promedio = Math.round(historial.reduce((s, x) => s + x.control, 0) / historial.length);
-    const repeticiones = historial.filter((x, i) => i && historial[i - 1].k === x.k).length;
-    mensaje.textContent = `Control promedio: ${promedio} %. ${repeticiones
-      ? `Repetiste el mismo código ${repeticiones === 1 ? 'una vez' : `${repeticiones} veces`} seguidas: ahí la botrytis se hizo resistente.`
-      : 'No repetiste el código seguido: la botrytis siguió controlada.'}`;
-    reiniciar.hidden = false;
-  }
-
-  empezar();
-  return seccion('juego', 'Juega: que la botrytis no se haga resistente',
-    h('p', { class: 'md-intro' }, 'Marca A y Marca B son distintas, pero las dos son FRAC 7. Prueba repetir y prueba rotar.'),
-    h('div', { class: 'md-juego' },
-      h('div', { class: 'md-juego-tablero' }, puntos, leyenda),
-      h('div', { class: 'md-juego-panel' },
-        h('p', { class: 'md-rotulo' }, 'Aplica'),
-        h('div', { class: 'md-opciones' }, botones),
-        mensaje,
-        linea,
-        reiniciar)),
-    h('p', { class: 'md-nota' }, 'Es un juego para mostrar la idea: las cantidades no son datos reales.'));
 }
 
 // ---------- ¿Rotaste o no? ----------
@@ -354,9 +260,9 @@ function rotaste() {
       };
       return h('article', { class: 'md-pregunta' },
         h('div', { class: 'md-secuencia' },
-          h('span', { class: 'md-paso' }, h('span', { class: 'md-paso-n' }, '1.ª aplicación'), q.marcas[0], h('span', { class: 'lista-moa' }, q.antes.map(codigo))),
+          h('span', { class: 'md-paso' }, h('span', { class: 'md-paso-n' }, '1.ª aplicación'), q.marcas[0], h('span', { class: 'lista-moa' }, q.antes.map((k) => codigo(k)))),
           icono('flecha'),
-          h('span', { class: 'md-paso' }, h('span', { class: 'md-paso-n' }, '2.ª aplicación'), q.marcas[1], h('span', { class: 'lista-moa' }, q.despues.map(codigo)))),
+          h('span', { class: 'md-paso' }, h('span', { class: 'md-paso-n' }, '2.ª aplicación'), q.marcas[1], h('span', { class: 'lista-moa' }, q.despues.map((k) => codigo(k))))),
         h('div', { class: 'md-botones' },
           h('button', { type: 'button', class: 'boton boton-chico', onclick: () => responder(true) }, 'Sí rotó'),
           h('button', { type: 'button', class: 'boton boton-chico', onclick: () => responder(false) }, 'No rotó')),
@@ -376,7 +282,7 @@ function tablaGrupos(s) {
     // Cada celda con un solo hijo: en el celular la fila se vuelve «título | valor» y cada hijo sería otra celda.
     h('tbody', null, s.grupos.map((g) => h('tr', null,
       h('td', { 'data-etiqueta': 'Código' }, h('div', null, codigo(g.codigo), conAntes ? h('span', { class: 'md-antes' }, `antes ${g.antes}`) : null)),
-      h('td', { 'data-etiqueta': s.hace }, h('div', null, h('span', { class: 'md-que' }, g.que), h('span', { class: 'md-sitio' }, g.sitio))),
+      h('td', { 'data-etiqueta': s.hace }, h('div', null, h('span', { class: 'md-que' }, queHace(g.codigo)), h('span', { class: 'md-sitio' }, g.sitio))),
       h('td', { 'data-etiqueta': 'Familia química' }, g.familia),
       h('td', { 'data-etiqueta': 'Ejemplos' }, g.ejemplos),
       conRiesgo ? h('td', { 'data-etiqueta': 'Riesgo' }, g.riesgo) : null)))));
@@ -398,21 +304,21 @@ function enCatalogo(cat, sistema) {
   return h('div', { class: 'md-catalogo' },
     h('p', null, h('strong', null, plural(n, 'producto', 'productos')), ` con código ${sistema} en el catálogo. Toca un código para verlos:`),
     h('div', { class: 'md-familias' }, comunes.map(([k, c]) => h('a', {
-      class: `${claseMoa(k)} md-familia`, href: ruta('buscar', { moa: k }), title: `Ver los ${plural(c, 'producto', 'productos')} ${k} en el buscador`,
+      class: `${claseMoa(k)} md-familia`, href: ruta('buscar', { moa: k }), title: `Ver los ${plural(c, 'producto', 'productos')} ${k} en el buscador. ${queHace(k) || ''}`,
     }, k, h('small', null, String(c))))));
 }
 
 function siglas(cat) {
-  return seccion('siglas', 'Las tres siglas',
+  return seccion('siglas', 'Los tres comités',
     h('div', { class: 'md-siglas' }, SIGLAS.map((s) => h('article', { class: `md-sigla md-sigla-${s.clase}`, id: `md-${s.clase}` },
       h('header', { class: 'md-sigla-cabeza' },
-        dibujo(s.clase),
+        h('span', { class: 'md-sigla-dibujo' }, dibujo(s.clase)),
         h('div', null,
           h('h3', null, h('span', { class: 'md-sigla-nombre' }, s.sistema), s.para),
           h('p', null, `Contra ${s.contra}: ${s.ejemplos}`))),
       h('ul', { class: 'md-lectura' }, s.lectura.map((t) => h('li', null, t))),
       enCatalogo(cat, s.sistema),
-      tecnico(
+      tecnico(true,
         h('p', null, `${s.nombre}: ${s.traduccion}. Comité técnico internacional formado por las empresas de agroquímicos junto a investigadores.`),
         h('ul', { class: 'md-lectura' }, s.tecnico.map((t) => h('li', null, t))),
         tablaGrupos(s))))),
@@ -432,7 +338,7 @@ function palabras() {
       h('h3', null, p.titulo),
       h('p', null, p.simple),
       h('p', { class: 'md-ejemplo' }, p.ejemplo),
-      tecnico(h('p', null, p.tecnico))))));
+      tecnico(false, h('p', null, p.tecnico))))));
 }
 
 function reglas() {
@@ -463,7 +369,7 @@ function ejemplos(cat) {
         h('p', null, h('span', { class: 'md-rotulo md-mal' }, 'Qué pasa'), e.pasa),
         h('p', null, h('span', { class: 'md-rotulo md-bien' }, 'Qué conviene'), e.hacer))),
       mezcla ? h('article', { class: 'md-caso' },
-        h('span', { class: 'lista-moa' }, mezcla.moa.map(codigo)),
+        h('span', { class: 'lista-moa' }, mezcla.moa.map((k) => codigo(k))),
         h('h3', null, 'Un producto, dos códigos'),
         h('p', null, h('a', { href: `#/producto/${mezcla.id}` }, mezcla.nombre), ` trae ${mezcla.ings.map((x) => x.ing.nombre.toLowerCase()).join(' y ')}.`),
         h('p', null, h('span', { class: 'md-rotulo md-bien' }, 'Qué conviene'), `Contarla como aplicación de los dos códigos: después, no repetir ${mezcla.moa.join(' ni ')}.`)) : null));
@@ -479,7 +385,7 @@ function enEsteSitio() {
       h('a', { class: 'md-uso', href: '#/plan' }, icono('calendario'), h('strong', null, 'Plan de aplicaciones'),
         h('span', null, 'Te avisa si repites un código en la mezcla o en la aplicación anterior.'))),
     h('p', { class: 'md-muestras' }, chipsMoa(['FRAC 11', 'IRAC 4A', 'HRAC 9']), chipsMoa(['HRAC 1'], new Map([['HRAC 1', ['HRAC A']]])),
-      h('span', null, 'Azul FRAC, verde IRAC, tierra HRAC. Entre paréntesis, el código antiguo que trae la etiqueta. La etiqueta siempre manda.')));
+      h('span', null, 'Azul FRAC, verde IRAC, amarillo HRAC. Toca un código para ver todos sus productos. Entre paréntesis, el código antiguo que trae la etiqueta. La etiqueta siempre manda.')));
 }
 
 export async function render(main, ctx) {
@@ -487,7 +393,6 @@ export async function render(main, ctx) {
   main.append(h('div', { class: 'md' },
     portada(),
     idea(cat),
-    juego(),
     siglas(cat),
     rotaste(),
     palabras(),

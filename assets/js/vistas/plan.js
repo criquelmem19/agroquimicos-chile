@@ -8,7 +8,6 @@
 import { usosPorCultivo, usosPorProducto, planGuardado, familiaMoa } from '../db.js';
 import { filtrar, palabras, normalizar } from '../buscador.js';
 import * as P from '../plan.js';
-import { UMBRAL_CONFIANZA } from '../config.js';
 import {
   h, icono, ruta, plural, recortar, limpio, vaciar, cargando, retrasar, notificar,
   dosis, carencia, linkPdf, urlDeLinea, chipsMoa, ingredientesTexto,
@@ -38,8 +37,7 @@ function nombreObjetivos(cat, u, max = 3) {
 // Regla 1 del sitio: la dosis de la etiqueta siempre va con su estado.
 function textoDosis(u) {
   const estado = u.review_status === 'aprobado' ? 'revisada' : 'extraída automáticamente';
-  const baja = u.confidence_score != null && Number(u.confidence_score) < UMBRAL_CONFIANZA ? ', confianza baja' : '';
-  return `${recortar(u.dose_raw || 'dosis sin dato, verificar etiqueta', 60)} (${estado}${baja})`;
+  return `${recortar(u.dose_raw || 'dosis sin dato, verificar etiqueta', 60)} (${estado})`;
 }
 
 function textoCarencia(u) {

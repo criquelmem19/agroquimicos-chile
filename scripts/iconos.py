@@ -1,49 +1,67 @@
-"""Íconos PNG del sitio, con el dibujo de assets/img/icono.svg (logo «CRM» negro con un punto verde).
+"""Íconos PNG del sitio, con el dibujo de assets/img/icono.svg (cuadrado azul rey con una lista que brota, 10-11-2026).
 
 Uso (necesita Pillow: el Python del venv de la carpeta de datos):
   C:\\Users\\crisa\\agroquimicos-datos\\venv\\Scripts\\python.exe -I scripts/iconos.py
 
-- icono-32.png: pestaña, para los navegadores que no leen el SVG (mismo dibujo, fondo transparente).
-- icono-180.png (iPhone) e icono-192.png / icono-512.png (Android, manifest.webmanifest): cuadrado negro
-  entero, porque el celular le pone sus propias esquinas.
-Letra: Arial negrita, la misma con que el navegador dibuja el SVG (Rubik no está instalada en Windows).
+- icono-32.png: pestaña, para los navegadores que no leen el SVG (mismo dibujo, esquinas redondeadas).
+- icono-180.png (iPhone) e icono-192.png / icono-512.png (Android, manifest.webmanifest): cuadrado entero, porque el
+  celular le pone sus propias esquinas; el dibujo va un poco más chico para que no lo corte el recorte redondo.
+El dibujo está en una caja de 64 (igual que el SVG y el #logo-crm de index.html): barras y hoja.
 """
 import os
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
-NEGRO = "#141414"
-VERDE = "#63d17b"
-BLANCO = "#ffffff"
-FUENTE = r"C:\Windows\Fonts\arialbd.ttf"
+AZUL = "#154ecd"
+MARFIL = "#fefefd"
 AUMENTO = 8  # se dibuja más grande y se achica: bordes suaves
 CARPETA = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "img")
 
+BARRAS = [(11, 23.5, 28, 5), (11, 34, 38, 5), (11, 44.5, 22, 5)]  # x, y, ancho, alto (radio = alto / 2)
+# Hoja: M37.5 25 C37.6 16 44 9.6 54 9 C53.6 17.6 47.4 24.4 37.5 25 Z
+HOJA = [((37.5, 25), (37.6, 16), (44, 9.6), (54, 9)), ((54, 9), (53.6, 17.6), (47.4, 24.4), (37.5, 25))]
 
-def punto(d, cx, cy, radio, borde):
-    """Punto verde con borde blanco (el borde va mitad afuera y mitad adentro, como el stroke del SVG)."""
-    afuera, adentro = radio + borde / 2, radio - borde / 2
-    d.ellipse((cx - afuera, cy - afuera, cx + afuera, cy + afuera), fill=BLANCO)
-    d.ellipse((cx - adentro, cy - adentro, cx + adentro, cy + adentro), fill=VERDE)
+
+def bezier(p0, p1, p2, p3, pasos=40):
+    puntos = []
+    for i in range(pasos + 1):
+        t = i / pasos
+        a = (1 - t) ** 3
+        b = 3 * (1 - t) ** 2 * t
+        c = 3 * (1 - t) * t ** 2
+        d = t ** 3
+        puntos.append((a * p0[0] + b * p1[0] + c * p2[0] + d * p3[0], a * p0[1] + b * p1[1] + c * p2[1] + d * p3[1]))
+    return puntos
+
+
+def dibujo(d, k, dx=0.0, dy=0.0):
+    """Barras y hoja (caja de 64) escaladas por k y movidas dx, dy (en píxeles ya escalados)."""
+    for x, y, w, h in BARRAS:
+        d.rounded_rectangle((dx + x * k, dy + y * k, dx + (x + w) * k, dy + (y + h) * k), radius=h / 2 * k, fill=MARFIL)
+    contorno = []
+    for curva in HOJA:
+        contorno += bezier(*curva)
+    d.polygon([(dx + x * k, dy + y * k) for x, y in contorno], fill=MARFIL)
 
 
 def pestana():
-    """Copia de icono.svg (caja de 32): rect 1,3,30×27 rx 8; «CRM» 11,5 px en 15,6/21,6; punto en 27,2/4,6 r 4."""
-    k = AUMENTO * 1.0
-    img = Image.new("RGBA", (int(32 * k), int(32 * k)), (0, 0, 0, 0))
+    lado = 32 * AUMENTO
+    k = lado / 64
+    img = Image.new("RGBA", (lado, lado), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    d.rounded_rectangle((1 * k, 3 * k, 31 * k, 30 * k), radius=8 * k, fill=NEGRO)
-    d.text((15.6 * k, 21.6 * k), "CRM", font=ImageFont.truetype(FUENTE, round(11.5 * k)), fill=BLANCO, anchor="ms")
-    punto(d, 27.2 * k, 4.6 * k, 4 * k, 1.6 * k)
+    d.rounded_rectangle((0, 0, lado - 1, lado - 1), radius=16 * k, fill=AZUL)
+    dibujo(d, k)
     return img.resize((32, 32), Image.LANCZOS)
 
 
 def celular(lado):
-    k = lado * AUMENTO
-    img = Image.new("RGB", (k, k), NEGRO)
+    total = lado * AUMENTO
+    img = Image.new("RGB", (total, total), AZUL)
     d = ImageDraw.Draw(img)
-    d.text((k * 0.5, k * 0.62), "CRM", font=ImageFont.truetype(FUENTE, round(k * 0.28)), fill=BLANCO, anchor="ms")
-    punto(d, k * 0.79, k * 0.23, k * 0.07, k * 0.03)
+    escala = 0.78  # margen para el recorte del celular
+    k = total / 64 * escala
+    margen = (total - 64 * k) / 2
+    dibujo(d, k, margen, margen)
     return img.resize((lado, lado), Image.LANCZOS)
 
 

@@ -10,9 +10,10 @@ import {
 } from '../db.js';
 import { filtrar, palabras, puntaje, normalizar } from '../buscador.js';
 import {
-  h, icono, ruta, plural, recortar, limpio, vaciar, cargando, retrasar, combo,
-  chipsMoa, ingredientesTexto, linkPdf, dosisRango, resumenDosis, rangosDosis,
+  h, icono, ruta, plural, recortar, limpio, vaciar, cargando, retrasar, combo, globo,
+  chipsMoa, chipMoa, ingredientesTexto, linkPdf, dosisRango, resumenDosis, rangosDosis,
 } from '../ui.js';
+import { queHace } from '../moa.js';
 
 // La vista usa todo el ancho de la pantalla (app.js).
 export const ANCHA = true;
@@ -32,10 +33,13 @@ const ORDENES = {
   cultivos: 'Cantidad de cultivos',
 };
 const MAYOR_PRIMERO = new Set(['cultivos']);
-// Columnas de la tabla y con qué orden se asocia cada una (null: no se ordena).
+// Columnas de la tabla, con qué orden se asocia cada una (null: no se ordena) y su clase de ancho (app.css, col-*).
+// Ancho fijo por columna y celdas recortadas a una o dos líneas: todas las filas tienen la misma altura (Cristóbal,
+// 10-11-2026). Lo que no cabe se ve al pasar el mouse, en la burbuja de cultivos o en la ficha.
 const COLUMNAS = [
-  ['Producto', 'nombre'], ['Empresa', 'empresa'], ['Modo de acción', 'moa'], ['Tipo', 'tipo'], ['Ingrediente activo', 'ing'],
-  ['Etiqueta', null], ['Reg. SAG', 'registro'], ['Cultivos', 'cultivos'], ['Dosis', null], ['', null],
+  ['Producto', 'nombre', 'producto'], ['Empresa', 'empresa', 'empresa'], ['Modo de acción', 'moa', 'moa'], ['Tipo', 'tipo', 'tipo'],
+  ['Ingrediente activo', 'ing', 'ing'], ['Etiqueta', null, 'etiqueta'], ['Reg. SAG', 'registro', 'reg'], ['Cultivos', 'cultivos', 'cultivos'],
+  ['Dosis', null, 'dosis'], ['', null, 'plan'],
 ];
 const SIN_GRUPO = 'Sin grupo de modo de acción informado';
 
@@ -111,23 +115,19 @@ function calzaBusqueda(b, p, info) {
 
 // ---------- Celdas ----------
 
+// Los primeros cultivos y un botón «+N» que abre una burbuja con todos (la fila no cambia de alto).
 function listaCultivos(cultivos) {
   if (!cultivos.length) return h('span', { class: 'tenue' }, '—');
-  const caja = h('span', { class: 'cultivos' });
-  const pintar = (todos) => {
-    vaciar(caja);
-    const vis = todos ? cultivos : cultivos.slice(0, VISIBLES_CULTIVOS);
-    caja.append(vis.map((c) => recortar(c.nombre, 30)).join(', '));
-    const resto = cultivos.length - VISIBLES_CULTIVOS;
-    if (resto > 0) {
-      caja.append(' ', h('button', {
-        type: 'button', class: 'mas-cultivos', 'aria-expanded': String(todos),
-        title: todos ? 'Mostrar menos' : `Ver los ${cultivos.length} cultivos`, onclick: () => pintar(!todos),
-      }, todos ? 'menos' : `+${resto}`));
-    }
-  };
-  pintar(false);
-  return caja;
+  const resto = cultivos.length - VISIBLES_CULTIVOS;
+  const nombres = cultivos.slice(0, VISIBLES_CULTIVOS).map((c) => recortar(c.nombre, 30)).join(', ');
+  const boton = resto > 0 ? h('button', {
+    type: 'button', class: 'mas-cultivos', 'aria-expanded': 'false', 'aria-haspopup': 'dialog',
+    title: `Ver los ${cultivos.length} cultivos`,
+    onclick: (e) => globo(e.currentTarget, [
+      h('p', { class: 'globo-titulo' }, plural(cultivos.length, 'cultivo', 'cultivos')),
+      h('p', { class: 'globo-texto' }, cultivos.map((c) => c.nombre).join(', '))]),
+  }, `+${resto}`) : null;
+  return h('span', { class: 'cultivos' }, h('span', { class: 'recorte-2', title: cultivos.length <= VISIBLES_CULTIVOS ? nombres : null }, nombres), boton);
 }
 
 // En el celular las celdas sin dato no se muestran (en la tabla quedan con «—»).
@@ -137,42 +137,52 @@ function fila(p, info, op) {
   const url = p.etiqueta && p.etiqueta.url;
   const principal = p.empresas[0];
   const tipo = tipoDe(p);
-  const sistema = op.agrupar && p.moa.length ? String(p.moa[0]).split(' ')[0].toLowerCase() : null;
-  return h('tr', { class: op.agrupar ? `en-grupo ${sistema ? `grupo-${sistema}` : 'grupo-sin'}` : null },
+  // La franja de color va siempre (no solo agrupados): el sistema del primer código.
+  const sistema = p.moa.length ? String(p.moa[0]).split(' ')[0].toLowerCase() : null;
+  const categorias = p.categorias.map((c) => c.nombre).join(' · ');
+  return h('tr', { class: `fila-producto ${sistema ? `grupo-${sistema}` : 'grupo-sin'}` },
     h('td', { class: 'c-producto' },
-      h('a', { href: ruta(`producto/${p.id}`, { cultivo: op.cultivoId }) }, p.nombre),
-      p.categorias.length ? h('span', { class: 'c-cat' }, p.categorias.map((c) => c.nombre).join(' · ')) : null),
+      h('a', { href: ruta(`producto/${p.id}`, { cultivo: op.cultivoId }), title: p.nombre }, p.nombre),
+      categorias ? h('span', { class: 'c-cat', title: categorias }, categorias) : null),
     h('td', { class: vacia('c-empresa', p.marca), 'data-etiqueta': 'Empresa', title: principal ? principal.empresa.nombre : null }, p.marca || '—'),
     h('td', { class: vacia('c-moa', p.moa.length), 'data-etiqueta': 'Modo de acción' },
       chipsMoa(p.moa, p.moaEtiqueta) || h('span', { class: 'tenue', title: 'Sin grupo de modo de acción informado' }, '—')),
     h('td', { class: vacia('c-tipo', tipo), 'data-etiqueta': 'Tipo', title: p.formulacion || null }, tipo || '—'),
     h('td', { class: 'c-ing', 'data-etiqueta': 'Ingrediente activo', title: ingredientesTexto(p) },
-      p.ings.length ? p.ings.map((x) => x.ing.nombre).join(' + ') : h('span', { class: 'tenue' }, 'Sin ingrediente registrado')),
+      h('span', { class: 'recorte-2' }, p.ings.length ? p.ings.map((x) => x.ing.nombre).join(' + ') : h('span', { class: 'tenue' }, 'Sin ingrediente registrado'))),
     h('td', { class: 'c-etiqueta', 'data-etiqueta': 'Etiqueta' },
       url ? linkPdf(url, null, 'PDF') : h('span', { class: 'pdf-falta', title: 'PDF no disponible en el sistema' }, 'Sin PDF')),
-    h('td', { class: vacia('c-reg', p.registro), 'data-etiqueta': 'Reg. SAG' }, p.registro || '—'),
+    h('td', { class: vacia('c-reg', p.registro), 'data-etiqueta': 'Reg. SAG', title: p.registro || null }, p.registro || '—'),
     h('td', { class: 'c-cultivos', 'data-etiqueta': 'Cultivos' }, listaCultivos(info.cultivos)),
-    h('td', { class: 'c-dosis', 'data-etiqueta': 'Dosis' }, dosisRango(info.resumen)),
+    h('td', { class: 'c-dosis', 'data-etiqueta': 'Dosis' }, dosisRango(info.resumen, 1)),
     h('td', { class: 'c-plan' }, h('a', {
       class: 'boton-redondo', href: ruta('plan', { producto: p.id }),
       title: 'Agregar al plan de aplicaciones', 'aria-label': `Agregar ${p.nombre} al plan de aplicaciones`,
     }, icono('calendario'))));
 }
 
-// Título de un grupo de productos con el mismo modo de acción.
+// Título de un grupo de productos con el mismo modo de acción: cada código con lo que hacen sus productos (moa.js),
+// el grupo químico y cuántos son.
 function filaGrupo(clave, productos) {
   const moa = clave ? clave.split(' + ') : [];
+  const sistema = moa.length ? moa[0].split(' ')[0].toLowerCase() : 'sin';
   const quimicos = [...new Set(productos.flatMap((p) => p.ings.filter((x) => x.ing.moa).map((x) => x.ing.grupoQuimico)).filter(Boolean))];
-  return h('tr', { class: 'fila-grupo' }, h('td', { colspan: String(COLUMNAS.length) },
+  const codigos = moa.map((k, i) => {
+    const que = queHace(k);
+    return h('span', { class: 'grupo-codigo' }, i ? h('span', { class: 'grupo-mas', 'aria-hidden': 'true' }, '+') : null,
+      chipMoa(k), que ? h('span', { class: 'grupo-que', title: que }, que) : null);
+  });
+  return h('tr', { class: `fila-grupo grupo-${sistema}` }, h('td', { colspan: String(COLUMNAS.length) },
     h('div', { class: 'grupo-titulo' },
-      moa.length ? chipsMoa(moa) : h('strong', null, SIN_GRUPO),
-      quimicos.length ? h('span', { class: 'grupo-quimico' }, recortar(quimicos.join(' · '), 90)) : null,
+      moa.length ? h('span', { class: 'grupo-codigos' }, codigos) : h('strong', { class: 'grupo-que' }, SIN_GRUPO),
+      quimicos.length ? h('span', { class: 'grupo-quimico', title: quimicos.join(' · ') }, quimicos.join(' · ')) : null,
       h('span', { class: 'grupo-cuenta' }, plural(productos.length, 'producto', 'productos')))));
 }
 
 // alOrdenar(clave): tocar el título de una columna.
 function tabla(orden, alOrdenar) {
   return h('table', { class: 'tabla-productos' },
+    h('colgroup', null, COLUMNAS.map(([, , ancho]) => h('col', { class: `col-${ancho}` }))),
     h('thead', null, h('tr', null, COLUMNAS.map(([titulo, clave]) => {
       if (!clave) return h('th', { scope: 'col', 'aria-label': titulo || 'Agregar al plan', class: titulo ? null : 'c-plan' }, titulo);
       const activa = orden.clave === clave;
@@ -223,7 +233,8 @@ export async function render(main, ctx) {
   // Líneas de uso (solo si hay cultivo u objetivo): se piden antes de armar los filtros para que las
   // sugerencias muestren solo lo que existe con lo ya elegido.
   const zona = h('div', null, conLineas ? cargando('Buscando los productos registrados…', 'inicio') : null);
-  const panel = h('div', { class: 'panel-filtros', role: 'search', hidden: true });
+  // Empresa y modo de acción: en pantallas anchas van en la misma fila que el resto; en el celular, tras «Más filtros».
+  const panel = h('div', { class: `panel-filtros${estado.empresa || estado.moa ? ' con-extra' : ''}`, role: 'search', hidden: true });
   main.append(panel, zona);
 
   let lineas = null;
@@ -293,16 +304,23 @@ export async function render(main, ctx) {
   const sinGrupo = [...cat.productos.values()].filter((p) => !p.moa.length).length;
   const porFamilia = new Map();
   for (const p of cat.productos.values()) for (const k of p.familias) porFamilia.set(k, (porFamilia.get(k) || 0) + 1);
+  // Un código antiguo de la etiqueta («HRAC A», desde un link del inicio) también filtra: queda como opción.
+  const moaRaro = estado.moa && estado.moa !== 'sin' && !porFamilia.has(estado.moa);
   const selMoa = h('select', { class: 'selector', id: 'f-moa' },
     h('option', { value: '' }, 'Todos'),
+    moaRaro ? h('option', { value: estado.moa, selected: true }, `${estado.moa} (en la etiqueta)`) : null,
     [...porFamilia.keys()].sort(compararMoa).map((k) => h('option', { value: k, selected: k === estado.moa }, `${k} (${porFamilia.get(k)})`)),
     sinGrupo ? h('option', { value: 'sin', selected: estado.moa === 'sin' }, `Sin grupo informado (${sinGrupo})`) : null);
+  const verExtra = h('button', {
+    type: 'button', class: 'ver-extra', 'aria-expanded': String(panel.classList.contains('con-extra')),
+    onclick: () => { verExtra.setAttribute('aria-expanded', String(panel.classList.toggle('con-extra'))); },
+  }, 'Más filtros: empresa y modo de acción');
 
   panel.append(
-    h('div', { class: 'filtro filtro-busqueda' },
-      h('label', { class: 'filtro-titulo', for: 'f-q' }, 'Buscar en la tabla'),
-      h('div', { class: 'busqueda' }, icono('buscar'), texto)),
-    h('div', { class: 'filtros-principales' },
+    h('div', { class: 'filtros' },
+      h('div', { class: 'filtro filtro-busqueda' },
+        h('label', { class: 'filtro-titulo', for: 'f-q' }, 'Buscar en la tabla'),
+        h('div', { class: 'busqueda' }, icono('buscar'), texto)),
       combo({
         id: 'f-cultivo', titulo: 'Cultivo', placeholder: 'Ej: cerezo, uva, trigo',
         elegido: cultivo ? recortar(cultivo.nombre, 50) : null,
@@ -328,12 +346,10 @@ export async function render(main, ctx) {
           return ops;
         },
       }),
-      h('div', { class: 'filtro filtro-ancho' }, h('label', { class: 'filtro-titulo', for: 'f-cat' }, 'Tipo'), selCat)),
-    h('details', { class: 'mas-filtros', open: Boolean(estado.empresa || estado.moa) },
-      h('summary', null, 'Más filtros'),
-      h('div', { class: 'filtros-principales' },
-        h('div', { class: 'filtro' }, h('label', { class: 'filtro-titulo', for: 'f-empresa' }, 'Empresa'), selEmpresa),
-        h('div', { class: 'filtro' }, h('label', { class: 'filtro-titulo', for: 'f-moa' }, 'Modo de acción'), selMoa))));
+      h('div', { class: 'filtro filtro-ancho' }, h('label', { class: 'filtro-titulo', for: 'f-cat' }, 'Tipo'), selCat),
+      h('div', { class: 'filtro filtro-extra' }, h('label', { class: 'filtro-titulo', for: 'f-empresa' }, 'Empresa'), selEmpresa),
+      h('div', { class: 'filtro filtro-extra' }, h('label', { class: 'filtro-titulo', for: 'f-moa' }, 'Modo de acción'), selMoa)),
+    verExtra);
 
   panel.hidden = false;
 
@@ -369,7 +385,8 @@ export async function render(main, ctx) {
       if (estado.cat && !p.categorias.some((c) => String(c.id) === estado.cat)) return false;
       if (estado.empresa && p.marca !== estado.empresa) return false;
       if (estado.moa === 'sin' && p.moa.length) return false;
-      if (estado.moa && estado.moa !== 'sin' && !p.familias.includes(estado.moa)) return false;
+      if (estado.moa && estado.moa !== 'sin' && !p.familias.includes(estado.moa)
+        && ![...p.moaEtiqueta.values()].some((xs) => xs.includes(estado.moa))) return false;
       if (ing && !p.ings.some((x) => x.ing === ing)) return false;
       return calzaBusqueda(busqueda, p, infoDe(p));
     });

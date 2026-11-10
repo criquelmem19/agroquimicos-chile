@@ -142,7 +142,40 @@ async function mostrar(evento) {
   }
 }
 
+// Modo claro y oscuro (pedido de Cristóbal, 10-11-2026). index.html pone el modo antes de dibujar; el botón de la
+// cabecera lo cambia y lo recuerda en este equipo. Si la persona nunca eligió, sigue al modo de su equipo.
+const COLOR_BARRA = { claro: '#fefefd', oscuro: '#1e1a1f' };
+function ponerTema(tema, guardar) {
+  document.documentElement.setAttribute('data-tema', tema);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', COLOR_BARRA[tema]);
+  if (guardar) { try { localStorage.setItem('tema', tema); } catch (e) { /* bloqueado: solo por esta visita */ } }
+  const boton = document.querySelector('[data-tema-boton]');
+  if (!boton) return;
+  const otro = tema === 'oscuro' ? 'claro' : 'oscuro';
+  vaciar(boton).append(icono(tema === 'oscuro' ? 'sol' : 'luna'));
+  boton.setAttribute('aria-label', `Cambiar a modo ${otro}`);
+  boton.title = `Modo ${otro}`;
+  boton.hidden = false;
+}
+
+function iniciarTema() {
+  const actual = () => (document.documentElement.getAttribute('data-tema') === 'oscuro' ? 'oscuro' : 'claro');
+  ponerTema(actual(), false);
+  const boton = document.querySelector('[data-tema-boton]');
+  if (boton) boton.addEventListener('click', () => ponerTema(actual() === 'oscuro' ? 'claro' : 'oscuro', true));
+  const sistema = window.matchMedia && matchMedia('(prefers-color-scheme: dark)');
+  if (sistema && sistema.addEventListener) {
+    sistema.addEventListener('change', (e) => {
+      let elegido = null;
+      try { elegido = localStorage.getItem('tema'); } catch (err) { /* bloqueado */ }
+      if (!elegido) ponerTema(e.matches ? 'oscuro' : 'claro', false);
+    });
+  }
+}
+
 async function iniciar() {
+  iniciarTema();
   pintarMenus(leerRuta().partes[0] || '');
   let carga;
   try {

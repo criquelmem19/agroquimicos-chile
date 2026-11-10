@@ -1,6 +1,6 @@
 // Piezas de interfaz compartidas: creación de elementos, íconos, formatos y
 // la forma de mostrar dosis, carencia, reingreso, etc. (reglas del sitio).
-import { UMBRAL_CONFIANZA } from './config.js';
+import { queHace } from './moa.js';
 
 // Crea elementos sin usar innerHTML con datos: el texto de las etiquetas nunca se interpreta como HTML.
 export function h(tag, props, ...hijos) {
@@ -109,20 +109,15 @@ export function ruta(camino, params) {
 // ---------- Piezas de una línea de uso ----------
 
 // Regla 1: nunca una dosis sin su estado. "Revisado" solo si una persona la aprobó.
+// Sin el aviso «Confianza baja» (Cristóbal, 10-11-2026: «no pongas este tipo de mensajes, hace que todo se vea más feo»).
+function estado(revisado) {
+  return h('span', { class: 'estado-linea' }, revisado
+    ? h('span', { class: 'etiqueta etq-ok', title: 'Una persona la comparó con la etiqueta' }, icono('check'), 'Revisado')
+    : h('span', { class: 'etiqueta etq-auto', title: 'Leído de la etiqueta por un programa. Nadie lo ha revisado todavía.' }, 'Extraído automáticamente'));
+}
+
 export function estadoRevision(u) {
-  const partes = [];
-  if (u.review_status === 'aprobado') {
-    partes.push(h('span', { class: 'etiqueta etq-ok', title: 'Una persona la comparó con la etiqueta' }, icono('check'), 'Revisado'));
-  } else {
-    partes.push(h('span', { class: 'etiqueta etq-auto', title: 'Leído de la etiqueta por un programa. Nadie lo ha revisado todavía.' }, 'Extraído automáticamente'));
-  }
-  if (u.confidence_score != null && Number(u.confidence_score) < UMBRAL_CONFIANZA) {
-    partes.push(h('span', {
-      class: 'etiqueta etq-alerta',
-      title: `Confianza del extractor: ${num(u.confidence_score)} (bajo ${num(UMBRAL_CONFIANZA)})`,
-    }, icono('alerta'), 'Confianza baja: revisa la etiqueta'));
-  }
-  return h('span', { class: 'estado-linea' }, partes);
+  return estado(u.review_status === 'aprobado');
 }
 
 export function dosis(u) {
@@ -172,10 +167,8 @@ export function rangosDosis(grupos) {
 export function resumenDosis(lineas) {
   const m = new Map();
   let aprobadas = 0;
-  let baja = 0;
   for (const u of lineas) {
     if (u.review_status === 'aprobado') aprobadas += 1;
-    if (u.confidence_score != null && Number(u.confidence_score) < UMBRAL_CONFIANZA) baja += 1;
     const a = u.dose_min ?? u.dose_max;
     const b = u.dose_max ?? u.dose_min;
     if (a == null) continue;
@@ -183,31 +176,23 @@ export function resumenDosis(lineas) {
     const x = m.get(clave);
     if (x) { x.min = Math.min(x.min, a); x.max = Math.max(x.max, b); x.n += 1; } else m.set(clave, { u: u.dose_unit, b: u.dose_basis, min: Number(a), max: Number(b), n: 1 });
   }
-  return { grupos: [...m.values()], n: lineas.length, aprobadas, baja };
+  return { grupos: [...m.values()], n: lineas.length, aprobadas };
 }
 
 // Regla 1 en una dosis resumida: «Revisado» solo si todas sus líneas fueron revisadas por una persona.
 export function estadoResumen(r) {
-  const partes = [];
-  if (r.n && r.aprobadas === r.n) {
-    partes.push(h('span', { class: 'etiqueta etq-ok', title: 'Una persona la comparó con la etiqueta' }, icono('check'), 'Revisado'));
-  } else {
-    partes.push(h('span', { class: 'etiqueta etq-auto', title: 'Leído de la etiqueta por un programa. Nadie lo ha revisado todavía.' }, 'Extraído automáticamente'));
-  }
-  if (r.baja) {
-    partes.push(h('span', { class: 'etiqueta etq-alerta', title: `${plural(r.baja, 'línea', 'líneas')} con confianza del extractor bajo ${num(UMBRAL_CONFIANZA)}` },
-      icono('alerta'), 'Confianza baja: revisa la etiqueta'));
-  }
-  return h('span', { class: 'estado-linea' }, partes);
+  return estado(Boolean(r.n && r.aprobadas === r.n));
 }
 
+// max: cuántos rangos (uno por unidad) se ven; el resto, con «+N» y en el texto que aparece al pasar el mouse.
 export function dosisRango(r, max = 2) {
   if (!r || !r.n) return h('span', { class: 'tenue' }, 'Sin usos registrados');
   const rangos = rangosDosis(r.grupos);
   const textos = rangos.slice(0, max).map((t) => h('span', { class: 'rango' }, t));
-  return h('div', { class: 'valor' },
-    textos.length ? h('span', { class: 'rangos' }, textos) : h('span', { class: 'sin-dato' }, 'Ver en la etiqueta'),
-    rangos.length > max ? h('span', { class: 'chico tenue' }, `y ${plural(rangos.length - max, 'unidad más', 'unidades más')}`) : null,
+  return h('div', { class: 'valor', title: rangos.length ? rangos.join(' · ') : null },
+    textos.length
+      ? h('span', { class: 'rangos' }, textos, rangos.length > max ? h('span', { class: 'rango-mas' }, `+${rangos.length - max}`) : null)
+      : h('span', { class: 'sin-dato' }, 'Ver en la etiqueta'),
     estadoResumen(r));
 }
 
@@ -311,16 +296,25 @@ export function claseMoa(clave) {
   return s === 'FRAC' ? 'moa moa-frac' : s === 'IRAC' ? 'moa moa-irac' : s === 'HRAC' ? 'moa moa-hrac' : 'moa moa-otro';
 }
 
+// Todos los productos de un código en el buscador (en IRAC manda el número: «IRAC 4A» lleva a todo el grupo 4).
+export function rutaMoa(clave) {
+  return ruta('buscar', { moa: String(clave).replace(/^(IRAC \d+)[A-Z]$/, '$1') });
+}
+
+// Un código de modo de acción. Es un botón que lleva a todos los productos de ese código, en cualquier parte del sitio
+// (Cristóbal, 10-11-2026). enlace: false solo cuando va dentro de otro botón o link.
+export function chipMoa(k, { enlace = true, antes = null } = {}) {
+  const que = queHace(k);
+  const titulo = [enlace ? `Ver todos los ${k}` : k, que,
+    antes ? `En la etiqueta: ${antes.join(', ')} (código antiguo; equivalencia de la tabla oficial)` : null].filter(Boolean).join('. ');
+  return h(enlace ? 'a' : 'span', { class: claseMoa(k), href: enlace ? rutaMoa(k) : null, title: titulo },
+    k, antes ? h('small', { class: 'moa-antes' }, `(${antes.map((x) => x.split(' ')[1]).join('/')})`) : null);
+}
+
 // etiquetas (opcional): Map código actual → cómo viene escrito en la etiqueta (código antiguo, ej. «HRAC A»).
-export function chipsMoa(lista, etiquetas) {
+export function chipsMoa(lista, etiquetas, { enlace = true } = {}) {
   if (!lista || !lista.length) return null;
-  return h('span', { class: 'lista-moa' }, lista.map((k) => {
-    const antes = etiquetas && etiquetas.get(k);
-    return h('span', {
-      class: claseMoa(k),
-      title: antes ? `Grupo ${k}. En la etiqueta: ${antes.join(', ')} (código antiguo; equivalencia de la tabla oficial)` : 'Grupo de modo de acción',
-    }, k, antes ? h('small', { class: 'moa-antes' }, `(${antes.map((x) => x.split(' ')[1]).join('/')})`) : null);
-  }));
+  return h('span', { class: 'lista-moa' }, lista.map((k) => chipMoa(k, { enlace, antes: etiquetas && etiquetas.get(k) })));
 }
 
 export function ingredientesTexto(p) {
@@ -350,7 +344,7 @@ export function cargando(texto = 'Cargando…', forma = 'texto') {
       Array.from({ length: forma === 'inicio' ? 6 : 2 }, () => h('span', { class: 'esq' }))));
   return h('div', { class: `esqueleto esqueleto-${forma}`, role: 'status', 'aria-busy': 'true' },
     h('span', { class: 'solo-lector' }, texto),
-    forma === 'inicio' ? [h('div', { class: 'esq-panel' }, [1, 2, 3, 4].map(() => h('span'))), h('span', { class: 'esq esq-cuenta' })] : null,
+    forma === 'inicio' ? [h('div', { class: 'esq-panel' }, [1, 2, 3, 4, 5, 6].map(() => h('span'))), h('span', { class: 'esq esq-cuenta' })] : null,
     filas);
 }
 
@@ -366,6 +360,42 @@ export function notificar(contenido, ms = 6000) {
   zona.append(t);
   setTimeout(() => t.remove(), ms);
   return t;
+}
+
+// Burbuja junto a un botón (ej. todos los cultivos de una fila, sin agrandar la fila). Se cierra al tocar fuera, con
+// Escape o al mover la página. Una sola abierta a la vez.
+let globoAbierto = null;
+export function globo(boton, contenido) {
+  if (globoAbierto) {
+    const era = globoAbierto.boton;
+    globoAbierto.cerrar();
+    if (era === boton) return;
+  }
+  const caja = h('div', { class: 'globo', role: 'dialog' }, contenido);
+  document.body.append(caja);
+  const r = boton.getBoundingClientRect();
+  const izq = Math.max(8, Math.min(r.left, window.innerWidth - caja.offsetWidth - 8));
+  const cabeAbajo = r.bottom + 8 + caja.offsetHeight < window.innerHeight;
+  caja.style.left = `${izq}px`;
+  caja.style.top = `${cabeAbajo ? r.bottom + 8 : Math.max(8, r.top - 8 - caja.offsetHeight)}px`;
+  boton.setAttribute('aria-expanded', 'true');
+  const fuera = (e) => { if (!caja.contains(e.target) && !boton.contains(e.target)) cerrar(); };
+  const tecla = (e) => { if (e.key === 'Escape') { cerrar(); boton.focus(); } };
+  const mover = (e) => { if (!caja.contains(e.target)) cerrar(); };
+  function cerrar() {
+    caja.remove();
+    boton.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('pointerdown', fuera, true);
+    document.removeEventListener('keydown', tecla, true);
+    window.removeEventListener('scroll', mover, true);
+    window.removeEventListener('resize', cerrar);
+    globoAbierto = null;
+  }
+  document.addEventListener('pointerdown', fuera, true);
+  document.addEventListener('keydown', tecla, true);
+  window.addEventListener('scroll', mover, true);
+  window.addEventListener('resize', cerrar);
+  globoAbierto = { boton, cerrar };
 }
 
 export function retrasar(fn, ms = 150) {

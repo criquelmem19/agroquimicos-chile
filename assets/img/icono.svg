@@ -1,5 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect x="1" y="3" width="30" height="27" rx="8" fill="#141414"/>
-  <text x="15.6" y="21.6" text-anchor="middle" font-family="Rubik, Arial, Helvetica, sans-serif" font-size="11.5" font-weight="800" letter-spacing=".3" fill="#ffffff">CRM</text>
-  <circle cx="27.2" cy="4.6" r="4" fill="#63d17b" stroke="#ffffff" stroke-width="1.6"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>.f{fill:#154ecd}.t{fill:#fefefd}@media (prefers-color-scheme: dark){.f{fill:#ebf70f}.t{fill:#1e1a1f}}</style>
+  <rect class="f" width="64" height="64" rx="16"/>
+  <g class="t">
+    <rect x="11" y="23.5" width="28" height="5" rx="2.5"/>
+    <rect x="11" y="34" width="38" height="5" rx="2.5"/>
+    <rect x="11" y="44.5" width="22" height="5" rx="2.5"/>
+    <path d="M37.5 25C37.6 16 44 9.6 54 9C53.6 17.6 47.4 24.4 37.5 25Z"/>
+  </g>
 </svg>

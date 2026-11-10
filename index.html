@@ -7,7 +7,18 @@
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
   <title>Agroquímicos CRM</title>
   <meta name="description" content="Agroquímicos CRM: catálogo de agroquímicos de Chile según etiquetas SAG, con dosis, carencias, modos de acción y plan de aplicaciones.">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#fefefd">
+  <!-- Modo claro u oscuro antes de dibujar la página (sin parpadeo): el que eligió la persona con el botón de la
+       cabecera o, si no eligió, el de su equipo. app.js lo cambia. -->
+  <script>
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('tema'); } catch (e) {}
+      if (t !== 'claro' && t !== 'oscuro') t = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'oscuro' : 'claro';
+      document.documentElement.setAttribute('data-tema', t);
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', t === 'oscuro' ? '#1e1a1f' : '#fefefd');
+    })();
+  </script>
   <meta property="og:title" content="Agroquímicos CRM">
   <meta property="og:description" content="Busca productos, cultivos, plagas, enfermedades y malezas según etiquetas SAG, y arma tu plan de aplicaciones.">
   <meta property="og:type" content="website">
@@ -32,6 +43,7 @@
        Al agregar un módulo nuevo, sumarlo aquí. -->
   <link rel="modulepreload" href="assets/js/db.js">
   <link rel="modulepreload" href="assets/js/ui.js">
+  <link rel="modulepreload" href="assets/js/moa.js">
   <link rel="modulepreload" href="assets/js/config.js">
   <link rel="modulepreload" href="assets/js/buscador.js">
   <link rel="modulepreload" href="assets/js/plan.js">
@@ -45,16 +57,30 @@
 <body>
   <a class="saltar" href="#vista">Ir al contenido</a>
 
+  <!-- Logo: cuadrado con una lista que brota. Cambia de color según el fondo (variables --logo-fondo y --logo-tinta). -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="logo-crm" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="16" style="fill: var(--logo-fondo)"/>
+      <g style="fill: var(--logo-tinta)">
+        <rect x="11" y="23.5" width="28" height="5" rx="2.5"/>
+        <rect x="11" y="34" width="38" height="5" rx="2.5"/>
+        <rect x="11" y="44.5" width="22" height="5" rx="2.5"/>
+        <path d="M37.5 25C37.6 16 44 9.6 54 9C53.6 17.6 47.4 24.4 37.5 25Z"/>
+      </g>
+    </symbol>
+  </svg>
+
   <header class="cabecera">
     <div class="cabecera-in">
       <a class="marca" href="#/" aria-label="Agroquímicos CRM, inicio">
-        <span class="marca-logo" aria-hidden="true">CRM</span>
+        <svg class="logo" aria-hidden="true" focusable="false"><use href="#logo-crm"/></svg>
         <span class="marca-texto">
           <strong>Agroquímicos CRM</strong>
           <small>Etiquetas SAG · plan de aplicaciones</small>
         </span>
       </a>
       <nav class="nav-sup" aria-label="Secciones" data-nav></nav>
+      <button class="boton-tema" type="button" data-tema-boton hidden></button>
     </div>
   </header>
 
@@ -73,7 +99,7 @@
   <footer class="pie">
     <div class="pie-in">
       <div class="pie-marca">
-        <span class="marca-logo" aria-hidden="true">CRM</span>
+        <svg class="logo" aria-hidden="true" focusable="false"><use href="#logo-crm"/></svg>
         <strong>Agroquímicos CRM</strong>
       </div>
       <p data-actualizado></p>

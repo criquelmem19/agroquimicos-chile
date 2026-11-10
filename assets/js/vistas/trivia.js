@@ -141,8 +141,9 @@ const reloj = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
 // ---------- Vista ----------
 
-function opcionTexto(q, texto) {
-  return q.tipo === 'moa' ? chipsMoa(texto.split(' + ')) : texto;
+// enlace: false dentro de los botones de respuesta (un link dentro de un botón no se puede tocar bien).
+function opcionTexto(q, texto, enlace = true) {
+  return q.tipo === 'moa' ? chipsMoa(texto.split(' + '), null, { enlace }) : texto;
 }
 
 function ficha(p) {
@@ -217,7 +218,7 @@ export function render(main, ctx) {
         i + 1 < preguntas.length ? 'Siguiente' : 'Ver resultado', icono('flecha'));
       const resultado = h('div', { class: 'trivia-resultado', 'aria-live': 'polite' });
       const botones = q.opciones.map((texto, k) => h('button', { type: 'button', class: 'opcion-trivia', onclick: () => responder(k) },
-        h('span', { class: 'opcion-letra' }, LETRAS[k]), h('span', { class: 'opcion-texto' }, opcionTexto(q, texto))));
+        h('span', { class: 'opcion-letra' }, LETRAS[k]), h('span', { class: 'opcion-texto' }, opcionTexto(q, texto, false))));
 
       function responder(k) {
         if (respuestas.length > i) return;

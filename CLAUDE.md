@@ -1,6 +1,6 @@
 # Agroquímicos CRM — memoria del proyecto
 
-Leer completo antes de tocar algo. Última actualización: 31-10-2026.
+Leer completo antes de tocar algo. Última actualización: 10-11-2026.
 El sitio se llama **Agroquímicos CRM** (antes «Agroquímicos Chile»; el repo y la URL siguen siendo
 `agroquimicos-chile`). «CRM» es la marca de Cristóbal y va arriba, en el logo.
 
@@ -34,7 +34,9 @@ productores, muchas veces **desde el celular en el campo**.
 ## Reglas del sitio (obligatorias)
 
 1. Nunca mostrar una dosis sin su estado: «Revisado» (solo `review_status = 'aprobado'`) o
-   «Extraído automáticamente», con alerta si `confidence_score < 0,80`.
+   «Extraído automáticamente». La alerta «Confianza baja: revisa la etiqueta» (`confidence_score < 0,80`) **se quitó a
+   pedido de Cristóbal el 10-11-2026** («no pongas este tipo de mensajes, hace que todo se vea más feo»); el dato sigue
+   en la base. No volver a ponerla.
 2. Nunca dejar una carencia en blanco. Si falta: «Sin dato, verificar etiqueta» + link al PDF (con página).
 3. Todo producto y toda línea de uso con link a su etiqueta PDF.
 4. ~~Aviso visible en todas las páginas~~: **eliminado a pedido de Cristóbal el 21-10-2026** («elimina
@@ -51,38 +53,41 @@ productores, muchas veces **desde el celular en el campo**.
 Por qué importa: la carencia decide si se puede cosechar. En fruta de exportación un error significa
 rechazo en destino o residuos sobre la tolerancia.
 
-## Reglas de estética (pedidas por Cristóbal el 21-10-2026)
+## Reglas de estética (rediseño del 10-11-2026, pedido de Cristóbal)
 
-- Limpio, moderno y sencillo, **al estilo de los sitios de Enza Zaden**: fondo blanco, mucho aire, letra
-  redondeada (**Rubik**, de Google Fonts, con la del sistema de respaldo), botones tipo píldora negros,
-  bloques de color plano en la portada, tarjetas con bordes suaves y pie de página negro. Solo información importante.
-- Paleta fresca: **verde** (`#1f9d55`, bloques `#63d17b`), **azul** (`#1d6fd8`, bloques `#cfe3fa`),
-  **negro** (`#141414`), **beige muy claro** (`#f7f4ee`) y **gris** (`#6b6962`). Todo como variables en
-  `assets/css/app.css`.
-- **Sin modo noche** (Cristóbal lo pidió quitar el 21-10-2026: «está muy de más»). Solo modo claro.
-- Marca: logo «CRM» (píldora negra con letras blancas y un punto verde) arriba a la izquierda, junto a
-  «Agroquímicos CRM». Ícono de la pestaña: `assets/img/icono.svg` con la misma marca.
-- Se mantienen: letra de 17 px y alto contraste (se usa al sol), barra inferior en celular (Inicio, Buscar, Mezclas,
-  Plan y Trivia).
+Mandó dos paletas de referencia, su logo y pidió «un diseño más moderno y un tono más limpio», que el buscador ocupe
+bien el espacio y que los códigos sean «colores prendidos, casi fluorescentes». Reemplaza la paleta verde/beige del
+21-10-2026 y el «sin modo noche» (ahora pidió modo oscuro).
+- **Modo claro:** marfil `#fefefd` (fondo), negro carbón `#080808` (letra, menú activo, pie) y **azul rey `#154ecd`**
+  (botones principales, acento de los controles: selección, foco, orden activo, progreso). Grises fríos para paneles.
+- **Modo oscuro:** negro O-Zone `#1e1a1f` y **amarillo `#ebf70f`** (botones y acento); en vez del lila de la referencia,
+  **verde y azul** (Cristóbal: «un verde que combine entre el negro y el amarillo y un azul también»).
+- Sigue al modo del equipo; el botón sol/luna de la cabecera lo cambia y lo recuerda (`localStorage` `tema`). `index.html`
+  pone `data-tema="claro|oscuro"` en `<html>` antes de dibujar (sin parpadeo); `app.js → ponerTema`. Todos los colores
+  son variables en `assets/css/app.css` (`:root` y `:root[data-tema="oscuro"]`): **no usar colores fijos**.
+- **Códigos FRAC/IRAC/HRAC fluorescentes, letra negra, iguales en los dos modos:** FRAC `#2ea6ff`, IRAC `#2ee57e`, HRAC
+  `#ebf70f`. Son la firma: los bloques de la portada, la franja a la izquierda de cada fila y grupo del buscador y el
+  dibujo de cada comité. **Todo código es un botón** que lleva a todos los productos de ese código (`ui.js → chipMoa`,
+  `#/buscar?moa=<familia>`), en cualquier página; solo dentro de otro link o botón va sin link (`enlace: false`).
+- **Logo:** el cuadrado de «lista que brota» (tres barras y una hoja; Cristóbal: «solo el cuadrado») en `index.html`
+  (`<symbol id="logo-crm">`), y **cambia de color para contrastar con el fondo** (`--logo-fondo`/`--logo-tinta`): azul
+  rey en la cabecera clara, amarillo en la oscura, amarillo en el pie negro del modo claro y verde en el del oscuro.
+  `assets/img/icono.svg` (azul; amarillo si el equipo está en modo oscuro) y los PNG (`scripts/iconos.py`).
+- Se mantiene: **Rubik**, 17 px y alto contraste (se usa al sol), botones y chips en píldora, barra inferior en celular
+  (Inicio, Buscar, Mezclas, Plan y Trivia), solo información importante.
 - **Menú (02-11-2026):** «Inicio» (la explicación de FRAC, IRAC y HRAC), «Buscador» (la tabla), «Mezclas», «Plan» y
   «Trivia» (el «Mapa» se quitó por un tiempo el 31-10-2026, ver «El sitio»). El buscador usa todo el ancho de la
-  pantalla (`--ancho-max` 1600 px; `ANCHA = true` en la vista); el resto de las páginas, 1180 px.
-- Grupos de modo de acción con color propio: FRAC azul, IRAC verde, HRAC tierra.
-- **Pasada «unslop» (31-10-2026, Cristóbal: «mantén la estética de colores que yo te dije pero sigue las reglas de
-  unslop»).** Dirección: catálogo según la etiqueta del SAG para quien decide qué aplicar en el campo; carácter exacto,
-  directo y de campo; mundo de la etiqueta impresa y la libreta (papel beige, tinta negra); el color fuerte es solo
-  de los códigos de modo de acción (FRAC/IRAC/HRAC) y su franja a la izquierda de cada grupo, que es la firma del sitio.
-  Reglas que quedaron: medidas en px sobre la grilla de 4 (2 px solo para ajustes dentro de controles chicos); títulos
-  y etiquetas en minúscula normal, nunca en MAYÚSCULAS espaciadas (salvo datos de la etiqueta como «CUIDADO»); pesos
-  400, 500 y 600 (800 solo en el logo; Rubik se carga con 400;500;600;800); sin cursiva (las citas van en gris entre
-  «…»); radios: tarjetas y paneles 16, avisos y opciones 12, campos 10, etiquetas y códigos 6, botones y chips en
-  píldora (regla de Cristóbal); íconos de línea de `ui.js` con trazo 1,5 (18 px en botones y menú, 16 en lo chico,
-  20 en la barra del celular); enlaces en negro con subrayado (el azul queda para FRAC, la trivia y los avisos de
-  información); un solo acento en los controles: verde (selección, foco, orden activo, progreso); «Extraído
-  automáticamente» como texto gris sin caja (regla 1 igual se cumple); sin signos de exclamación ni punto final en
-  textos cortos; transiciones solo de color/fondo/borde/transform (150 ms, `--curva`), nada que anime ancho o alto.
-  El pie queda abajo aunque la página sea corta (`body` en columna).
-- **Pantallas de carga como esqueleto** (pedido del 31-10-2026: «la ruedita se ve muy tediosa»): bloques beige que
+  pantalla (`--ancho-max` 1680 px; `ANCHA = true` en la vista); el resto de las páginas, 1180 px.
+- **Pasada «unslop» (31-10-2026):** sus reglas siguen: medidas en px sobre la grilla de 4 (2 px solo para ajustes dentro
+  de controles chicos); títulos y etiquetas en minúscula normal, nunca en MAYÚSCULAS espaciadas (salvo datos de la
+  etiqueta como «CUIDADO»); pesos 400, 500 y 600; sin cursiva (las citas van en gris entre «…»); radios: tarjetas y
+  paneles 16, avisos y opciones 12, campos 10, etiquetas y códigos 6; íconos de línea de `ui.js` con trazo 1,5;
+  enlaces en el color de la letra con subrayado; un solo acento en los controles (azul rey o amarillo); «Extraído
+  automáticamente» como texto gris sin caja; sin signos de exclamación ni punto final en textos cortos; transiciones
+  solo de color/fondo/borde/transform (150 ms, `--curva`), nada que anime ancho o alto. El pie queda abajo aunque la
+  página sea corta (`body` en columna).
+- **Nada de avisos que afeen** (10-11-2026): sin «Confianza baja» (ver regla 1).
+- **Pantallas de carga como esqueleto** (pedido del 31-10-2026: «la ruedita se ve muy tediosa»): bloques grises que
   laten despacio con la forma de lo que viene, sin ruedita ni texto visible (el texto queda para lectores de
   pantalla). `ui.js → cargando(texto, forma)`: 'inicio' (panel de filtros y filas/tarjetas), 'lista' o 'texto'; el
   de la primera carga está escrito en `index.html`. Si cambia el alto del panel de filtros, ajustar `.esq-panel`.
@@ -280,14 +285,13 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
   - `#/` **Inicio: FRAC, IRAC y HRAC** (01-11-2026; desde el 02-11-2026 es el inicio y «más visual, divertido de
     entender», pedido de Cristóbal; `assets/js/vistas/modos.js`; `#/modos` antiguo abre aquí). Para que lo entienda un
     agricultor sin estudios y un ingeniero esté de acuerdo: lo simple a la vista y lo técnico en desplegables «Para el
-    técnico». Partes: portada «Rota el código, no la marca» con un bloque de color y un dibujo por comité (hongo, insecto,
-    maleza: `DIBUJOS`; FRAC `--azul-bloque`, IRAC `--verde-claro`, HRAC `--hrac-bloque`); «La idea en un dibujo»: dos
-    productos reales del catálogo con el mismo código (=) y uno con otro (≠); **juego de rotación** (`JUEGO`: 40 hongos
-    de botrytis, 4 botones Marca A/B FRAC 7, C FRAC 12, D FRAC 9, 6 aplicaciones; al partir justo 2 de 40 aguantan cada
-    código; mueren los que no lo aguantan salvo 5 % que escapa; los vivos se multiplican y llega 20 % de vecinos; muestra el
-    % de control de cada aplicación: repitiendo FRAC 7 baja de ~93 % a ~20 %, rotando vuelve a ~95 %; es un modelo de
-    juguete y lo dice); tarjeta por comité (cómo leer el código, códigos con más productos del catálogo con link al
-    buscador filtrado y, plegada, la tabla de grupos frecuentes con sitio de acción, familia, ingredientes y riesgo FRAC);
+    técnico». **10-11-2026 (Cristóbal):** parte explicando qué es un grupo y por qué dos marcas del mismo grupo son
+    iguales; enseguida, los tres comités con «Para el técnico» **abierto**; el juego de la botrytis se quitó («no sirve de
+    nada»). Partes: portada «Rota el código, no la marca» con «¿Qué es un grupo?» y «¿Por qué son iguales?» y un bloque
+    fluorescente con un dibujo por comité (hongo, insecto, maleza: `DIBUJOS`); «Un ejemplo con productos del catálogo»:
+    dos productos reales con el mismo código (=) y uno con otro (≠); «Los tres comités»: tarjeta por comité (cómo leer
+    el código, códigos con más productos del catálogo con link al buscador filtrado y, abierta, la tabla de grupos
+    frecuentes con lo que hacen (`moa.js`), sitio de acción, familia, ingredientes y riesgo FRAC);
     «¿Rotaste o no?» (4 preguntas con respuesta al tocar: mismo código con otra marca, 1A/1B, HRAC A/1, mezcla 7+11 → 3);
     4 palabras; 4 reglas de oro (+ «Más consejos» plegado); por qué importa; ejemplos (botrytis, arañita, ballica y un
     producto real con dos códigos); cómo usarlo en el sitio (Buscador, Mezclas, Plan). Los grupos y ejemplos de
@@ -313,11 +317,18 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     busca en todas las columnas (nombre y categoría, empresa y su nombre completo, grupos de modo de acción y su código
     de la etiqueta, grupo químico, tipo y su nombre, ingredientes, registro, cultivos con sus sinónimos y el texto de
     la dosis); cada palabra tiene que estar en alguna columna. «FRAC 3», «IRAC 4», «HRAC A» o «FRAC G1» se buscan como
-    grupo (`RE_MOA`), para que el número no calce con registros o dosis. Debajo: cultivo y plaga/enfermedad/maleza
-    con sugerencias y tipo de producto; en «Más filtros», empresa y modo de acción. Luego una tabla con
-    **una fila por producto**: Producto (+ categoría), Empresa (nombre corto),
+    grupo (`RE_MOA`), para que el número no calce con registros o dosis. Al lado: cultivo y plaga/enfermedad/maleza
+    con sugerencias, tipo de producto, empresa y modo de acción: **los seis filtros en una fila** desde 1.100 px (10-11-2026;
+    en el celular y la tablet, empresa y modo de acción tras «Más filtros»). `moa=` también acepta el código antiguo de la
+    etiqueta («HRAC A»). Luego una tabla con **una fila por producto**: Producto (+ categoría), Empresa (nombre corto),
     Modo de acción, Tipo (código de formulación: WP, SC…), Ingrediente activo (solo nombres), Etiqueta (PDF),
-    Reg. SAG, Cultivos (3 y un botón «+X» que muestra el resto) y Dosis «desde – hasta», más un botón al plan.
+    Reg. SAG, Cultivos (3 y un botón «+X» que abre una burbuja con todos, `ui.js → globo`) y Dosis «desde – hasta» (la
+    primera unidad; las demás con «+N» y al pasar el mouse), más un botón al plan. **Todas las filas miden lo mismo**
+    (72 px; pedido del 10-11-2026): anchos fijos por columna (`colgroup`, clases `col-*`) y cada celda recortada a una o
+    dos líneas (lo completo, al pasar el mouse o en la ficha). **Cada grupo lleva una frase con lo que hacen sus
+    productos** («HRAC 1 · Frena la fabricación de sus grasas; solo afecta a gramíneas»): `assets/js/moa.js → queHace`,
+    escrita a mano desde las listas oficiales para todos los códigos del catálogo (al llegar un código nuevo sin frase, no
+    se muestra nada: agregarlo ahí con su fuente).
     **Sin carencia ni reingreso en esta tabla** (pidió sacarlos; siguen en la ficha y en el plan). Con cultivo u
     objetivo, cultivos y dosis salen solo de las líneas que calzan (Enter en el objetivo = «Todos los que dicen…»).
     Los productos que no se usan en Chile no aparecen en la tabla (el botón «Mostrar también…» se quitó a pedido de
@@ -418,7 +429,7 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
 - **Dosis «desde – hasta»** (`ui.js → dosisRango`, `resumenDosis`): mínimo y máximo de `dose_min`/`dose_max` por unidad
   y base (L/ha, cc/100 L, kg/ha, %…), sin mezclar ni convertir unidades; las dosis con base «otro» o sin unidad no
   entran al rango («Ver en la etiqueta» si no queda ninguna). Regla 1: «Revisado» solo si todas las líneas del
-  resumen están aprobadas; si alguna tiene confianza < 0,80, alerta.
+  resumen están aprobadas (sin alerta de confianza desde el 10-11-2026).
 - Datos: al abrir se cargan las listas chicas (vistas `v_sitio_*`, `categories`, `active_ingredients`,
   `companies`, reingreso de `product_safety_profiles`); las líneas de uso se piden por cultivo, objetivo o
   producto. Todo paginado de a 1.000 filas (límite de la API) en `db.js → todas()`.
@@ -440,9 +451,10 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     con pg_cron cada 15 minutos): propuesto, no aplicado; cambiar la base de producción necesita el «sí» de Cristóbal.
   - `index.html`: supabase-js con `defer`, `preconnect` a Supabase y `modulepreload` de todos los módulos (al
     agregar un módulo, sumarlo ahí).
-- **Íconos:** `icono.svg` (pestaña) + `icono-32.png` de respaldo, `icono-180.png` (iPhone, `apple-touch-icon`) e
-  `icono-192/512.png` (Android, `manifest.webmanifest`, sin `display`: se abre como página normal para poder copiar el
-  link). Se hacen con `scripts/iconos.py` (Pillow del venv).
+- **Íconos:** `icono.svg` (pestaña; el logo nuevo del 10-11-2026, azul o amarillo según el modo del equipo) +
+  `icono-32.png` de respaldo, `icono-180.png` (iPhone, `apple-touch-icon`) e `icono-192/512.png` (Android,
+  `manifest.webmanifest`, sin `display`: se abre como página normal para poder copiar el link). Los PNG se hacen con
+  `scripts/iconos.py` (Pillow del venv), con el mismo dibujo que `#logo-crm` de `index.html`.
 - Las piezas que cumplen las reglas 1–3 están en `assets/js/ui.js` (`estadoRevision`, `dosis`,
   `carencia`, `reingreso`, `linkPdf`, `urlDeLinea`). Usarlas siempre; no mostrar dosis ni carencia «a mano».
   `carencia`, `mojamiento`, `intervalo` y `metodo` muestran el valor con su cita «…» (pág. N) desde
