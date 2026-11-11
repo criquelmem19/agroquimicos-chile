@@ -34,7 +34,9 @@ productores, muchas veces **desde el celular en el campo**.
 ## Reglas del sitio (obligatorias)
 
 1. Nunca mostrar una dosis sin su estado: «Revisado» (solo `review_status = 'aprobado'`) o
-   «Extraído automáticamente». La alerta «Confianza baja: revisa la etiqueta» (`confidence_score < 0,80`) **se quitó a
+   «Extraído automáticamente». **Excepción en la tabla del buscador** (Cristóbal, 11-11-2026: «no pongas la frase de
+   extraído automáticamente»): ahí solo se muestra «Revisado» cuando corresponde (`dosisRango(…, { soloRevisado })`);
+   la ficha y el plan siguen con el estado de cada línea. La alerta «Confianza baja: revisa la etiqueta» (`confidence_score < 0,80`) **se quitó a
    pedido de Cristóbal el 10-11-2026** («no pongas este tipo de mensajes, hace que todo se vea más feo»); el dato sigue
    en la base. No volver a ponerla.
 2. Nunca dejar una carencia en blanco. Si falta: «Sin dato, verificar etiqueta» + link al PDF (con página).
@@ -349,9 +351,12 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     con sugerencias, tipo de producto, empresa y modo de acción: **los seis filtros en una fila** desde 1.100 px (10-11-2026;
     en el celular y la tablet, empresa y modo de acción tras «Más filtros»). `moa=` también acepta el código antiguo de la
     etiqueta («HRAC A»). Luego una tabla con **una fila por producto**: Producto (+ categoría), Empresa (nombre corto),
-    Modo de acción, Tipo (código de formulación: WP, SC…), Ingrediente activo (solo nombres), Etiqueta (PDF),
-    Reg. SAG, Cultivos (3 y un botón «+X» que abre una burbuja con todos, `ui.js → globo`) y Dosis «desde – hasta» (la
-    primera unidad; las demás con «+N» y al pasar el mouse), más un botón al plan. **Todas las filas miden lo mismo**
+    Modo de acción, Tipo (código de formulación: WP, SC…), Ingrediente activo (solo nombres), Cultivos (3 y un botón
+    «+X» que abre una burbuja con todos, `ui.js → globo`), Etiqueta y Dosis «desde – hasta» (la primera unidad; las demás
+    con «+N» y al pasar el mouse), más un botón al plan. **11-11-2026 (Cristóbal: «reducir tanta info»):** sin la columna
+    Reg. SAG (tampoco en el buscador ni en el orden); la Etiqueta es solo un ícono de hoja con lupa (`icono('etiqueta')`)
+    en el verde de énfasis, antepenúltima, que al pasar el mouse se resalta (`.boton-etiqueta`; en el celular, arriba a la
+    derecha junto al botón del plan); la Dosis sin «Extraído automáticamente» (ver regla 1). **Todas las filas miden lo mismo**
     (72 px; pedido del 10-11-2026): anchos fijos por columna (`colgroup`, clases `col-*`) y cada celda recortada a una o
     dos líneas (lo completo, al pasar el mouse o en la ficha). **Cada grupo lleva una frase con lo que hacen sus
     productos**: `assets/js/moa.js → queHace`, escrita a mano desde las listas oficiales para todos los códigos del

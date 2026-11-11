@@ -39,6 +39,8 @@ const ICONOS = {
   frasco: '<path d="M9 3h6"/><path d="M10 3v5.5L5.6 16.6A2.6 2.6 0 0 0 7.9 20.5h8.2a2.6 2.6 0 0 0 2.3-3.9L14 8.5V3"/><path d="M7.4 14.5h9.2"/>',
   grafico: '<path d="M3 20.5h18"/><path d="M6.5 17V11"/><path d="M12 17V5"/><path d="M17.5 17v-7"/>',
   pdf: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/>',
+  // Hoja con lupa (columna «Etiqueta» del buscador; Cristóbal, 11-11-2026: «simple, con poco detalle pero claro»).
+  etiqueta: '<path d="M11 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v2.5"/><path d="M14 3v5h5"/><path d="M8.5 11.5h5M8.5 15h2"/><circle cx="16.5" cy="16.5" r="3"/><path d="m18.7 18.7 2.3 2.3"/>',
   alerta: '<path d="M12 3.5 2.5 20h19z"/><path d="M12 10v4.5"/><path d="M12 17.6v.01"/>',
   check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
   luna: '<path d="M20 14.6A8 8 0 1 1 9.4 4a6.6 6.6 0 0 0 10.6 10.6z"/>',
@@ -202,7 +204,9 @@ export function estadoResumen(r) {
 }
 
 // max: cuántos rangos (uno por unidad) se ven; el resto, con «+N» y en el texto que aparece al pasar el mouse.
-export function dosisRango(r, max = 2) {
+// soloRevisado: sin «Extraído automáticamente» (tabla del buscador, pedido de Cristóbal el 11-11-2026: «no pongas la
+// frase de extraído automáticamente»); «Revisado» se sigue mostrando cuando una persona revisó todas las líneas.
+export function dosisRango(r, max = 2, { soloRevisado = false } = {}) {
   if (!r || !r.n) return h('span', { class: 'tenue' }, 'Sin usos registrados');
   const rangos = rangosDosis(r.grupos);
   const textos = rangos.slice(0, max).map((t) => h('span', { class: 'rango' }, t));
@@ -213,7 +217,7 @@ export function dosisRango(r, max = 2) {
       ? h('span', { class: 'rangos' }, textos, rangos.length > max ? h('span', { class: 'rango-mas' }, `+${rangos.length - max}`) : null)
       : etiqueta ? h('span', { class: 'rango recorte-2' }, etiqueta)
         : h('span', { class: 'sin-dato' }, 'Sin dosis en los datos'),
-    estadoResumen(r));
+    soloRevisado && !(r.n && r.aprobadas === r.n) ? null : estadoResumen(r));
 }
 
 // Cita guardada en field_citations (Fase 2): texto literal de la etiqueta y su página.

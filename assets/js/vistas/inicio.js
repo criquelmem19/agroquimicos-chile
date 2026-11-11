@@ -3,7 +3,7 @@
 // producto, empresa y modo de acción. Es también «¿Qué aplico?»: con cultivo u objetivo, los cultivos y la dosis de cada
 // fila salen solo de las líneas de uso que calzan. Los productos que no se usan en Chile no aparecen.
 // Parámetros: cultivo=<id>, objetivo=<id>, oq=<texto de objetivo>, cat=<id>, q=<texto>, empresa=<nombre corto>,
-// moa=<clave>|sin, ing=<id>, orden=moa|nombre|empresa|tipo|ing|registro|cultivos, inv=1 (orden al revés)
+// moa=<clave>|sin, ing=<id>, orden=moa|nombre|empresa|tipo|ing|cultivos, inv=1 (orden al revés)
 import {
   usosPorCultivo, usosPorObjetivos, compararMoa, nombreCorto, familiaMoa, claveMoa, tipoFormulacion as tipoDe,
   cultivosVisibles, enListas,
@@ -11,7 +11,7 @@ import {
 import { filtrar, palabras, puntaje, normalizar, preparar, contiene } from '../buscador.js';
 import {
   h, icono, ruta, plural, recortar, limpio, vaciar, cargando, retrasar, combo, globo,
-  chipsMoa, chipMoa, ingredientesTexto, linkPdf, dosisRango, resumenDosis, rangosDosis,
+  chipsMoa, chipMoa, ingredientesTexto, dosisRango, resumenDosis, rangosDosis,
 } from '../ui.js';
 import { queHace, TIPOS, ORDEN_TIPOS, claveTipo, tipoDeClave } from '../moa.js';
 
@@ -29,16 +29,16 @@ const ORDENES = {
   empresa: 'Empresa',
   tipo: 'Tipo (WP, SC…)',
   ing: 'Ingrediente activo',
-  registro: 'Registro SAG',
   cultivos: 'Cantidad de cultivos',
 };
 const MAYOR_PRIMERO = new Set(['cultivos']);
 // Columnas de la tabla, con qué orden se asocia cada una (null: no se ordena) y su clase de ancho (app.css, col-*).
 // Ancho fijo por columna y celdas recortadas a una o dos líneas: todas las filas tienen la misma altura (Cristóbal,
 // 10-11-2026). Lo que no cabe se ve al pasar el mouse, en la burbuja de cultivos o en la ficha.
+// 11-11-2026 (Cristóbal: «reducir tanta info»): sin la columna del registro SAG y con la etiqueta (ícono) antes de la dosis.
 const COLUMNAS = [
   ['Producto', 'nombre', 'producto'], ['Empresa', 'empresa', 'empresa'], ['Modo de acción', 'moa', 'moa'], ['Tipo', 'tipo', 'tipo'],
-  ['Ingrediente activo', 'ing', 'ing'], ['Etiqueta', null, 'etiqueta'], ['Reg. SAG', 'registro', 'reg'], ['Cultivos', 'cultivos', 'cultivos'],
+  ['Ingrediente activo', 'ing', 'ing'], ['Cultivos', 'cultivos', 'cultivos'], ['Etiqueta', null, 'etiqueta'],
   ['Dosis', null, 'dosis'], ['', null, 'plan'],
 ];
 const SIN_GRUPO = 'Sin ingrediente activo en los datos';
@@ -57,7 +57,6 @@ function valorOrden(clave, p, info) {
   if (clave === 'empresa') return p.marca;
   if (clave === 'tipo') return tipoDe(p);
   if (clave === 'ing') return p.ings.length ? p.ings.map((x) => x.ing.nombre).join(' + ') : null;
-  if (clave === 'registro') return p.registro ? String(p.registro) : null;
   if (clave === 'cultivos') return info.cultivos.length;
   return null;
 }
@@ -88,7 +87,8 @@ function compararGrupos(a, b) {
 // Pedido de Cristóbal (11-11-2026): «tiene que filtrar todos y cada uno de los elementos que aparezcan en las columnas».
 // Cada fila junta en un texto lo que se ve en sus columnas (y lo que aparece al pasar el mouse): producto y tipo de
 // producto, empresa (nombre corto y completo), códigos (actual y el de la etiqueta) o lo que es si no tiene código,
-// grupo químico, formulación, ingredientes con su concentración, registro, cultivos (con sus sinónimos) y dosis.
+// grupo químico, formulación, ingredientes con su concentración, cultivos (con sus sinónimos) y dosis. El registro SAG ya
+// no va (la columna se sacó el 11-11-2026).
 // Cada palabra escrita tiene que estar en alguna columna, en cualquier parte de una palabra («cipermetrina» encuentra
 // «Alfacipermetrina»; ver buscador.js → contiene).
 
@@ -113,7 +113,7 @@ function textoFijo(p) {
       p.moa.join(' '), [...p.moaEtiqueta.values()].flat().join(' '),
       p.tipos.map((t) => `${TIPOS[t] ? `${TIPOS[t].corto} ${TIPOS[t].nombre}` : t}`).join(' '),
       p.ings.map((x) => `${x.ing.nombre} ${limpio(x.conc)} ${x.ing.grupoQuimico || ''}`).join(' '),
-      tipoDe(p), p.formulacion, p.registro,
+      tipoDe(p), p.formulacion,
     ].filter(Boolean).join(' '));
   }
   return fijas.get(p);
@@ -179,11 +179,14 @@ function fila(p, info, op) {
     h('td', { class: vacia('c-tipo', tipo), 'data-etiqueta': 'Tipo', title: p.formulacion || null }, tipo || '—'),
     h('td', { class: 'c-ing', 'data-etiqueta': 'Ingrediente activo', title: ingredientesTexto(p) },
       h('span', { class: 'recorte-2' }, p.ings.length ? p.ings.map((x) => x.ing.nombre).join(' + ') : h('span', { class: 'tenue' }, 'Sin ingrediente registrado'))),
-    h('td', { class: 'c-etiqueta', 'data-etiqueta': 'Etiqueta' },
-      url ? linkPdf(url, null, 'PDF') : h('span', { class: 'pdf-falta', title: 'PDF no disponible en el sistema' }, 'Sin PDF')),
-    h('td', { class: vacia('c-reg', p.registro), 'data-etiqueta': 'Reg. SAG', title: p.registro || null }, p.registro || '—'),
     h('td', { class: 'c-cultivos', 'data-etiqueta': 'Cultivos' }, listaCultivos(info.cultivos)),
-    h('td', { class: 'c-dosis', 'data-etiqueta': 'Dosis' }, dosisRango(info.resumen, 1)),
+    // La etiqueta es solo un ícono (hoja con lupa) en el verde de énfasis; el título de la columna ya dice qué es.
+    h('td', { class: vacia('c-etiqueta', url), 'data-etiqueta': 'Etiqueta' },
+      url ? h('a', {
+        class: 'boton-etiqueta', href: url, target: '_blank', rel: 'noopener',
+        title: 'Abrir la etiqueta (PDF)', 'aria-label': `Abrir la etiqueta de ${p.nombre} (PDF)`,
+      }, icono('etiqueta')) : h('span', { class: 'tenue', title: 'Sin PDF de la etiqueta en el sistema' }, '—')),
+    h('td', { class: 'c-dosis', 'data-etiqueta': 'Dosis' }, dosisRango(info.resumen, 1, { soloRevisado: true })),
     h('td', { class: 'c-plan' }, h('a', {
       class: 'boton-redondo', href: ruta('plan', { producto: p.id }),
       title: 'Agregar al plan de aplicaciones', 'aria-label': `Agregar ${p.nombre} al plan de aplicaciones`,

@@ -399,15 +399,14 @@ body { padding-bottom: calc(var(--alto-nav-inf) + env(safe-area-inset-bottom)); 
   width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 14px; line-height: 1.4;
   background: var(--superficie); border: 1px solid var(--linea); border-radius: var(--radio); box-shadow: var(--sombra);
 }
-.col-producto { width: 16.5%; }
-.col-empresa { width: 8%; }
-.col-moa { width: 12%; }
+.col-producto { width: 18%; }
+.col-empresa { width: 8.5%; }
+.col-moa { width: 13%; }
 .col-tipo { width: 5%; }
-.col-ing { width: 14.5%; }
+.col-ing { width: 16%; }
+.col-cultivos { width: 14.5%; }
 .col-etiqueta { width: 6%; }
-.col-reg { width: 6.5%; }
-.col-cultivos { width: 13.5%; }
-.col-dosis { width: 13%; }
+.col-dosis { width: 14%; }
 .tabla-productos th {
   position: sticky; top: var(--alto-cabecera); z-index: 5;
   text-align: left; vertical-align: middle; height: 48px;
@@ -433,13 +432,21 @@ body { padding-bottom: calc(var(--alto-nav-inf) + env(safe-area-inset-bottom)); 
 .fila-producto > td:first-child { padding-left: 16px; }
 .tabla-productos tbody .fila-producto:hover > td { background: var(--superficie-2); }
 .c-producto a, .c-cat { display: block; }
-.c-producto a, .c-cat, .c-empresa, .c-tipo, .c-reg, .c-etiqueta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.c-producto a, .c-cat, .c-empresa, .c-tipo { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .c-producto a { font-size: 15px; font-weight: 500; color: var(--tinta); text-decoration: none; }
 .c-producto a:hover { text-decoration: underline; }
 .c-cat { margin-top: 2px; font-size: 13px; color: var(--tinta-3); }
 .c-empresa { font-weight: 500; }
 .c-tipo { font-weight: 500; font-family: var(--mono); font-size: 13px; }
-.c-reg { color: var(--tinta-2); }
+/* Etiqueta: solo el ícono (hoja con lupa) en el verde de énfasis; al pasar el mouse se resalta (11-11-2026). */
+.tabla-productos th:nth-child(7), .c-etiqueta { text-align: center; }
+.boton-etiqueta {
+  display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: var(--radio-medio);
+  color: var(--acento-texto); border: 1px solid transparent; text-decoration: none;
+}
+.boton-etiqueta svg { width: 24px; height: 24px; }
+.boton-etiqueta:hover { background: var(--acento-suave); border-color: var(--acento-linea); color: var(--acento-texto); transform: scale(1.08); }
+.boton-etiqueta:active { transform: scale(.96); }
 .c-moa .lista-moa { max-height: 52px; overflow: hidden; }
 .c-cultivos .cultivos { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .c-cultivos .recorte-2 { flex: 1; min-width: 0; }
@@ -504,15 +511,15 @@ body { padding-bottom: calc(var(--alto-nav-inf) + env(safe-area-inset-bottom)); 
   .tabla-productos .grupo-frac { border-left-color: var(--frac); }
   .tabla-productos .grupo-irac { border-left-color: var(--irac); }
   .tabla-productos .grupo-hrac { border-left-color: var(--hrac); }
-  .c-producto { order: 1; flex: 1 1 100%; padding-right: 48px !important; }
+  .c-producto { order: 1; flex: 1 1 100%; padding-right: 96px !important; }
   .c-producto a { font-size: 18px; white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
   .c-empresa { order: 2; }
   .c-tipo { order: 3; }
-  .c-reg { order: 4; }
-  .c-reg::before { content: "Reg. SAG "; font-size: 14px; color: var(--tinta-3); }
-  .c-etiqueta { order: 5; }
-  .c-empresa::after, .c-tipo::after, .c-reg::after { content: "·"; margin-left: 8px; color: var(--tinta-3); font-weight: 400; }
-  .c-empresa, .c-tipo, .c-reg, .c-etiqueta { max-width: 100%; }
+  .c-empresa::after { content: "·"; margin-left: 8px; color: var(--tinta-3); font-weight: 400; }
+  .c-empresa, .c-tipo { max-width: 100%; }
+  /* La etiqueta va arriba a la derecha, junto al botón del plan. */
+  .c-etiqueta { position: absolute; top: 12px; right: 56px; width: auto; }
+  .c-etiqueta .boton-etiqueta { width: 36px; height: 36px; }
   .c-ing { order: 6; flex: 1 1 100%; }
   .c-moa { order: 7; flex: 1 1 100%; }
   .c-moa .lista-moa { max-height: none; }
