@@ -1,6 +1,6 @@
 # Agroquímicos CRM — memoria del proyecto
 
-Leer completo antes de tocar algo. Última actualización: 10-11-2026.
+Leer completo antes de tocar algo. Última actualización: 11-11-2026.
 El sitio se llama **Agroquímicos CRM** (antes «Agroquímicos Chile»; el repo y la URL siguen siendo
 `agroquimicos-chile`). «CRM» es la marca de Cristóbal y va arriba, en el logo.
 
@@ -45,7 +45,9 @@ productores, muchas veces **desde el celular en el campo**.
    explicativos largos. Se mantienen las etiquetas por dato (reglas 1–3) y las alertas del plan. Excepción pedida por
    él el 01-11-2026: la explicación de FRAC, IRAC y HRAC (hoy el inicio, `#/`) y la página «Mezclas» (02-11-2026).
 5. **Nunca inventar ni completar datos agronómicos con conocimiento general.** Solo lo que dice la
-   etiqueta, con cita (texto y página).
+   etiqueta, con cita (texto y página). Excepción pedida por Cristóbal el 11-11-2026: el **código de modo de acción**
+   de un ingrediente cuya etiqueta no lo trae sale de la lista oficial de su comité (FRAC, IRAC, HRAC), en la tabla
+   aparte `moa_clasificacion` con su fuente (ver «Códigos de modo de acción»). Dosis y carencias, nunca.
 6. Mientras la carencia esté incompleta: `noindex` (meta robots en `index.html`). Se comparte solo por link.
 7. En el navegador y en el repositorio va **solo la llave pública** (publishable/anon). Nunca la
    secreta ni `service_role`.
@@ -186,8 +188,12 @@ recibe «permission denied» (verificado el 20-10-2026).
 | `sag_inventario` | 1.634 (22-10) | Proceso, privada: cada PDF del listado del SAG y su estado en el recopilador |
 | `recopilador_revision` | — | Proceso, privada: cultivos, objetivos, ingredientes, empresas y categorías que creó el recopilador (revisar) |
 
-- `moa_equivalencias` (27-10-2026, 72 filas desde el 02-11-2026, lectura pública): código antiguo → actual de FRAC y
+- `moa_equivalencias` (27-10-2026, 76 filas desde el 11-11-2026, lectura pública): código antiguo → actual de FRAC y
   HRAC; `codigo_actual` vacío = el ingrediente no tiene grupo (ver «El sitio»).
+- `moa_clasificacion` (11-11-2026, 629 filas, lectura pública): código oficial de los ingredientes cuya etiqueta no lo
+  trae, o qué son si ningún comité los clasifica (`tipo`), y grupo químico de todos. Ver «Códigos de modo de acción».
+- `v_sitio_dosis_texto` (11-11-2026): por producto, el texto de dosis de la etiqueta más repetido entre las líneas sin
+  rango (sin número, base «otro» o unidad rara). Vista aparte: dentro de `v_sitio_resumen_productos` la llevaba a 3 s.
 - **Recopilador (22-10-2026):** `field_citations` (mismo formato que en `product_uses`) también en `products`,
   `product_active_ingredients`, `product_companies`, `product_safety_profiles` y `active_ingredients` (grupo de modo
   de acción leído de una etiqueta, con `documento`). `documents.source_url` (URL oficial). En `products`:
@@ -327,9 +333,13 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     (rehecho el 27-10-2026 a pedido de Cristóbal; vista `assets/js/vistas/inicio.js`):
     arriba el **buscador principal** («Buscar en la tabla», `q`; pedido del 31-10-2026): filtra mientras se escribe y
     busca en todas las columnas (nombre y categoría, empresa y su nombre completo, grupos de modo de acción y su código
-    de la etiqueta, grupo químico, tipo y su nombre, ingredientes, registro, cultivos con sus sinónimos y el texto de
-    la dosis); cada palabra tiene que estar en alguna columna. «FRAC 3», «IRAC 4», «HRAC A» o «FRAC G1» se buscan como
-    grupo (`RE_MOA`), para que el número no calce con registros o dosis. Al lado: cultivo y plaga/enfermedad/maleza
+    de la etiqueta, o el tipo si no tiene código, grupo químico, tipo y su nombre, ingredientes con su concentración,
+    registro, cultivos con sus sinónimos y el texto de la dosis); cada palabra tiene que estar en alguna columna.
+    **Desde el 11-11-2026** (Cristóbal: «tiene que filtrar todos y cada uno de los elementos que aparezcan en las
+    columnas») busca **dentro** de las palabras («cipermetrina» encuentra Alfacipermetrina, «betaciflutrina» a
+    Beta-ciflutrina): `buscador.js → preparar/contiene`; las de 1–2 letras («SC», «2») solo al inicio de una palabra.
+    Probado con 39 celdas al azar: todas encuentran su fila. «FRAC 3», «IRAC 4», «HRAC A», «FRAC G1», «IRAC UNE» o
+    «FRAC NC» se buscan como grupo (`RE_MOA`), para que el número no calce con registros o dosis. Al lado: cultivo y plaga/enfermedad/maleza
     con sugerencias, tipo de producto, empresa y modo de acción: **los seis filtros en una fila** desde 1.100 px (10-11-2026;
     en el celular y la tablet, empresa y modo de acción tras «Más filtros»). `moa=` también acepta el código antiguo de la
     etiqueta («HRAC A»). Luego una tabla con **una fila por producto**: Producto (+ categoría), Empresa (nombre corto),
@@ -338,9 +348,16 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     primera unidad; las demás con «+N» y al pasar el mouse), más un botón al plan. **Todas las filas miden lo mismo**
     (72 px; pedido del 10-11-2026): anchos fijos por columna (`colgroup`, clases `col-*`) y cada celda recortada a una o
     dos líneas (lo completo, al pasar el mouse o en la ficha). **Cada grupo lleva una frase con lo que hacen sus
-    productos** («HRAC 1 · Frena la fabricación de sus grasas; solo afecta a gramíneas»): `assets/js/moa.js → queHace`,
-    escrita a mano desde las listas oficiales para todos los códigos del catálogo (al llegar un código nuevo sin frase, no
-    se muestra nada: agregarlo ahí con su fuente).
+    productos**: `assets/js/moa.js → queHace`, escrita a mano desde las listas oficiales para todos los códigos del
+    catálogo (al llegar un código nuevo sin frase, no se muestra nada: agregarlo ahí con su fuente). **Reescritas el
+    11-11-2026** (Cristóbal: «"Frena la fabricación de aminoácidos en otro punto" no me sirve… tiene que ser más
+    autoconclusivo»): qué bloquea, en qué parte de la plaga y qué le pasa («HRAC 9 · Impide que la maleza fabrique 3
+    aminoácidos (enzima EPSPS): baja hasta la raíz y la mata entera»). **Los productos sin código** se agrupan por lo que
+    son (`moa.js → TIPOS`: reguladores, feromonas, coadyuvantes, protectores, anticoagulantes, preservantes de madera…),
+    con un chip gris (clave `tipo:regulador`, también en el filtro y como link) y su frase; al final, «Sin ingrediente
+    activo en los datos». **Dosis** sin rango «desde – hasta»: ppm, ppb, dispositivos/ha, tabletas/ha y g i.a./ha ya
+    entran al rango; si no, el texto de la dosis de la etiqueta (`v_sitio_dosis_texto`, vista aparte porque agregarlo a
+    `v_sitio_resumen_productos` la llevaba a 3 s). Ya no aparece «Ver en la etiqueta» (solo «Sin dosis en los datos»).
     **Sin carencia ni reingreso en esta tabla** (pidió sacarlos; siguen en la ficha y en el plan). Con cultivo u
     objetivo, cultivos y dosis salen solo de las líneas que calzan (Enter en el objetivo = «Todos los que dicen…»).
     Los productos que no se usan en Chile no aparecen en la tabla (el botón «Mostrar también…» se quitó a pedido de
@@ -431,6 +448,21 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
   `^(FRAC|IRAC|HRAC) (M\d{2}|\d{1,2}[A-Z]?|UN)$` después de las equivalencias, y mirar a mano los de formato correcto
   (así salieron el glufosinato y el cloquintocet). Con su «Sí, todo» (migración `correccion_topas_e_irac_romanos`):
   IRAC en número romano, etoprofós «I» y fenamifós «Ib» → 1B.
+  **Revisión completa del 11-11-2026** (Cristóbal: «revisa todo el contenido de la tabla de los códigos… todo lo que
+  no tenga modo de acción búscalo… y ponlo»): 358 ingredientes sin código. Cada uno se clasificó desde las listas
+  oficiales (FRAC Code List 2024, IRAC MoA 11.5 de feb. 2026 y su lista de nematicidas 2.2, HRAC 2024; las de IRAC y
+  HRAC se leyeron de los PDF oficiales) en la tabla `moa_clasificacion`, generada por `scripts/moa/clasificacion.py`
+  (cada fila con su nota; **no editar la migración a mano: cambiar el script**). `active_ingredients` no se toca.
+  Criterios: biológicos de hongos y bacterias contra enfermedades → FRAC BM02 (Bacillus, Trichoderma, Aureobasidium…);
+  extractos de planta → BM01 (fungicidas) o IRAC UNE (insecticidas); extractos cítricos y ácidos orgánicos (BC-1000,
+  Status) → FRAC NC; aceite mineral → IRAC UNM; fumigantes → IRAC 8A/8B/8F y 24A; nematicidas solo de suelo → IRAC N-…;
+  ácidos grasos y napropamida → HRAC 0 (desconocido); amitrol → HRAC 34. Lo que ningún comité clasifica va con `tipo`
+  (regulador, feromona, coadyuvante, protector, rodenticida, preservante de madera, biocida, desinfectante,
+  molusquicida, bioestimulante, biológico, aditivo, postcosecha, no clasificado). Un ingrediente puede tener dos
+  códigos (fenazaquina IRAC 21A y FRAC 39; geraniol UNE y BM01): el producto usa el del sistema de su categoría
+  (`db.js → codigosDelProducto`). La ficha dice de dónde sale («La etiqueta no trae el código: es el de la lista
+  oficial…»). Códigos raros unidos con `moa_equivalencias`: FRAC F-49 → 49, HRAC 29 L → 29, HRAC I18 → 18, aceite
+  parafínico IRAC UN → UNM (11.5). Queda sin nada «Concentración» (no es un ingrediente: error de lectura).
   **Familias:** en IRAC el modo de acción es el número («IRAC 4A» y «4D» son el grupo 4; «IRAC 3» = «3A»):
   `familiaMoa`/`familias` en `db.js`. La tabla agrupa y filtra por familia, y las alertas de rotación del plan
   comparan familias (antes «HRAC A» seguido de «HRAC 1» o «IRAC 4A» de «4D» no avisaban). Etiqueta nueva con un
@@ -721,6 +753,17 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
 
 ## Estado del recopilador (10-11-2026, ~18:20, después de la sesión 24)
 
+- **11-11-2026 (sesión interactiva, revisión de la tabla de códigos):** dosis completadas con `cargar.py --completar`
+  (0 valores cambiados) en 24 productos que no tenían ninguna: 12 cuya dosis se había leído pero la verificación la
+  botó porque la unidad estaba en el encabezado (se agregó el encabezado a la cita; `sag/extraido_dosis/`, lote
+  `2026-11-11-dosis`, 263 líneas) y 12 releídos desde la imagen por 5 subagentes Sonnet (`sag/extraido_dosis2/`, lote
+  `2026-11-11-dosis2`, 322 líneas; las pastas de poda quedan con el texto «Pintar… sobre el corte»). Siguen sin dosis
+  (solo en la imagen o con el OCR roto): 3 TAEX (149), Coraza (533), PODASTIK PLUS (1238), NEW CH-CFI (1126), Regalis
+  Plus (1361), STATUS DP (1488), TENSCAP (1577), TRIFORM-30/35 (1651/1652). Ingredientes agregados (con cita) a 11
+  productos que no tenían: Acronis, CUPROSAN EXTRA, Bravo 720, Celest XL, Cercobin M, Convey (topramezona, nueva), KEEP,
+  MODDUS EVO, Serifel, TRICHO-D y TRICHODERMA PASTA (lote `2026-11-11-ingredientes`). Quedan 27 productos sin
+  ingrediente: casi todos de la carga original con nombre de archivo («Musashino Crop Report…», «Ts2035 Oct»), más
+  Absoluto 20% SL, MODDUS 250 EC, GRANDEVO WG, BIRD SHIELD y los sanitarios (P-…): pregunta abierta para Cristóbal.
 - Frase de Cristóbal para seguir a mano: **«Sigue con el recopilador del SAG»** → «Cómo seguir». Ahora corre solo
   (ver «Sesiones automáticas»). El detalle de cada sesión va al final de `docs/historia.md` (la más nueva arriba).
 - **Sesión 9** (28-10, 13:21–~13:46): 43 etiquetas (Sumitomo) y un control; se cortó sin soltar el turno, sin commit ni
