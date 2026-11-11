@@ -6,7 +6,7 @@
 // moa=<clave>|sin, ing=<id>, orden=moa|nombre|empresa|tipo|ing|registro|cultivos, inv=1 (orden al revés)
 import {
   usosPorCultivo, usosPorObjetivos, compararMoa, nombreCorto, familiaMoa, claveMoa, tipoFormulacion as tipoDe,
-  cultivosVisibles,
+  cultivosVisibles, enListas,
 } from '../db.js';
 import { filtrar, palabras, puntaje, normalizar, preparar, contiene } from '../buscador.js';
 import {
@@ -322,7 +322,7 @@ export async function render(main, ctx) {
   const selCat = h('select', { class: 'selector', id: 'f-cat' },
     h('option', { value: '' }, 'Todos'),
     [...cat.categorias.values()].map((c) => {
-      const n = [...cat.productos.values()].filter((p) => p.categorias.includes(c)).length;
+      const n = [...cat.productos.values()].filter((p) => enListas(p) && p.categorias.includes(c)).length;
       return n ? h('option', { value: c.id, selected: String(c.id) === estado.cat }, `${c.nombre} (${n})`) : null;
     }));
   const texto = h('input', {
@@ -334,7 +334,7 @@ export async function render(main, ctx) {
     [...cat.marcas.values()].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
       .map((m) => h('option', { value: m.nombre, selected: m.nombre === estado.empresa }, `${m.nombre} (${m.productos.length})`)));
   // Cuántos productos de la tabla (los que se usan en Chile) hay en cada código y en cada tipo sin código.
-  const enTabla = [...cat.productos.values()].filter((p) => !p.noDisponible);
+  const enTabla = [...cat.productos.values()].filter(enListas);
   const sinGrupo = enTabla.filter((p) => !gruposDe(p).length).length;
   const porFamilia = new Map();
   for (const p of enTabla) for (const k of gruposDe(p)) porFamilia.set(k, (porFamilia.get(k) || 0) + 1);
@@ -420,7 +420,7 @@ export async function render(main, ctx) {
     const busqueda = separarBusqueda(estado.q);
     const candidatos = lineas ? [...porProducto.keys()].map((id) => cat.productos.get(id)).filter(Boolean) : [...cat.productos.values()];
     const visibles = candidatos.filter((p) => {
-      if (p.noDisponible) return false;
+      if (!enListas(p)) return false;
       if (estado.cat && !p.categorias.some((c) => String(c.id) === estado.cat)) return false;
       if (estado.empresa && p.marca !== estado.empresa) return false;
       if (estado.moa === 'sin' && gruposDe(p).length) return false;

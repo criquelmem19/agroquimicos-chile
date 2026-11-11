@@ -581,7 +581,9 @@ function formulario(cat, plan, usosCultivo, pre, alAgregar) {
     }
     const conCultivo = P.cultivosDelPlan(plan).length && !estado.todos;
     const paraObjetivo = estado.objetivoId && !estado.todos ? porObjetivo.get(estado.objetivoId) : null;
-    const base = paraObjetivo ? productosDelCultivo.filter((p) => paraObjetivo.has(p.id)) : conCultivo ? productosDelCultivo : [...cat.productos.values()];
+    // Los ocultos (carga original sin datos) no se ofrecen; los que no se usan en Chile sí (el plan avisa).
+    const base = (paraObjetivo ? productosDelCultivo.filter((p) => paraObjetivo.has(p.id)) : conCultivo ? productosDelCultivo : [...cat.productos.values()])
+      .filter((p) => !p.oculto);
     // Primero los que no repiten el código de la última aplicación; luego, los con más usos en la etiqueta.
     const orden = (a, b) => (repite(a).length > 0) - (repite(b).length > 0) || (b.nLineas || 0) - (a.nLineas || 0);
     zonaProducto.append(buscadorOpciones({

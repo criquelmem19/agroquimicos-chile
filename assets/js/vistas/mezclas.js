@@ -133,7 +133,7 @@ function armar(cat, ctx) {
     const mia = ++version;
     ctx.cambiarParams({ p: elegidos.map((p) => p.id).join(',') });
     vaciar(zona);
-    const disponibles = [...cat.productos.values()].filter((p) => !p.noDisponible && !elegidos.includes(p));
+    const disponibles = [...cat.productos.values()].filter((p) => !p.noDisponible && !p.oculto && !elegidos.includes(p));
     const buscador = elegidos.length < MAX_PRODUCTOS ? combo({
       id: 'mz-producto', titulo: elegidos.length ? 'Agregar otro producto' : 'Agrega los productos de tu mezcla',
       placeholder: 'Ej: Tecto, Movento, cobre',

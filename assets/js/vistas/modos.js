@@ -167,7 +167,7 @@ const EJEMPLOS = [
 const CODIGO_VALIDO = /^(FRAC|IRAC|HRAC) (M\d{2}|\d{1,2}[A-Z]?|UN)$/;
 // Nombres sacados del nombre de archivo («20241202 Botristop», «. Biocap…»): no sirven de ejemplo.
 const nombreRaro = (p) => /^\W|^\d{6,}/.test(p.nombre);
-const disponibles = (cat) => [...cat.productos.values()].filter((p) => !p.noDisponible && !nombreRaro(p));
+const disponibles = (cat) => [...cat.productos.values()].filter((p) => !p.noDisponible && !p.oculto && !nombreRaro(p));
 const masUsados = (a, b) => (b.nLineas || 0) - (a.nLineas || 0);
 const solos = (cat, k) => disponibles(cat).filter((p) => p.ings.length === 1 && p.familias.length === 1 && p.familias[0] === k).sort(masUsados);
 
@@ -293,7 +293,7 @@ function enCatalogo(cat, sistema) {
   const porFamilia = new Map();
   let n = 0;
   for (const p of cat.productos.values()) {
-    if (p.noDisponible) continue;
+    if (p.noDisponible || p.oculto) continue;
     const propias = p.familias.filter((k) => k.startsWith(`${sistema} `));
     if (!propias.length) continue;
     n += 1;

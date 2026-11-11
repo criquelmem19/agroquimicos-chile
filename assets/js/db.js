@@ -58,7 +58,7 @@ async function todas(construir, primeras = 1, despues = 3) {
 
 // Clave de la copia guardada en el equipo. Cambiarla (v4…) si cambia la forma de lo que devuelve descargarCatalogo:
 // la copia se muestra antes de que llegue la descarga.
-const CLAVE_CACHE = 'catalogo-v4';
+const CLAVE_CACHE = 'catalogo-v5';
 
 async function descargarCatalogo() {
   const db = await cliente();
@@ -103,14 +103,14 @@ function abrirCache() {
 
 async function guardarCache(crudo) {
   try {
-    for (const k of ['catalogo-v1', 'catalogo-v2', 'catalogo-v3', 'catalogo-v4']) localStorage.removeItem(k);
+    for (const k of ['catalogo-v1', 'catalogo-v2', 'catalogo-v3', 'catalogo-v4', 'catalogo-v5']) localStorage.removeItem(k);
   } catch (e) { /* bloqueado */ }
   try {
     const bd = await abrirCache();
     await new Promise((resolver, rechazar) => {
       const tx = bd.transaction('copias', 'readwrite');
       tx.objectStore('copias').put({ t: Date.now(), crudo }, CLAVE_CACHE);
-      for (const k of ['catalogo-v3']) tx.objectStore('copias').delete(k);
+      for (const k of ['catalogo-v3', 'catalogo-v4']) tx.objectStore('copias').delete(k);
       tx.oncomplete = resolver;
       tx.onerror = tx.onabort = () => rechazar(tx.error);
     });
@@ -178,6 +178,9 @@ function codigosDelProducto(ing, categorias) {
   const calzan = ing.moaOpciones.filter((o) => sistemas.has(o.sistema));
   return (calzan.length ? calzan : ing.moaOpciones).map((o) => o.clave);
 }
+
+// Productos que se ofrecen en las listas del sitio: no ocultos (carga original sin datos) ni sin uso en Chile.
+export const enListas = (p) => !p.oculto && !p.noDisponible;
 
 // Código de formulación (WP, SC, EC…). Si falta en los datos, el que trae el nombre comercial («PUNTO 70 WP»).
 export function tipoFormulacion(p) {
@@ -381,6 +384,9 @@ function armarCatalogo(crudo, fechaCache) {
       reingreso: reingreso.has(p.id) ? reingreso.get(p.id) : null,
       // Motivo por el que no se puede usar en Chile (solo exportación, cancelado, sustancia prohibida) o null.
       noDisponible: p.no_disponible || null,
+      // Registro de la carga original sin datos útiles (products.oculto_motivo, 11-11-2026): no va en ninguna lista del
+      // sitio (tabla, filtros, buscadores); su ficha sigue abriendo por link. Usar enListas(p).
+      oculto: p.oculto_motivo || null,
       toxicidadAbejas: p.toxicidad_abejas || null,
     };
     // Resumen de sus líneas de uso (para la tabla del inicio): cultivos y dosis desde-hasta por unidad.
@@ -391,7 +397,7 @@ function armarCatalogo(crudo, fechaCache) {
       texto: dosisTexto.get(p.id) || null,
     };
     prod.marca = prod.empresas.length ? nombreCorto(prod.empresas[0].empresa.nombre) : null;
-    if (prod.marca) {
+    if (prod.marca && !prod.oculto) {
       if (!marcas.has(prod.marca)) marcas.set(prod.marca, { nombre: prod.marca, productos: [] });
       marcas.get(prod.marca).productos.push(prod);
     }

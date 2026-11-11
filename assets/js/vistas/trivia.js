@@ -105,7 +105,7 @@ const GENERADORES = {
 
 function ronda(cat, tipo, temaId) {
   const tema = temaId ? cat.categorias.get(Number(temaId)) || cat.categorias.get(temaId) : null;
-  const pool = [...cat.productos.values()].filter((p) => nombreValido(p) && (!tema || p.categorias.includes(tema)));
+  const pool = [...cat.productos.values()].filter((p) => !p.oculto && nombreValido(p) && (!tema || p.categorias.includes(tema)));
   const tipos = tipo === 'mezcla'
     ? (tema ? ['moa', 'ing', 'producto'] : ['tipo', 'moa', 'ing', 'producto'])
     : tipo === 'ing' ? ['ing', 'producto'] : [tipo];

@@ -192,6 +192,12 @@ recibe «permission denied» (verificado el 20-10-2026).
   HRAC; `codigo_actual` vacío = el ingrediente no tiene grupo (ver «El sitio»).
 - `moa_clasificacion` (11-11-2026, 629 filas, lectura pública): código oficial de los ingredientes cuya etiqueta no lo
   trae, o qué son si ningún comité los clasifica (`tipo`), y grupo químico de todos. Ver «Códigos de modo de acción».
+- **Productos ocultos** (11-11-2026, «Sí, ocúltalos»): `products.oculto_motivo` (texto; null = visible), también en
+  `v_sitio_productos`. 25 registros de la carga original sin etiqueta del SAG ni ingrediente (nombres de archivo, hojas
+  de seguridad o fichas técnicas, duplicados como «Fendona? 6 SC no mancha…» o «TWA 5 mg/m Syngenta» = Vibrance
+  Integral, productos sin ningún dato). No se borró nada. El sitio no los pone en ninguna lista (`db.js → enListas`,
+  tabla, filtros, Mezclas, Plan, inicio, trivia); su ficha abre por link con una nota. Mostrar uno de nuevo: dejar su
+  `oculto_motivo` en null (migración `productos_ocultos`).
 - `v_sitio_dosis_texto` (11-11-2026): por producto, el texto de dosis de la etiqueta más repetido entre las líneas sin
   rango (sin número, base «otro» o unidad rara). Vista aparte: dentro de `v_sitio_resumen_productos` la llevaba a 3 s.
 - **Recopilador (22-10-2026):** `field_citations` (mismo formato que en `product_uses`) también en `products`,
@@ -761,9 +767,10 @@ lectura pública completa (hoy cualquiera con la llave pública puede descargarl
   (solo en la imagen o con el OCR roto): 3 TAEX (149), Coraza (533), PODASTIK PLUS (1238), NEW CH-CFI (1126), Regalis
   Plus (1361), STATUS DP (1488), TENSCAP (1577), TRIFORM-30/35 (1651/1652). Ingredientes agregados (con cita) a 11
   productos que no tenían: Acronis, CUPROSAN EXTRA, Bravo 720, Celest XL, Cercobin M, Convey (topramezona, nueva), KEEP,
-  MODDUS EVO, Serifel, TRICHO-D y TRICHODERMA PASTA (lote `2026-11-11-ingredientes`). Quedan 27 productos sin
-  ingrediente: casi todos de la carga original con nombre de archivo («Musashino Crop Report…», «Ts2035 Oct»), más
-  Absoluto 20% SL, MODDUS 250 EC, GRANDEVO WG, BIRD SHIELD y los sanitarios (P-…): pregunta abierta para Cristóbal.
+  MODDUS EVO, Serifel, TRICHO-D y TRICHODERMA PASTA (lote `2026-11-11-ingredientes`). **25 productos ocultos** con su
+  «Sí, ocúltalos» (ver «Productos ocultos»). Siguen sin ingrediente 4 productos reales del SAG: Absoluto 20% SL (el
+  texto de su etiqueta no trae la composición), MODDUS 250 EC (sin extracción: mismo PDF que uno de la base), GRANDEVO WG
+  y BIRD SHIELD (problema del N° SAG, ver preguntas).
 - Frase de Cristóbal para seguir a mano: **«Sigue con el recopilador del SAG»** → «Cómo seguir». Ahora corre solo
   (ver «Sesiones automáticas»). El detalle de cada sesión va al final de `docs/historia.md` (la más nueva arriba).
 - **Sesión 9** (28-10, 13:21–~13:46): 43 etiquetas (Sumitomo) y un control; se cortó sin soltar el turno, sin commit ni
