@@ -583,7 +583,8 @@ revisa, aplica la base y prueba.
 
 - **Cuentas:** Supabase Auth, correo y contraseña (8 o más). `supabase/config.toml` guarda la configuración (sin
   secretos): `enable_confirmations = false` (la cuenta queda activa al crearla: el correo gratis de Supabase solo manda 2
-  mensajes por hora), `site_url` y `minimum_password_length = 8`. Se aplica con `supabase config push --project-ref
+  mensajes por hora), `site_url` y `minimum_password_length = 8`. **Aplicada el 11-11-2026 con el «Sí, publícalo» de
+  Cristóbal** (el clasificador de seguridad bloqueó hacerlo sin su aprobación). Se aplica con `supabase config push --project-ref
   cejkhfugaobfqnjpkgpl` (solo cambia lo que el archivo declara; `supabase config diff` lo muestra antes). **Sin
   recuperación de contraseña todavía** (pendiente). Antes de abrir el sitio al público: confirmación por correo con un
   correo propio (SMTP).
