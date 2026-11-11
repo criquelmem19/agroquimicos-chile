@@ -1014,7 +1014,7 @@ ul.tarjeta.lista-simple { padding: 16px 20px; }
 .trivia-marca svg { width: 16px; height: 16px; }
 
 /* ---------- Inicio: FRAC, IRAC y HRAC (vistas/modos.js) ----------
-   Parte con qué es un grupo y por qué dos marcas del mismo grupo son iguales; luego los tres comités con lo técnico
+   Parte con qué es un grupo y por qué dos marcas del mismo grupo son iguales; luego los tres comités con su detalle
    abierto. El color fuerte va en los tres bloques fluorescentes de la portada y en los códigos. */
 .md-seccion { margin-top: 64px; scroll-margin-top: calc(var(--alto-cabecera) + 16px); }
 .md-seccion > h2 { font-size: clamp(24px, 1rem + 1vw, 30px); margin-bottom: 20px; }
@@ -1091,7 +1091,7 @@ a.md-envase:hover { border-color: var(--tinta); }
   .md-sigla { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); column-gap: 40px; }
   .md-sigla-cabeza, .md-sigla > .md-lectura { grid-column: 1; }
   .md-sigla > .md-catalogo { grid-column: 2; grid-row: 1 / span 2; padding-top: 0; border-top: 0; }
-  .md-sigla > .md-tecnico { grid-column: 1 / -1; }
+  .md-sigla > .md-detalle { grid-column: 1 / -1; }
 }
 .md-sigla-frac { border-left-color: var(--frac); }
 .md-sigla-irac { border-left-color: var(--irac); }
@@ -1114,11 +1114,11 @@ a.md-envase:hover { border-color: var(--tinta); }
 .md-familias { display: flex; flex-wrap: wrap; gap: 8px; }
 .md-familia { gap: 8px; height: 36px; padding: 0 12px; font-size: 15px; }
 .md-familia small { font-family: var(--letra); font-size: 13px; font-weight: 500; opacity: .75; }
-.md-tecnico { margin-top: 12px; }
-.md-tecnico > summary { width: fit-content; padding: 4px 0; font-size: 15px; font-weight: 600; color: var(--tinta); cursor: pointer; }
-.md-tecnico > summary:hover { color: var(--tinta); text-decoration: underline; text-underline-offset: 3px; }
-.md-tecnico > div { padding-top: 8px; font-size: 15px; color: var(--tinta-2); }
-.md-tecnico p { margin-bottom: 8px; }
+.md-detalle { margin-top: 12px; }
+.md-detalle > summary { width: fit-content; padding: 4px 0; font-size: 15px; font-weight: 600; color: var(--tinta); cursor: pointer; }
+.md-detalle > summary:hover { color: var(--tinta); text-decoration: underline; text-underline-offset: 3px; }
+.md-detalle > div { padding-top: 8px; font-size: 15px; color: var(--tinta-2); }
+.md-detalle p { margin-bottom: 8px; }
 .md-tabla { margin-top: 12px; }
 .md-tabla .tabla-simple { font-size: 15px; }
 .md-que { display: block; color: var(--tinta); }
@@ -1399,9 +1399,9 @@ a.md-envase:hover { border-color: var(--tinta); }
 .gr-codigo { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .gr-codigo + .gr-codigo { padding-top: 16px; border-top: 1px solid var(--linea); }
 .gr-que { margin: 0; font-size: 18px; line-height: 1.45; }
-.gr-tecnico { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; margin: 0; font-size: 14px; }
-.gr-tecnico dt { color: var(--tinta-3); }
-.gr-tecnico dd { margin: 0; color: var(--tinta-2); }
+.gr-detalle { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; margin: 0; font-size: 14px; }
+.gr-detalle dt { color: var(--tinta-3); }
+.gr-detalle dd { margin: 0; color: var(--tinta-2); }
 .gr-consejo { display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 12px; border-radius: var(--radio-medio); background: var(--acento-suave); color: var(--tinta); font-size: 15px; }
 .gr-consejo svg { flex: none; width: 20px; height: 20px; color: var(--acento-texto); margin-top: 1px; }
 .gr-ayuda { margin: 0 0 12px; font-size: 14px; color: var(--tinta-3); }

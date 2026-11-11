@@ -284,7 +284,7 @@ export function breve(clave) {
   return BREVE[f] || BREVE[ALIAS[f]] || queHace(clave);
 }
 
-// Sitio de acción (para el técnico), según las listas oficiales: FRAC Code List 2024, IRAC MoA 11.5 y HRAC 2024.
+// Sitio de acción (va en «Detalle»), según las listas oficiales: FRAC Code List 2024, IRAC MoA 11.5 y HRAC 2024.
 // Va en la página de cada grupo (#/grupo/…).
 const MULTI = 'Multisitio: actúa por contacto en muchos puntos';
 const INDUCTOR = 'Inducción de las defensas de la planta';

@@ -55,7 +55,7 @@ export async function render(main, ctx) {
       return h('div', { class: 'gr-codigo' },
         chipMoa(k, { enlace: false }),
         h('p', { class: 'gr-que' }, queHace(k) || (t && TIPOS[t] ? TIPOS[t].texto : '')),
-        h('dl', { class: 'gr-tecnico' },
+        h('dl', { class: 'gr-detalle' },
           !t && sitio(k) ? [h('dt', null, 'Sitio de acción'), h('dd', null, sitio(k))] : null,
           quimicos.length ? [h('dt', null, 'Grupo químico'), h('dd', null, quimicos.join(' · '))] : null));
     }),

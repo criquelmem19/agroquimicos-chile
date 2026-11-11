@@ -1,7 +1,7 @@
 // Inicio: qué son FRAC, IRAC y HRAC y por qué importan (pedido de Cristóbal, 01-11-2026: «que lo entienda un agricultor
 // sin estudios y que un ingeniero esté de acuerdo»; 02-11-2026: «más visual, divertido de entender» y que sea el inicio).
 // 10-11-2026 (Cristóbal): parte explicando qué son los grupos y por qué son iguales; enseguida, los tres comités con
-// «Para el técnico» abierto; sin el juego de la botrytis («no sirve de nada»). Los códigos son botones al buscador.
+// «Más detalle» abierto (antes «Para el técnico»: Cristóbal, 11-11-2026, «es súper clasista»); sin el juego de la botrytis («no sirve de nada»). Los códigos son botones al buscador.
 // Los textos explican las clasificaciones oficiales (FRAC Code List, IRAC MoA Classification, HRAC MoA Classification);
 // lo que hace cada grupo sale de moa.js; los productos y las cantidades del catálogo salen de la base, nunca inventados.
 import { h, icono, ruta, plural, claseMoa, chipMoa, chipsMoa, vaciar, dibujoComite } from '../ui.js';
@@ -19,7 +19,7 @@ const SIGLAS = [
       'Un número por modo de acción: 1, 3, 7, 11…',
       'Los que llevan M (M01 cobre, M02 azufre, M03 mancozeb) atacan muchos puntos a la vez: el hongo casi no se hace resistente a ellos. Son buenos compañeros de mezcla.',
     ],
-    tecnico: [
+    detalle: [
       'Cada grupo tiene un riesgo de resistencia según la FRAC Code List: bajo, medio o alto.',
       'Algunas etiquetas antiguas traen letras (G1, C2, C3…). En este sitio se muestran con su número actual.',
     ],
@@ -46,7 +46,7 @@ const SIGLAS = [
       'Un número y a veces una letra: 1A, 3A, 4A… Manda el número: 1A y 1B son el mismo modo de acción.',
       'Se rota por ventanas: un código durante una generación de la plaga (unos 30 días) y otro en la siguiente.',
     ],
-    tecnico: [
+    detalle: [
       'La letra separa familias químicas que comparten el sitio de acción: 1A (carbamatos) y 1B (organofosforados) inhiben la acetilcolinesterasa.',
       'UN quiere decir que el modo de acción no se conoce o no está confirmado. También clasifica nematicidas.',
     ],
@@ -70,7 +70,7 @@ const SIGLAS = [
       'Desde 2020 usa números. Muchas etiquetas traen todavía la letra antigua: A = 1, B = 2, G = 9, O = 4.',
       'En este sitio se ve así: HRAC 1 (A). El número es el código actual; entre paréntesis, el de la etiqueta.',
     ],
-    tecnico: [
+    detalle: [
       'Equivalencias más usadas: A = 1, B = 2, C1 y C2 = 5, D = 22, E = 14, G = 9, H = 10, K3 = 15, O = 4 (clasificación HRAC 2020).',
       'La resistencia aparece más lento que en insectos u hongos (muchas malezas tienen una generación al año), pero la semilla resistente queda años en el suelo.',
     ],
@@ -94,25 +94,25 @@ const PALABRAS = [
     icono: 'frasco', titulo: 'Ingrediente activo',
     simple: 'Lo que va adentro del envase y hace el efecto. La marca es solo el nombre.',
     ejemplo: 'Muchas marcas llevan tebuconazol. Para el hongo, todas son tebuconazol.',
-    tecnico: 'La concentración (g/L o %) y la formulación (SC, WG, EC…) cambian de un producto a otro; el ingrediente y su sitio de acción definen el código.',
+    detalle: 'La concentración (g/L o %) y la formulación (SC, WG, EC…) cambian de un producto a otro; el ingrediente y su sitio de acción definen el código.',
   },
   {
     icono: 'escudo', titulo: 'Modo de acción',
     simple: 'El punto del bicho, del hongo o de la maleza que el producto ataca.',
     ejemplo: 'Unos paralizan los nervios del insecto; otros le cortan la respiración al hongo.',
-    tecnico: 'Es el sitio de acción bioquímico: el canal de sodio en los piretroides (IRAC 3A), el complejo III de la respiración en las estrobilurinas (FRAC 11), la enzima EPSPS en el glifosato (HRAC 9).',
+    detalle: 'Es el sitio de acción bioquímico: el canal de sodio en los piretroides (IRAC 3A), el complejo III de la respiración en las estrobilurinas (FRAC 11), la enzima EPSPS en el glifosato (HRAC 9).',
   },
   {
     icono: 'alerta', titulo: 'Resistencia',
     simple: 'Cuando la plaga ya no muere con un producto que antes la mataba.',
     ejemplo: 'No es que «se acostumbre»: sobreviven y se multiplican los pocos que ya lo aguantaban.',
-    tecnico: 'Es selección: cada aplicación elimina a los sensibles y sube la frecuencia de los que traen resistencia (cambio en el sitio de acción, mayor degradación del producto o menor absorción). Es heredable.',
+    detalle: 'Es selección: cada aplicación elimina a los sensibles y sube la frecuencia de los que traen resistencia (cambio en el sitio de acción, mayor degradación del producto o menor absorción). Es heredable.',
   },
   {
     icono: 'rotar', titulo: 'Resistencia cruzada',
     simple: 'Si la plaga aguanta un producto, en general aguanta todos los de su mismo código.',
     ejemplo: 'Un oídio que aguanta azoxistrobina también aguanta piraclostrobina: las dos son FRAC 11.',
-    tecnico: 'Pasa porque comparten el sitio de acción. En algunos grupos es parcial (por ejemplo, entre algunos SDHI, FRAC 7), pero los comités recomiendan planificar como si todo el grupo fuera uno solo.',
+    detalle: 'Pasa porque comparten el sitio de acción. En algunos grupos es parcial (por ejemplo, entre algunos SDHI, FRAC 7), pero los comités recomiendan planificar como si todo el grupo fuera uno solo.',
   },
 ];
 
@@ -172,8 +172,8 @@ function irA(id) {
 }
 
 // abierto: los de los comités se ven de entrada (Cristóbal, 10-11-2026: «abierto al tiro»).
-function tecnico(abierto, ...hijos) {
-  return h('details', { class: 'md-tecnico', open: abierto }, h('summary', null, 'Para el técnico'), h('div', null, hijos));
+function detalle(abierto, ...hijos) {
+  return h('details', { class: 'md-detalle', open: abierto }, h('summary', null, 'Más detalle'), h('div', null, hijos));
 }
 
 // ---------- Portada ----------
@@ -305,9 +305,9 @@ function siglas(cat) {
           h('p', null, `Contra ${s.contra}: ${s.ejemplos}`))),
       h('ul', { class: 'md-lectura' }, s.lectura.map((t) => h('li', null, t))),
       enCatalogo(cat, s.sistema),
-      tecnico(true,
+      detalle(true,
         h('p', null, `${s.nombre}: ${s.traduccion}. Comité técnico internacional formado por las empresas de agroquímicos junto a investigadores.`),
-        h('ul', { class: 'md-lectura' }, s.tecnico.map((t) => h('li', null, t))),
+        h('ul', { class: 'md-lectura' }, s.detalle.map((t) => h('li', null, t))),
         tablaGrupos(s))))),
     h('p', { class: 'md-fuente' }, 'Fuente: listas oficiales de ',
       h('a', { href: 'https://www.frac.info/', target: '_blank', rel: 'noopener' }, 'FRAC'), ', ',
@@ -325,7 +325,7 @@ function palabras() {
       h('h3', null, p.titulo),
       h('p', null, p.simple),
       h('p', { class: 'md-ejemplo' }, p.ejemplo),
-      tecnico(false, h('p', null, p.tecnico))))));
+      detalle(false, h('p', null, p.detalle))))));
 }
 
 function reglas() {

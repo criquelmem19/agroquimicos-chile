@@ -103,6 +103,8 @@ sin degradés ni colores intensos en superficies grandes.
   solo de color/fondo/borde/transform (150 ms, `--curva`), nada que anime ancho o alto. El pie queda abajo aunque la
   página sea corta (`body` en columna).
 - **Nada de avisos que afeen** (10-11-2026): sin «Confianza baja» (ver regla 1).
+- **Nunca etiquetas que separen a la gente** (11-11-2026: «Para el técnico… es súper clasista y me carga»): nada de «para
+  el técnico», «para expertos», «avanzado» ni parecidos; lo más técnico va en «Más detalle» o «Detalle».
 - **Pantallas de carga como esqueleto** (pedido del 31-10-2026: «la ruedita se ve muy tediosa»): bloques grises que
   laten despacio con la forma de lo que viene, sin ruedita ni texto visible (el texto queda para lectores de
   pantalla). `ui.js → cargando(texto, forma)`: 'inicio' (panel de filtros y filas/tarjetas), 'lista' o 'texto'; el
@@ -316,9 +318,10 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
 - Rutas con `#` (funcionan en GitHub Pages sin configuración):
   - `#/` **Inicio: FRAC, IRAC y HRAC** (01-11-2026; desde el 02-11-2026 es el inicio y «más visual, divertido de
     entender», pedido de Cristóbal; `assets/js/vistas/modos.js`; `#/modos` antiguo abre aquí). Para que lo entienda un
-    agricultor sin estudios y un ingeniero esté de acuerdo: lo simple a la vista y lo técnico en desplegables «Para el
-    técnico». **10-11-2026 (Cristóbal):** parte explicando qué es un grupo y por qué dos marcas del mismo grupo son
-    iguales; enseguida, los tres comités con «Para el técnico» **abierto**; el juego de la botrytis se quitó («no sirve de
+    agricultor sin estudios y un ingeniero esté de acuerdo: lo simple a la vista y lo más técnico en desplegables
+    **«Más detalle»** (hasta el 11-11-2026 decían «Para el técnico»; Cristóbal: «es súper clasista y me carga, ponle solo
+    como detalle»). **10-11-2026 (Cristóbal):** parte explicando qué es un grupo y por qué dos marcas del mismo grupo son
+    iguales; enseguida, los tres comités con «Más detalle» **abierto**; el juego de la botrytis se quitó («no sirve de
     nada»). Partes: portada «Rota el código, no la marca» con «¿Qué es un grupo?» y «¿Por qué son iguales?» y un bloque
     por comité (fondo suave y franja de su color, con un dibujo: hongo, insecto, maleza: `DIBUJOS`); «Un ejemplo con productos del catálogo»:
     dos productos reales con el mismo código (=) y uno con otro (≠); «Los tres comités»: tarjeta por comité (cómo leer
@@ -410,7 +413,7 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
   - `#/grupo/<clave>` **Página de un grupo** (11-11-2026, Cristóbal: «un lugar donde te explique los IRAC que tocaste,
     cómo actúa y qué productos son, qué busca controlar»; `assets/js/vistas/grupo.js`). Clave: un código («FRAC 3»), una
     combinación («FRAC 7 + FRAC 11») o un tipo sin código («tipo:regulador»). Cabecera con el dibujo del comité y la frase
-    breve; «Cómo actúa» (frase completa de `QUE_HACE`, y para el técnico el sitio de acción, `moa.js → SITIO`, y los grupos
+    breve; «Cómo actúa» (frase completa de `QUE_HACE`, y como detalle el sitio de acción, `moa.js → SITIO`, y los grupos
     químicos del catálogo) con un consejo corto de rotación; «Qué controla»: las plagas, enfermedades y malezas que más
     nombran las etiquetas de esos productos (función `objetivos_de_productos(uuid[])` sobre `mv_sitio_objetivo_producto`,
     junta variantes del mismo nombre; cada una lleva al buscador con ese código y esa plaga); «Ingredientes activos» y
