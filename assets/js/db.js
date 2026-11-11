@@ -544,3 +544,21 @@ export async function planGuardado(clave) {
   if (error) throw error;
   return data;
 }
+
+// Productos con alguna plaga, enfermedad o maleza (de sus líneas de uso) cuyo nombre común o científico contiene el texto
+// (ya normalizado, 3 letras o más). Para el buscador principal de la tabla (Cristóbal, 11-11-2026: «que filtre
+// absolutamente todo»; «avenilla» daba 0). Función productos_por_objetivo sobre la copia mv_sitio_objetivo_producto.
+// Una consulta por texto: se guarda la promesa. Si falla, vacío (y se reintenta la próxima vez).
+const porObjetivo = new Map();
+export function productosPorObjetivo(texto) {
+  if (!porObjetivo.has(texto)) {
+    porObjetivo.set(texto, cliente()
+      .then((db) => db.rpc('productos_por_objetivo', { p_texto: texto }))
+      .then(({ data, error }) => {
+        if (error) throw error;
+        return new Set((data || []).map((x) => (typeof x === 'string' ? x : Object.values(x)[0])));
+      })
+      .catch((e) => { porObjetivo.delete(texto); console.warn('Sin búsqueda por objetivo:', e); return new Set(); }));
+  }
+  return porObjetivo.get(texto);
+}

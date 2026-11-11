@@ -6,14 +6,14 @@
 // moa=<clave>|sin, ing=<id>, orden=moa|nombre|empresa|tipo|ing|cultivos, inv=1 (orden al revés)
 import {
   usosPorCultivo, usosPorObjetivos, compararMoa, nombreCorto, familiaMoa, claveMoa, tipoFormulacion as tipoDe,
-  cultivosVisibles, enListas,
+  cultivosVisibles, enListas, productosPorObjetivo,
 } from '../db.js';
-import { filtrar, palabras, puntaje, normalizar, preparar, contiene } from '../buscador.js';
+import { filtrar, palabras, puntaje, normalizar, preparar, contiene, raiz } from '../buscador.js';
 import {
   h, icono, ruta, plural, recortar, limpio, vaciar, cargando, retrasar, combo, globo,
-  chipsMoa, chipMoa, ingredientesTexto, dosisRango, resumenDosis, rangosDosis,
+  chipsMoa, chipMoa, ingredientesTexto, resumenDosis,
 } from '../ui.js';
-import { queHace, TIPOS, ORDEN_TIPOS, claveTipo, tipoDeClave } from '../moa.js';
+import { queHace, breve, TIPOS, ORDEN_TIPOS, claveTipo, tipoDeClave } from '../moa.js';
 
 // La vista usa todo el ancho de la pantalla (app.js).
 export const ANCHA = true;
@@ -35,12 +35,24 @@ const MAYOR_PRIMERO = new Set(['cultivos']);
 // Columnas de la tabla, con qué orden se asocia cada una (null: no se ordena) y su clase de ancho (app.css, col-*).
 // Ancho fijo por columna y celdas recortadas a una o dos líneas: todas las filas tienen la misma altura (Cristóbal,
 // 10-11-2026). Lo que no cabe se ve al pasar el mouse, en la burbuja de cultivos o en la ficha.
-// 11-11-2026 (Cristóbal: «reducir tanta info»): sin la columna del registro SAG y con la etiqueta (ícono) antes de la dosis.
+// 11-11-2026 (Cristóbal: «reducir tanta info»): sin registro SAG ni dosis; este orden; todo centrado y una línea por
+// celda, salvo los ingredientes (uno por línea, completos); la etiqueta y el plan como íconos al final.
 const COLUMNAS = [
-  ['Producto', 'nombre', 'producto'], ['Empresa', 'empresa', 'empresa'], ['Modo de acción', 'moa', 'moa'], ['Tipo', 'tipo', 'tipo'],
-  ['Ingrediente activo', 'ing', 'ing'], ['Cultivos', 'cultivos', 'cultivos'], ['Etiqueta', null, 'etiqueta'],
-  ['Dosis', null, 'dosis'], ['', null, 'plan'],
+  ['Producto', 'nombre', 'producto'], ['Modo de acción', 'moa', 'moa'], ['Empresa', 'empresa', 'empresa'],
+  ['Ingrediente activo', 'ing', 'ing'], ['Tipo', 'tipo', 'tipo'], ['Cultivos', 'cultivos', 'cultivos'],
+  ['Etiqueta', null, 'etiqueta'], ['Plan', null, 'plan'],
 ];
+// Secciones de la tabla agrupada: una por comité (y los sin código al final), sobre los grupos de cada código.
+const SECCIONES = {
+  frac: ['FRAC', 'Fungicidas y bactericidas'],
+  irac: ['IRAC', 'Insecticidas, acaricidas y nematicidas'],
+  hrac: ['HRAC', 'Herbicidas'],
+  sin: [null, 'Sin código de rotación'],
+};
+const seccionDe = (clave) => {
+  const k = String(clave || '').split(' + ')[0];
+  return !k || tipoDeClave(k) ? 'sin' : k.split(' ')[0].toLowerCase();
+};
 const SIN_GRUPO = 'Sin ingrediente activo en los datos';
 
 function ir(params) { location.hash = ruta('buscar', params); }
@@ -87,8 +99,9 @@ function compararGrupos(a, b) {
 // Pedido de Cristóbal (11-11-2026): «tiene que filtrar todos y cada uno de los elementos que aparezcan en las columnas».
 // Cada fila junta en un texto lo que se ve en sus columnas (y lo que aparece al pasar el mouse): producto y tipo de
 // producto, empresa (nombre corto y completo), códigos (actual y el de la etiqueta) o lo que es si no tiene código,
-// grupo químico, formulación, ingredientes con su concentración, cultivos (con sus sinónimos) y dosis. El registro SAG ya
-// no va (la columna se sacó el 11-11-2026).
+// grupo químico, formulación, ingredientes con su concentración, registro SAG y cultivos (con sus sinónimos); y además
+// las plagas, enfermedades y malezas de sus etiquetas (Cristóbal, 11-11-2026: «que ese filtro filtre absolutamente
+// todo»: «avenilla» daba 0 productos), que se buscan en la base (db.js → productosPorObjetivo).
 // Cada palabra escrita tiene que estar en alguna columna, en cualquier parte de una palabra («cipermetrina» encuentra
 // «Alfacipermetrina»; ver buscador.js → contiene).
 
@@ -113,7 +126,7 @@ function textoFijo(p) {
       p.moa.join(' '), [...p.moaEtiqueta.values()].flat().join(' '),
       p.tipos.map((t) => `${TIPOS[t] ? `${TIPOS[t].corto} ${TIPOS[t].nombre}` : t}`).join(' '),
       p.ings.map((x) => `${x.ing.nombre} ${limpio(x.conc)} ${x.ing.grupoQuimico || ''}`).join(' '),
-      tipoDe(p), p.formulacion,
+      tipoDe(p), p.formulacion, p.registro,
     ].filter(Boolean).join(' '));
   }
   return fijas.get(p);
@@ -125,19 +138,24 @@ const textos = new WeakMap();
 function textoFila(p, info) {
   if (!textos.has(info)) {
     const cultivos = info.cultivos.map((c) => `${c.nombre} ${c.alias.join(' ')}`).join(' ');
-    const rangos = rangosDosis(info.resumen.grupos);
-    const dosis = rangos.length ? rangos.join(' ') : limpio(info.resumen.texto);
-    textos.set(info, preparar(`${textoFijo(p)} ${cultivos} ${dosis}`));
+    textos.set(info, preparar(`${textoFijo(p)} ${cultivos}`));
   }
   return textos.get(info);
 }
 
-// Los códigos escritos tienen que estar en el producto; las demás palabras, en alguna columna.
+// Texto que se busca entre las plagas, enfermedades y malezas: las palabras de 3 letras o más, sin plural.
+const raizObjetivo = (q) => { const r = raiz(q); return r.length >= 3 ? r : null; };
+
+// Los códigos escritos tienen que estar en el producto; cada otra palabra, en alguna columna o en alguna plaga,
+// enfermedad o maleza de sus etiquetas (b.porObjetivo: palabra → productos).
+const VACIO = new Set();
 function calzaBusqueda(b, p, info) {
   for (const k of b.grupos) {
     if (!p.moa.includes(k) && !p.familias.includes(k) && ![...p.moaEtiqueta.values()].some((xs) => xs.includes(k))) return false;
   }
-  return !b.palabras.length || contiene(textoFila(p, info), b.palabras);
+  if (!b.palabras.length) return true;
+  const texto = textoFila(p, info);
+  return b.palabras.every((q) => contiene(texto, [q]) || (b.porObjetivo.get(q) || VACIO).has(p.id));
 }
 
 // ---------- Celdas ----------
@@ -154,7 +172,7 @@ function listaCultivos(cultivos) {
       h('p', { class: 'globo-titulo' }, plural(cultivos.length, 'cultivo', 'cultivos')),
       h('p', { class: 'globo-texto' }, cultivos.map((c) => c.nombre).join(', '))]),
   }, `+${resto}`) : null;
-  return h('span', { class: 'cultivos' }, h('span', { class: 'recorte-2', title: cultivos.length <= VISIBLES_CULTIVOS ? nombres : null }, nombres), boton);
+  return h('span', { class: 'cultivos' }, h('span', { class: 'cultivos-nombres', title: nombres }, nombres), boton);
 }
 
 // En el celular las celdas sin dato no se muestran (en la tabla quedan con «—»).
@@ -170,31 +188,43 @@ function fila(p, info, op) {
   const codigos = p.moa.length ? chipsMoa(p.moa, p.moaEtiqueta) : chipsMoa(p.tipos.map(claveTipo));
   const categorias = p.categorias.map((c) => c.nombre).join(' · ');
   return h('tr', { class: `fila-producto ${sistema ? `grupo-${sistema}` : 'grupo-sin'}` },
+    // Solo el nombre, en negrita; la categoría va al pasar el mouse (y en la tarjeta del celular).
     h('td', { class: 'c-producto' },
-      h('a', { href: ruta(`producto/${p.id}`, { cultivo: op.cultivoId }), title: p.nombre }, p.nombre),
+      h('a', { href: ruta(`producto/${p.id}`, { cultivo: op.cultivoId }), title: categorias ? `${p.nombre} · ${categorias}` : p.nombre }, p.nombre),
       categorias ? h('span', { class: 'c-cat', title: categorias }, categorias) : null),
-    h('td', { class: vacia('c-empresa', p.marca), 'data-etiqueta': 'Empresa', title: principal ? principal.empresa.nombre : null }, p.marca || '—'),
     h('td', { class: vacia('c-moa', codigos), 'data-etiqueta': 'Modo de acción' },
       codigos || h('span', { class: 'tenue', title: SIN_GRUPO }, '—')),
-    h('td', { class: vacia('c-tipo', tipo), 'data-etiqueta': 'Tipo', title: p.formulacion || null }, tipo || '—'),
+    h('td', { class: vacia('c-empresa', p.marca), 'data-etiqueta': 'Empresa', title: principal ? principal.empresa.nombre : null }, p.marca || '—'),
+    // Un ingrediente por línea, completos: la única celda que puede crecer.
     h('td', { class: 'c-ing', 'data-etiqueta': 'Ingrediente activo', title: ingredientesTexto(p) },
-      h('span', { class: 'recorte-2' }, p.ings.length ? p.ings.map((x) => x.ing.nombre).join(' + ') : h('span', { class: 'tenue' }, 'Sin ingrediente registrado'))),
+      p.ings.length ? p.ings.map((x) => h('span', { class: 'ing-linea' }, x.ing.nombre))
+        : h('span', { class: 'tenue' }, 'Sin ingrediente registrado')),
+    h('td', { class: vacia('c-tipo', tipo), 'data-etiqueta': 'Tipo', title: p.formulacion || null }, tipo || '—'),
     h('td', { class: 'c-cultivos', 'data-etiqueta': 'Cultivos' }, listaCultivos(info.cultivos)),
-    // La etiqueta es solo un ícono (hoja con lupa) en el verde de énfasis; el título de la columna ya dice qué es.
+    // La etiqueta: un ícono de PDF relleno en el verde de énfasis; el título de la columna ya dice qué es.
     h('td', { class: vacia('c-etiqueta', url), 'data-etiqueta': 'Etiqueta' },
       url ? h('a', {
         class: 'boton-etiqueta', href: url, target: '_blank', rel: 'noopener',
         title: 'Abrir la etiqueta (PDF)', 'aria-label': `Abrir la etiqueta de ${p.nombre} (PDF)`,
-      }, icono('etiqueta')) : h('span', { class: 'tenue', title: 'Sin PDF de la etiqueta en el sistema' }, '—')),
-    h('td', { class: 'c-dosis', 'data-etiqueta': 'Dosis' }, dosisRango(info.resumen, 1, { soloRevisado: true })),
+      }, icono('pdfLleno')) : h('span', { class: 'tenue', title: 'Sin PDF de la etiqueta en el sistema' }, '—')),
     h('td', { class: 'c-plan' }, h('a', {
       class: 'boton-redondo', href: ruta('plan', { producto: p.id }),
       title: 'Agregar al plan de aplicaciones', 'aria-label': `Agregar ${p.nombre} al plan de aplicaciones`,
     }, icono('calendario'))));
 }
 
-// Título de un grupo de productos con el mismo modo de acción: cada código con lo que hacen sus productos (moa.js),
-// el grupo químico y cuántos son.
+// Título de una sección (comité): «FRAC · Fungicidas y bactericidas», con cuántos productos tiene.
+function filaSeccion(seccion, n) {
+  const [comite, nombre] = SECCIONES[seccion] || SECCIONES.sin;
+  return h('tr', { class: `fila-seccion grupo-${seccion}` }, h('td', { colspan: String(COLUMNAS.length) },
+    h('div', { class: 'seccion-titulo' },
+      comite ? h('span', { class: 'seccion-comite' }, comite) : null,
+      h('span', { class: 'seccion-nombre' }, nombre),
+      h('span', { class: 'grupo-cuenta' }, plural(n, 'producto', 'productos')))));
+}
+
+// Título de un grupo de productos con el mismo modo de acción, en una línea: cada código con una frase breve de lo que
+// hacen sus productos (moa.js → breve; la completa al pasar el mouse), el grupo químico aparte y cuántos son.
 function filaGrupo(clave, productos) {
   const moa = clave ? clave.split(' + ') : [];
   const sinCodigo = moa.length && tipoDeClave(moa[0]);
@@ -203,14 +233,18 @@ function filaGrupo(clave, productos) {
   const delGrupo = (x) => (sinCodigo ? moa.includes(claveTipo(x.ing.tipo)) : x.ing.moa && moa.includes(familiaMoa(x.ing.moa)));
   const quimicos = [...new Set(productos.flatMap((p) => p.ings.filter(delGrupo).map((x) => x.ing.grupoQuimico)).filter(Boolean))];
   const codigos = moa.map((k, i) => {
-    const que = queHace(k);
+    const corta = breve(k);
     return h('span', { class: 'grupo-codigo' }, i ? h('span', { class: 'grupo-mas', 'aria-hidden': 'true' }, '+') : null,
-      chipMoa(k), que ? h('span', { class: 'grupo-que', title: que }, que) : null);
+      chipMoa(k), corta ? h('span', { class: 'grupo-que', title: queHace(k) || corta }, corta) : null);
   });
+  // Grupo químico aparte, en etiquetas grises (hasta dos; el resto al pasar el mouse).
+  const familiasQ = quimicos.length ? h('span', { class: 'grupo-quimicos', title: quimicos.join(' · ') },
+    quimicos.slice(0, 2).map((q) => h('span', { class: 'grupo-quimico' }, q)),
+    quimicos.length > 2 ? h('span', { class: 'grupo-quimico-mas' }, `+${quimicos.length - 2}`) : null) : null;
   return h('tr', { class: `fila-grupo grupo-${sistema}` }, h('td', { colspan: String(COLUMNAS.length) },
     h('div', { class: 'grupo-titulo' },
       moa.length ? h('span', { class: 'grupo-codigos' }, codigos) : h('strong', { class: 'grupo-que' }, SIN_GRUPO),
-      quimicos.length ? h('span', { class: 'grupo-quimico', title: quimicos.join(' · ') }, quimicos.join(' · ')) : null,
+      familiasQ,
       h('span', { class: 'grupo-cuenta' }, plural(productos.length, 'producto', 'productos')))));
 }
 
@@ -417,10 +451,25 @@ export async function render(main, ctx) {
     return infos.get(p);
   };
 
+  // Plagas, enfermedades y malezas que calzan con cada palabra buscada (texto → productos), ya traídas de la base.
+  const objetivosResueltos = new Map();
   const pintar = () => {
     ctx.cambiarParams(base());
     vaciar(zona);
     const busqueda = separarBusqueda(estado.q);
+    busqueda.porObjetivo = new Map();
+    const pendientes = [];
+    for (const q of busqueda.palabras) {
+      const t = raizObjetivo(q);
+      if (!t) continue;
+      if (objetivosResueltos.has(t)) busqueda.porObjetivo.set(q, objetivosResueltos.get(t));
+      else pendientes.push(t);
+    }
+    if (pendientes.length) {
+      const consulta = estado.q;
+      Promise.all(pendientes.map((t) => productosPorObjetivo(t).then((s) => objetivosResueltos.set(t, s))))
+        .then(() => { if (estado.q === consulta && ctx.vigente()) pintar(); });
+    }
     const candidatos = lineas ? [...porProducto.keys()].map((id) => cat.productos.get(id)).filter(Boolean) : [...cat.productos.values()];
     const visibles = candidatos.filter((p) => {
       if (!enListas(p)) return false;
@@ -486,6 +535,11 @@ export async function render(main, ctx) {
       if (sug.length) zona.append(h('div', { class: 'sugerencias' }, h('span', { class: 'chico tenue' }, '¿Buscabas esto?'), sug));
     }
 
+    // Mientras llegan las plagas que calzan con lo escrito, sin «ningún producto» (en un momento se vuelve a dibujar).
+    if (!visibles.length && pendientes.length) {
+      zona.append(cargando('Buscando…', 'lista'));
+      return;
+    }
     if (!visibles.length) {
       zona.append(h('div', { class: 'vacio' }, h('p', null, h('strong', null, 'Ningún producto cumple esos filtros')),
         h('a', { class: 'boton', href: '#/buscar' }, 'Quitar filtros')));
@@ -498,7 +552,9 @@ export async function render(main, ctx) {
     const op = { cultivoId: estado.cultivo || null, agrupar: estado.orden === 'moa' };
     // Agrupados por modo de acción: un título antes del primer producto de cada grupo.
     const porGrupo = new Map();
+    const porSeccion = new Map();
     if (op.agrupar) {
+      for (const p of visibles) porSeccion.set(seccionDe(claveGrupo(p)), (porSeccion.get(seccionDe(claveGrupo(p))) || 0) + 1);
       for (const p of visibles) {
         const k = claveGrupo(p);
         if (!porGrupo.has(k)) porGrupo.set(k, []);
@@ -506,8 +562,13 @@ export async function render(main, ctx) {
       }
     }
     let grupoAnterior = null;
+    let seccionAnterior = null;
     const mostrarMas = () => {
       for (const p of visibles.slice(mostrados, mostrados + POR_PAGINA)) {
+        if (op.agrupar && seccionDe(claveGrupo(p)) !== seccionAnterior) {
+          seccionAnterior = seccionDe(claveGrupo(p));
+          tbody.append(filaSeccion(seccionAnterior, porSeccion.get(seccionAnterior)));
+        }
         if (op.agrupar && claveGrupo(p) !== grupoAnterior) {
           grupoAnterior = claveGrupo(p);
           tbody.append(filaGrupo(grupoAnterior, porGrupo.get(grupoAnterior)));

@@ -200,6 +200,9 @@ recibe «permission denied» (verificado el 20-10-2026).
   Integral, productos sin ningún dato). No se borró nada. El sitio no los pone en ninguna lista (`db.js → enListas`,
   tabla, filtros, Mezclas, Plan, inicio, trivia); su ficha abre por link con una nota. Mostrar uno de nuevo: dejar su
   `oculto_motivo` en null (migración `productos_ocultos`).
+- `mv_sitio_objetivo_producto` (11-11-2026, ~17.800 filas, 4 MB) y la función `productos_por_objetivo(texto)`
+  (SECURITY INVOKER, solo texto ya normalizado de 3–60 letras y números): buscador principal por plaga, enfermedad o
+  maleza. Se renueva con las demás copias (`renovar_copias_sitio()`).
 - `v_sitio_dosis_texto` (11-11-2026): por producto, el texto de dosis de la etiqueta más repetido entre las líneas sin
   rango (sin número, base «otro» o unidad rara). Vista aparte: dentro de `v_sitio_resumen_productos` la llevaba a 3 s.
 - **Recopilador (22-10-2026):** `field_citations` (mismo formato que en `product_uses`) también en `products`,
@@ -351,13 +354,15 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     «FRAC NC» se buscan como grupo (`RE_MOA`), para que el número no calce con registros o dosis. Al lado: cultivo y plaga/enfermedad/maleza
     con sugerencias, tipo de producto, empresa y modo de acción: **los seis filtros en una fila** desde 1.100 px (10-11-2026;
     en el celular y la tablet, empresa y modo de acción tras «Más filtros»). `moa=` también acepta el código antiguo de la
-    etiqueta («HRAC A»). Luego una tabla con **una fila por producto**: Producto (+ categoría), Empresa (nombre corto),
-    Modo de acción, Tipo (código de formulación: WP, SC…), Ingrediente activo (solo nombres), Cultivos (3 y un botón
-    «+X» que abre una burbuja con todos, `ui.js → globo`), Etiqueta y Dosis «desde – hasta» (la primera unidad; las demás
-    con «+N» y al pasar el mouse), más un botón al plan. **11-11-2026 (Cristóbal: «reducir tanta info»):** sin la columna
-    Reg. SAG (tampoco en el buscador ni en el orden); la Etiqueta es solo un ícono de hoja con lupa (`icono('etiqueta')`)
-    en el verde de énfasis, antepenúltima, que al pasar el mouse se resalta (`.boton-etiqueta`; en el celular, arriba a la
-    derecha junto al botón del plan); la Dosis sin «Extraído automáticamente» (ver regla 1). **Todas las filas miden lo mismo**
+    etiqueta («HRAC A»). Luego una tabla con **una fila por producto**. **Desde el 11-11-2026** (Cristóbal: «reducir
+    tanta info», en dos pasadas), en este orden: **Producto** (solo el nombre, en negrita; la categoría al pasar el mouse
+    y en la tarjeta del celular), **Modo de acción** (chips), **Empresa** (nombre corto), **Ingrediente activo** (uno por
+    línea y completos: la única celda que puede ocupar más de una línea), **Tipo** (sigla: WP, SC…), **Cultivos** (3 y
+    un botón «+X» que abre una burbuja con todos, `ui.js → globo`), **Etiqueta** (ícono de PDF relleno en el verde de
+    énfasis, `icono('pdfLleno')`, que se resalta al pasar el mouse; `.boton-etiqueta`) y **Plan** (botón redondo). Todo
+    centrado y una línea por celda (lo que no cabe, con «…» y completo al pasar el mouse). **Sin Reg. SAG ni Dosis** en
+    la tabla (siguen en la ficha y el plan; el registro sí se puede buscar). La dosis ya no sale aquí, así que tampoco
+    «Extraído automáticamente» (ver regla 1). **Todas las filas miden lo mismo**
     (72 px; pedido del 10-11-2026): anchos fijos por columna (`colgroup`, clases `col-*`) y cada celda recortada a una o
     dos líneas (lo completo, al pasar el mouse o en la ficha). **Cada grupo lleva una frase con lo que hacen sus
     productos**: `assets/js/moa.js → queHace`, escrita a mano desde las listas oficiales para todos los códigos del
@@ -371,7 +376,17 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     entran al rango; si no, el texto de la dosis de la etiqueta (`v_sitio_dosis_texto`, vista aparte porque agregarlo a
     `v_sitio_resumen_productos` la llevaba a 3 s). Ya no aparece «Ver en la etiqueta» (solo «Sin dosis en los datos»).
     **Sin carencia ni reingreso en esta tabla** (pidió sacarlos; siguen en la ficha y en el plan). Con cultivo u
-    objetivo, cultivos y dosis salen solo de las líneas que calzan (Enter en el objetivo = «Todos los que dicen…»).
+    objetivo, los cultivos salen solo de las líneas que calzan (Enter en el objetivo = «Todos los que dicen…»).
+    **Agrupada (11-11-2026, «menos tedioso»):** una **sección por comité** («FRAC · Fungicidas y bactericidas», «IRAC ·
+    Insecticidas, acaricidas y nematicidas», «HRAC · Herbicidas», «Sin código de rotación», con cuántos son) y, dentro,
+    el título de cada grupo en una línea: el chip, una **frase breve** (`moa.js → BREVE`/`breve()`, unas pocas palabras;
+    la completa de `QUE_HACE` al pasar el mouse), el grupo químico aparte en etiquetas grises (hasta dos, «+N») y cuántos.
+    **El buscador principal también busca por plaga, enfermedad o maleza** (Cristóbal, 11-11-2026: «quiero que ese
+    filtro filtre absolutamente todo»; «avenilla» daba 0): cada palabra de 3 letras o más se manda a la función
+    `productos_por_objetivo` (copia `mv_sitio_objetivo_producto`: objetivo → producto con el nombre común y científico
+    normalizado, índice trigram; ~14 ms) y el producto calza si la palabra está en una columna **o** en alguna plaga de
+    sus etiquetas (`db.js → productosPorObjetivo`, guarda cada texto; mientras llega, esqueleto en vez de «0»).
+    «avenilla» 88 productos, «avenilla syngenta» 9, «oídio» 278.
     Los productos que no se usan en Chile no aparecen en la tabla (el botón «Mostrar también…» se quitó a pedido de
     Cristóbal el 31-10-2026; siguen en su ficha y en el plan, que avisa). Debajo de 1.100 px la tabla se
     vuelve tarjetas (dos por fila en tablet). Ya no existen la rotación de grupos ni el buscador general.
@@ -482,7 +497,7 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
 - **Empresa (nombre corto):** `db.js → nombreCorto()`: marcas conocidas («Syngenta», «Bayer», «UPL»…) y, si no, el
   nombre sin «S.A.», «Ltda.», «Chile», rubro, etc. (una o dos palabras). Se usa la primera empresa del producto
   (orden de `rango_rol_empresa`: titular, registrante, distribuidor, importador…).
-- **Dosis «desde – hasta»** (`ui.js → dosisRango`, `resumenDosis`): mínimo y máximo de `dose_min`/`dose_max` por unidad
+- **Dosis «desde – hasta»** (`ui.js → dosisRango`, `resumenDosis`; desde el 11-11-2026 la tabla del buscador ya no muestra la dosis, la función queda): mínimo y máximo de `dose_min`/`dose_max` por unidad
   y base (L/ha, cc/100 L, kg/ha, %…), sin mezclar ni convertir unidades; las dosis con base «otro» o sin unidad no
   entran al rango («Ver en la etiqueta» si no queda ninguna). Regla 1: «Revisado» solo si todas las líneas del
   resumen están aprobadas (sin alerta de confianza desde el 10-11-2026).
@@ -508,6 +523,7 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     `mv_sitio_resumen_productos`, `mv_sitio_cultivos` y `mv_sitio_objetivos`** (vistas materializadas de las `v_sitio_*`,
     con índice único por `id`), que **pg_cron renueva cada 15 minutos** (tarea `renovar-copias-sitio` →
     `renovar_copias_sitio()`, `REFRESH … CONCURRENTLY`, sin bloquear lecturas; la llave pública no la puede llamar).
+    (y desde la misma tarde `mv_sitio_objetivo_producto`, para el buscador por plaga).
     Cada consulta tarda milisegundos, así que `descargarCatalogo` pide todo a la vez: primera visita ~2 s (3 de 3, 0
     errores; antes ~5 s con cortes). Lo nuevo de la base (recopilador, correcciones) aparece en el sitio **hasta 15
     minutos después**; para verlo al tiro, `select public.renovar_copias_sitio();` como `postgres` (`comun.sql`). Si se

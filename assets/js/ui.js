@@ -40,6 +40,9 @@ const ICONOS = {
   grafico: '<path d="M3 20.5h18"/><path d="M6.5 17V11"/><path d="M12 17V5"/><path d="M17.5 17v-7"/>',
   pdf: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/>',
   // Hoja con lupa (columna «Etiqueta» del buscador; Cristóbal, 11-11-2026: «simple, con poco detalle pero claro»).
+  // PDF relleno (columna «Etiqueta» del buscador, 11-11-2026: «un ícono de PDF como relleno»): hoja llena del color del
+  // texto y «PDF» calado en el color de fondo (.icono-claro).
+  pdfLleno: '<path d="M6.5 2h8.25L20 7.25V20.5a1.5 1.5 0 0 1-1.5 1.5h-12A1.5 1.5 0 0 1 5 20.5v-17A1.5 1.5 0 0 1 6.5 2z" fill="currentColor" stroke="none"/><path class="icono-pliegue" d="M14.75 2v4a1.25 1.25 0 0 0 1.25 1.25H20"/><text class="icono-claro" x="12.5" y="17.6" text-anchor="middle">PDF</text>',
   etiqueta: '<path d="M11 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v2.5"/><path d="M14 3v5h5"/><path d="M8.5 11.5h5M8.5 15h2"/><circle cx="16.5" cy="16.5" r="3"/><path d="m18.7 18.7 2.3 2.3"/>',
   alerta: '<path d="M12 3.5 2.5 20h19z"/><path d="M12 10v4.5"/><path d="M12 17.6v.01"/>',
   check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',

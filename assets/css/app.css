@@ -399,24 +399,25 @@ body { padding-bottom: calc(var(--alto-nav-inf) + env(safe-area-inset-bottom)); 
   width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 14px; line-height: 1.4;
   background: var(--superficie); border: 1px solid var(--linea); border-radius: var(--radio); box-shadow: var(--sombra);
 }
+/* 11-11-2026: producto, modo de acción, empresa, ingrediente, tipo, cultivos, etiqueta y plan; todo centrado. */
 .col-producto { width: 18%; }
-.col-empresa { width: 8.5%; }
-.col-moa { width: 13%; }
-.col-tipo { width: 5%; }
-.col-ing { width: 16%; }
-.col-cultivos { width: 14.5%; }
-.col-etiqueta { width: 6%; }
-.col-dosis { width: 14%; }
+.col-moa { width: 19.5%; }
+.col-empresa { width: 12%; }
+.col-ing { width: 18%; }
+.col-tipo { width: 5.5%; }
+.col-cultivos { width: 17%; }
+.col-etiqueta { width: 5%; }
+.col-plan { width: 5%; }
 .tabla-productos th {
   position: sticky; top: var(--alto-cabecera); z-index: 5;
-  text-align: left; vertical-align: middle; height: 48px;
+  text-align: center; vertical-align: middle; height: 48px;
   font-size: 13px; font-weight: 500; line-height: 1.3; color: var(--tinta-3);
   background: var(--superficie-2); padding: 0 8px; border-bottom: 1px solid var(--linea);
 }
 /* Si el título se parte en dos líneas, la flecha sigue a la última palabra (inicio.js la deja en .orden-fin). */
 .orden-col {
   display: inline; padding: 0; border: 0; background: none; cursor: pointer;
-  font: inherit; color: inherit; text-align: left;
+  font: inherit; color: inherit; text-align: center;
 }
 .orden-fin { white-space: nowrap; }
 .orden-col svg { display: inline-block; width: 14px; height: 14px; margin-left: 4px; vertical-align: -2px; opacity: .5; }
@@ -427,37 +428,46 @@ body { padding-bottom: calc(var(--alto-nav-inf) + env(safe-area-inset-bottom)); 
 .tabla-productos tbody tr:last-child > td { border-bottom: 0; }
 .tabla-productos tbody tr:last-child > td:first-child { border-bottom-left-radius: var(--radio); }
 .tabla-productos tbody tr:last-child > td:last-child { border-bottom-right-radius: var(--radio); }
-/* Fila de producto: alto fijo; cada celda, una o dos líneas. */
-.fila-producto > td { height: 72px; padding: 0 8px; border-bottom: 1px solid var(--linea); vertical-align: middle; overflow: hidden; }
+/* Fila de producto: todo centrado y una línea por celda (Cristóbal, 11-11-2026); solo los ingredientes pueden ocupar
+   más de una (uno por línea, completos), y entonces la fila crece. */
+.fila-producto > td {
+  height: 56px; padding: 8px; border-bottom: 1px solid var(--linea); vertical-align: middle; overflow: hidden;
+  text-align: center; white-space: nowrap; text-overflow: ellipsis;
+}
 .fila-producto > td:first-child { padding-left: 16px; }
 .tabla-productos tbody .fila-producto:hover > td { background: var(--superficie-2); }
 .c-producto a, .c-cat { display: block; }
 .c-producto a, .c-cat, .c-empresa, .c-tipo { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.c-producto a { font-size: 15px; font-weight: 500; color: var(--tinta); text-decoration: none; }
+.c-producto a { font-size: 16px; font-weight: 600; color: var(--tinta); text-decoration: none; }
 .c-producto a:hover { text-decoration: underline; }
-.c-cat { margin-top: 2px; font-size: 13px; color: var(--tinta-3); }
+/* La categoría solo en la tarjeta del celular; en la tabla va al pasar el mouse por el nombre. */
+.c-cat { display: none; margin-top: 2px; font-size: 13px; color: var(--tinta-3); }
+.c-ing { white-space: normal; line-height: 1.35; }
+.ing-linea { display: block; overflow-wrap: anywhere; }
+.ing-linea + .ing-linea { margin-top: 2px; }
 .c-empresa { font-weight: 500; }
 .c-tipo { font-weight: 500; font-family: var(--mono); font-size: 13px; }
-/* Etiqueta: solo el ícono (hoja con lupa) en el verde de énfasis; al pasar el mouse se resalta (11-11-2026). */
-.tabla-productos th:nth-child(7), .c-etiqueta { text-align: center; }
+/* Etiqueta: un ícono de PDF relleno en el verde de énfasis; al pasar el mouse se resalta (11-11-2026). */
 .boton-etiqueta {
   display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: var(--radio-medio);
   color: var(--acento-texto); border: 1px solid transparent; text-decoration: none;
 }
-.boton-etiqueta svg { width: 24px; height: 24px; }
+.boton-etiqueta svg { width: 30px; height: 30px; }
+.icono-claro { fill: var(--superficie); stroke: none; font-family: var(--letra); font-size: 6.4px; font-weight: 600; letter-spacing: .2px; }
+.icono-pliegue { stroke: var(--superficie); stroke-width: 1.2; fill: none; }
 .boton-etiqueta:hover { background: var(--acento-suave); border-color: var(--acento-linea); color: var(--acento-texto); transform: scale(1.08); }
 .boton-etiqueta:active { transform: scale(.96); }
-.c-moa .lista-moa { max-height: 52px; overflow: hidden; }
-.c-cultivos .cultivos { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.c-cultivos .recorte-2 { flex: 1; min-width: 0; }
+.c-moa .lista-moa { display: flex; flex-wrap: nowrap; justify-content: center; overflow: hidden; }
+.c-moa .lista-moa .moa { flex: none; }
+.c-cultivos .cultivos { display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 0; }
+.cultivos-nombres { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .c-dosis .valor { gap: 2px; min-width: 0; width: 100%; }
 .c-dosis .rangos { display: flex; flex-direction: row; align-items: baseline; gap: 6px; min-width: 0; max-width: 100%; }
 .c-dosis .rango { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .rangos { display: flex; flex-direction: column; font-weight: 600; }
 .rango-mas { flex: none; font-size: 12px; font-weight: 500; color: var(--tinta-3); }
 .c-dosis .etiqueta { font-size: 12px; line-height: 16px; padding-top: 0; padding-bottom: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-.c-plan { text-align: right; }
-.c-plan .boton-redondo { width: 36px; height: 36px; margin-left: auto; }
+.c-plan .boton-redondo { width: 36px; height: 36px; margin: 0 auto; }
 .c-plan .boton-redondo svg { width: 18px; height: 18px; }
 .mas-cultivos {
   flex: none; border: 1px solid var(--linea-campo); background: var(--superficie); color: var(--tinta); border-radius: 999px;
@@ -475,20 +485,42 @@ body { padding-bottom: calc(var(--alto-nav-inf) + env(safe-area-inset-bottom)); 
 .globo-titulo { margin: 0 0 4px; font-weight: 600; }
 .globo-texto { margin: 0; color: var(--tinta-2); }
 
-/* Agrupados por modo de acción: un título por grupo con lo que hacen sus productos, y una franja del color del
-   sistema (FRAC, IRAC, HRAC) a la izquierda de cada fila. */
-.tabla-productos .fila-grupo td { height: 52px; padding: 0 12px 0 16px; background: var(--otro-fondo); border-bottom: 1px solid var(--linea); }
+/* Agrupados por modo de acción: una sección por comité (FRAC, IRAC, HRAC, sin código) y, dentro, un título por grupo
+   en una línea: el código, una frase breve, el grupo químico aparte y cuántos son (11-11-2026: «menos tedioso»). */
+.tabla-productos .fila-seccion td {
+  height: 56px; padding: 0 16px; background: var(--superficie); border-bottom: 1px solid var(--linea);
+  box-shadow: inset 0 -3px 0 var(--linea-fuerte);
+}
+.tabla-productos .fila-seccion.grupo-frac td { box-shadow: inset 0 -3px 0 var(--frac); }
+.tabla-productos .fila-seccion.grupo-irac td { box-shadow: inset 0 -3px 0 var(--irac); }
+.tabla-productos .fila-seccion.grupo-hrac td { box-shadow: inset 0 -3px 0 var(--hrac); }
+.seccion-titulo { display: flex; align-items: center; justify-content: center; gap: 12px; white-space: nowrap; }
+.seccion-comite {
+  padding: 2px 10px; border-radius: var(--radio-tag); font-size: 14px; font-weight: 600; letter-spacing: .3px;
+  color: var(--tinta); background: var(--otro-fondo);
+}
+.grupo-frac .seccion-comite { background: var(--frac); color: var(--frac-sobre); }
+.grupo-irac .seccion-comite { background: var(--irac); color: var(--irac-sobre); }
+.grupo-hrac .seccion-comite { background: var(--hrac); color: var(--hrac-sobre); }
+.seccion-nombre { font-size: 18px; font-weight: 600; color: var(--tinta); }
+.seccion-titulo .grupo-cuenta { margin-left: 0; }
+.tabla-productos .fila-grupo td { height: 48px; padding: 0 12px 0 16px; background: var(--otro-fondo); border-bottom: 1px solid var(--linea); }
 .tabla-productos .fila-grupo.grupo-frac td { background: var(--frac-fondo); }
 .tabla-productos .fila-grupo.grupo-irac td { background: var(--irac-fondo); }
 .tabla-productos .fila-grupo.grupo-hrac td { background: var(--hrac-fondo); }
-.grupo-titulo { display: flex; align-items: center; gap: 16px; min-width: 0; white-space: nowrap; }
+.grupo-titulo { display: flex; align-items: center; justify-content: center; gap: 16px; min-width: 0; white-space: nowrap; }
 .grupo-codigos { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 0 1 auto; overflow: hidden; }
 .grupo-codigo { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .grupo-codigo .moa { flex: none; }
 .grupo-mas { flex: none; font-weight: 600; color: var(--tinta-3); }
 .grupo-que { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 15px; font-weight: 500; color: var(--tinta); }
-.grupo-quimico { flex: 1 1 0; min-width: 48px; overflow: hidden; text-overflow: ellipsis; font-size: 13px; color: var(--tinta-3); }
-.grupo-cuenta { flex: none; margin-left: auto; font-size: 13px; color: var(--tinta-3); }
+.grupo-quimicos { display: flex; align-items: center; gap: 4px; min-width: 0; flex: 0 1 auto; overflow: hidden; }
+.grupo-quimico {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; padding: 2px 8px; border-radius: var(--radio-tag);
+  font-size: 12px; color: var(--tinta-2); background: var(--superficie); border: 1px solid var(--linea);
+}
+.grupo-quimico-mas { flex: none; font-size: 12px; color: var(--tinta-3); }
+.grupo-cuenta { flex: none; font-size: 13px; color: var(--tinta-3); }
 .fila-producto > td:first-child, .fila-grupo > td:first-child { box-shadow: inset 4px 0 0 var(--linea-fuerte); }
 .grupo-frac > td:first-child { box-shadow: inset 4px 0 0 var(--frac); }
 .grupo-irac > td:first-child { box-shadow: inset 4px 0 0 var(--irac); }
@@ -513,6 +545,13 @@ body { padding-bottom: calc(var(--alto-nav-inf) + env(safe-area-inset-bottom)); 
   .tabla-productos .grupo-hrac { border-left-color: var(--hrac); }
   .c-producto { order: 1; flex: 1 1 100%; padding-right: 96px !important; }
   .c-producto a { font-size: 18px; white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+  .c-cat { display: block; }
+  .tabla-productos .fila-producto > td { text-align: left; white-space: normal; }
+  .c-moa .lista-moa { flex-wrap: wrap; justify-content: flex-start; }
+  .c-cultivos .cultivos { justify-content: flex-start; }
+  .c-ing .ing-linea { display: inline; }
+  .c-ing .ing-linea + .ing-linea::before { content: " + "; }
+  .c-ing .ing-linea + .ing-linea { margin-top: 0; }
   .c-empresa { order: 2; }
   .c-tipo { order: 3; }
   .c-empresa::after { content: "·"; margin-left: 8px; color: var(--tinta-3); font-weight: 400; }
@@ -529,7 +568,10 @@ body { padding-bottom: calc(var(--alto-nav-inf) + env(safe-area-inset-bottom)); 
   .c-cultivos::before, .c-dosis::before { content: attr(data-etiqueta); font-size: 14px; color: var(--tinta-3); }
   .c-cultivos .recorte-2 { -webkit-line-clamp: 1; line-clamp: 1; }
   .c-plan { position: absolute; top: 12px; right: 12px; width: auto; }
-  .tabla-productos .fila-grupo { display: block; margin: 24px 0 8px; }
+  .tabla-productos .fila-seccion { display: block; margin: 32px 0 0; }
+  .tabla-productos .fila-seccion td { display: block; height: auto; padding: 12px 0; background: none; border: 0; }
+  .seccion-titulo { justify-content: flex-start; flex-wrap: wrap; white-space: normal; }
+  .tabla-productos .fila-grupo { display: block; margin: 16px 0 8px; }
   /* Título del grupo: una franja suave del color de su categoría, con la línea eléctrica a la izquierda. */
   .tabla-productos .fila-grupo td {
     display: block; height: auto; padding: 12px 16px; border: 0; border-left: 4px solid var(--linea-fuerte);
@@ -538,19 +580,19 @@ body { padding-bottom: calc(var(--alto-nav-inf) + env(safe-area-inset-bottom)); 
   .tabla-productos .fila-grupo.grupo-frac td { border-left-color: var(--frac); }
   .tabla-productos .fila-grupo.grupo-irac td { border-left-color: var(--irac); }
   .tabla-productos .fila-grupo.grupo-hrac td { border-left-color: var(--hrac); }
-  .grupo-titulo { flex-wrap: wrap; gap: 8px 12px; white-space: normal; }
+  .grupo-titulo { flex-wrap: wrap; justify-content: flex-start; gap: 8px 12px; white-space: normal; }
   .grupo-codigos { flex-direction: column; align-items: flex-start; gap: 8px; overflow: visible; }
   .grupo-codigo { align-items: flex-start; }
   .grupo-codigo .moa { margin-top: -1px; }
   .grupo-que { font-size: 16px; line-height: 1.35; overflow: visible; }
-  .grupo-quimico { flex: 1 1 100%; order: 3; white-space: nowrap; }
+  .grupo-quimicos { flex: 1 1 100%; order: 3; flex-wrap: wrap; }
   .grupo-cuenta { order: 4; margin-left: 0; }
 }
 /* Tablet: dos tarjetas por fila, del mismo alto. */
 @media (min-width: 700px) and (max-width: 1099px) {
   .tabla-productos tbody { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: stretch; }
   .tabla-productos .fila-producto { margin-bottom: 0; }
-  .tabla-productos .fila-grupo { grid-column: 1 / -1; margin: 12px 0 0; }
+  .tabla-productos .fila-grupo, .tabla-productos .fila-seccion { grid-column: 1 / -1; margin: 12px 0 0; }
 }
 
 /* ---------- Chips, etiquetas y botones ---------- */

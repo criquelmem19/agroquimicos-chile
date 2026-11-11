@@ -77,3 +77,8 @@ export function contiene(prep, consulta) {
   }
   return true;
 }
+
+// Raíz de una palabra para buscarla dentro de otros textos: sin plural simple («malezas» → «maleza»).
+export function raiz(q) {
+  return variantes(q).sort((a, b) => a.length - b.length)[0];
+}
