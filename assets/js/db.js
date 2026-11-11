@@ -3,6 +3,7 @@
 // una vez al abrir el sitio. Las líneas de uso se piden cuando se necesitan.
 import { SUPABASE_URL, SUPABASE_KEY, FILAS_POR_PAGINA } from './config.js';
 import { palabras, normalizar } from './buscador.js';
+import { ORDEN_TIPOS } from './moa.js';
 
 let promesaCliente = null;
 
@@ -57,16 +58,17 @@ async function todas(construir, primeras = 1, despues = 3) {
 
 // Clave de la copia guardada en el equipo. Cambiarla (v4…) si cambia la forma de lo que devuelve descargarCatalogo:
 // la copia se muestra antes de que llegue la descarga.
-const CLAVE_CACHE = 'catalogo-v3';
+const CLAVE_CACHE = 'catalogo-v4';
 
 async function descargarCatalogo() {
   const db = await cliente();
   // Por etapas: las vistas recalculan todo en cada consulta y, todas a la vez, pasan los 3 s que da la base.
-  const [productos, categorias, ingredientes, equivalencias, empresas, perfiles, estado] = await Promise.all([
+  const [productos, categorias, ingredientes, equivalencias, clasificacion, empresas, perfiles, estado] = await Promise.all([
     todas((c) => c.from('v_sitio_productos').select('*').order('id'), 2),
     todas((c) => c.from('categories').select('id,name').order('id')),
     todas((c) => c.from('active_ingredients').select('id,common_name,chemical_group,mechanism_group,mechanism_system').order('id')),
     todas((c) => c.from('moa_equivalencias').select('id,sistema,codigo,codigo_actual,ingrediente_id,nota').order('id')),
+    todas((c) => c.from('moa_clasificacion').select('ingrediente_id,sistema,codigo,tipo,grupo_quimico,fuente,nota').order('id')),
     todas((c) => c.from('companies').select('id,legal_name').order('id')),
     todas((c) => c.from('product_safety_profiles').select('product_id,reentry_hours').order('product_id')),
     // Fecha del pie: una consulta barata y que no es indispensable. Hasta el 06-11-2026 salía de v_estado_datos, que
@@ -74,13 +76,16 @@ async function descargarCatalogo() {
     db.from('products').select('updated_at').order('updated_at', { ascending: false }).limit(1).maybeSingle(),
   ]);
   if (estado.error) console.warn('Sin fecha de actualización:', estado.error);
-  const [resumen, cultivos] = await Promise.all([
+  const [resumen, cultivos, dosisTexto] = await Promise.all([
     todas((c) => c.from('v_sitio_resumen_productos').select('id,cultivos,n_lineas,n_aprobadas,n_baja_confianza,dosis').order('id'), 2),
     todas((c) => c.from('v_sitio_cultivos').select('id,nombre,aliases,n_lineas,n_productos').order('id')),
+    // Texto de la dosis cuando no hay rango (11-11-2026): no es indispensable, si falla la tabla muestra el resto.
+    todas((c) => c.from('v_sitio_dosis_texto').select('id,dosis_texto').order('id'))
+      .catch((e) => { console.warn('Sin texto de dosis:', e); return []; }),
   ]);
   const objetivos = await todas((c) => c.from('v_sitio_objetivos').select('id,nombre,cientifico,n_lineas,n_productos').order('id'), 2, 2);
   return {
-    productos, resumen, categorias, ingredientes, equivalencias, empresas, cultivos, objetivos, perfiles,
+    productos, resumen, dosisTexto, categorias, ingredientes, equivalencias, clasificacion, empresas, cultivos, objetivos, perfiles,
     actualizado: estado.data ? estado.data.updated_at : null,
   };
 }
@@ -98,13 +103,14 @@ function abrirCache() {
 
 async function guardarCache(crudo) {
   try {
-    for (const k of ['catalogo-v1', 'catalogo-v2', 'catalogo-v3']) localStorage.removeItem(k);
+    for (const k of ['catalogo-v1', 'catalogo-v2', 'catalogo-v3', 'catalogo-v4']) localStorage.removeItem(k);
   } catch (e) { /* bloqueado */ }
   try {
     const bd = await abrirCache();
     await new Promise((resolver, rechazar) => {
       const tx = bd.transaction('copias', 'readwrite');
       tx.objectStore('copias').put({ t: Date.now(), crudo }, CLAVE_CACHE);
+      for (const k of ['catalogo-v3']) tx.objectStore('copias').delete(k);
       tx.oncomplete = resolver;
       tx.onerror = tx.onabort = () => rechazar(tx.error);
     });
@@ -155,6 +161,22 @@ export function compararMoa(a, b) {
   const d = (ORDEN_SISTEMA[sa] || 9) - (ORDEN_SISTEMA[sb] || 9);
   if (d) return d;
   return ga.localeCompare(gb, 'es', { numeric: true });
+}
+
+// Códigos de la lista oficial asignados a un ingrediente (cuando la etiqueta no lo trae): el producto usa los del
+// sistema que calza con su tipo (un fungicida, FRAC; un acaricida, IRAC); si ninguno calza, todos.
+const ORDEN_ASIGNADO = ['IRAC', 'FRAC', 'HRAC'];
+const ACOMPANANTES = new Set(['aditivo', 'coadyuvante']);
+const SISTEMA_DE_CATEGORIA = {
+  fungicida: 'FRAC', bactericida: 'FRAC', 'inductor de resistencia': 'FRAC',
+  insecticida: 'IRAC', acaricida: 'IRAC', nematicida: 'IRAC', 'insecticida sanitario': 'IRAC',
+  herbicida: 'HRAC', alguicida: 'HRAC',
+};
+function codigosDelProducto(ing, categorias) {
+  if (!ing.moaOpciones || ing.moaOpciones.length < 2) return ing.moa ? [ing.moa] : [];
+  const sistemas = new Set(categorias.map((c) => SISTEMA_DE_CATEGORIA[String(c.nombre).toLowerCase()]).filter(Boolean));
+  const calzan = ing.moaOpciones.filter((o) => sistemas.has(o.sistema));
+  return (calzan.length ? calzan : ing.moaOpciones).map((o) => o.clave);
 }
 
 // Código de formulación (WP, SC, EC…). Si falta en los datos, el que trae el nombre comercial («PUNTO 70 WP»).
@@ -268,26 +290,48 @@ function armarCatalogo(crudo, fechaCache) {
     const k = claveMoa(e.sistema, e.codigo);
     equivalencias.set(e.ingrediente_id ? `${e.ingrediente_id}|${k}` : k, e);
   }
+  // Clasificación de los ingredientes cuya etiqueta no trae el código (moa_clasificacion, 11-11-2026): el grupo de la
+  // lista oficial o, si ningún comité lo clasifica, qué es (regulador, feromona…); y el grupo químico de todos.
+  const clasificacion = new Map();
+  for (const c of crudo.clasificacion || []) {
+    if (!clasificacion.has(c.ingrediente_id)) clasificacion.set(c.ingrediente_id, []);
+    clasificacion.get(c.ingrediente_id).push(c);
+  }
   const ingredientes = new Map(crudo.ingredientes.map((x) => {
     const enEtiqueta = claveMoa(x.mechanism_system, x.mechanism_group);
     const eq = enEtiqueta && (equivalencias.get(`${x.id}|${enEtiqueta}`) || equivalencias.get(enEtiqueta));
+    const filas = clasificacion.get(x.id) || [];
+    const deEtiqueta = eq ? claveMoa(eq.sistema, eq.codigo_actual) : enEtiqueta;
+    // Opciones de la lista oficial (puede haber una por sistema: la fenazaquina es IRAC 21A y FRAC 39). El producto
+    // elige la que calza con su tipo (opcionesMoa); el ingrediente solo, la primera (IRAC, FRAC, HRAC).
+    const opciones = deEtiqueta ? [] : filas.filter((c) => c.codigo)
+      .map((c) => ({ clave: claveMoa(c.sistema, c.codigo), sistema: c.sistema, fuente: c.fuente, nota: c.nota }))
+      .sort((a, b) => ORDEN_ASIGNADO.indexOf(a.sistema) - ORDEN_ASIGNADO.indexOf(b.sistema));
+    const tipo = deEtiqueta || opciones.length ? null : (filas.find((c) => c.tipo) || {}).tipo || null;
+    const grupoQuimico = (filas.find((c) => c.grupo_quimico) || {}).grupo_quimico || x.chemical_group;
     return [x.id, {
       id: x.id,
       nombre: x.common_name,
-      grupoQuimico: x.chemical_group,
+      grupoQuimico,
       sistema: x.mechanism_system,
       grupo: x.mechanism_group,
-      moa: eq ? claveMoa(eq.sistema, eq.codigo_actual) : enEtiqueta,
+      moa: deEtiqueta || (opciones.length ? opciones[0].clave : null),
       // Solo si la etiqueta lo escribe con el código antiguo: cómo viene en la etiqueta y de dónde sale el actual.
       // Sin codigo_actual el ingrediente no tiene grupo (la etiqueta se lo pone por error, como al cloquintocet).
       moaEtiqueta: eq ? enEtiqueta : null,
       moaNota: eq ? eq.nota : null,
+      // El código no viene en la etiqueta: sale de la lista oficial (fuente y nota de moa_clasificacion).
+      moaOpciones: opciones,
+      // Sin código: qué es (moa.js → TIPOS) y por qué.
+      tipo,
+      tipoNota: tipo ? (filas.find((c) => c.tipo) || {}).nota || null : null,
       productos: [],
     }];
   }));
   const empresas = new Map(crudo.empresas.map((x) => [x.id, { id: x.id, nombre: x.legal_name, productos: [] }]));
   const reingreso = new Map(crudo.perfiles.map((x) => [x.product_id, x.reentry_hours]));
   const resumen = new Map((crudo.resumen || []).map((x) => [x.id, x]));
+  const dosisTexto = new Map((crudo.dosisTexto || []).map((x) => [x.id, x.dosis_texto]));
   const marcas = new Map();
   const documentos = new Map();
   const productos = new Map();
@@ -298,7 +342,13 @@ function armarCatalogo(crudo, fechaCache) {
     const ings = (p.ingredientes || [])
       .map((x) => ({ conc: x.conc, ing: ingredientes.get(x.id) }))
       .filter((x) => x.ing);
-    const moa = [...new Set(ings.map((x) => x.ing.moa).filter(Boolean))].sort(compararMoa);
+    const categoriasP = (p.categorias || []).map((id) => categorias.get(id)).filter(Boolean);
+    const moa = [...new Set(ings.flatMap((x) => codigosDelProducto(x.ing, categoriasP)))].sort(compararMoa);
+    // Sin ningún código: qué son sus ingredientes (regulador, feromona…), para agruparlo y mostrarlo igual.
+    // Aditivos (amargante, sinergista) y coadyuvantes que acompañan a otra cosa no cuentan.
+    let tipos = moa.length ? [] : [...new Set(ings.map((x) => x.ing.tipo).filter(Boolean))]
+      .sort((a, b) => ORDEN_TIPOS.indexOf(a) - ORDEN_TIPOS.indexOf(b));
+    if (tipos.some((t) => !ACOMPANANTES.has(t))) tipos = tipos.filter((t) => !ACOMPANANTES.has(t));
     // Código actual → cómo viene escrito en la etiqueta (solo los que cambian).
     const moaEtiqueta = new Map();
     for (const x of ings) {
@@ -317,9 +367,10 @@ function armarCatalogo(crudo, fechaCache) {
       formulacionCodigo: p.formulacion_codigo,
       formulacion: p.formulacion,
       clasificacion: p.clasificacion,
-      categorias: (p.categorias || []).map((id) => categorias.get(id)).filter(Boolean),
+      categorias: categoriasP,
       ings,
       moa,
+      tipos,
       moaEtiqueta,
       familias: familias(moa),
       empresas: [...roles].map(([id, rs]) => ({ empresa: empresas.get(id), roles: rs })),
@@ -337,6 +388,7 @@ function armarCatalogo(crudo, fechaCache) {
     prod.cultivoIds = (r && r.cultivos) || [];
     prod.resumenDosis = {
       grupos: (r && r.dosis) || [], n: r ? r.n_lineas : 0, aprobadas: r ? r.n_aprobadas : 0, baja: r ? r.n_baja_confianza : 0,
+      texto: dosisTexto.get(p.id) || null,
     };
     prod.marca = prod.empresas.length ? nombreCorto(prod.empresas[0].empresa.nombre) : null;
     if (prod.marca) {

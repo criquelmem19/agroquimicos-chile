@@ -56,3 +56,24 @@ export function filtrar(lista, consulta, obtenerPalabras, obtenerPeso, max = Inf
   res.sort((a, b) => b[0] - a[0] || b[1] - a[1]);
   return res.slice(0, max).map((r) => r[2]);
 }
+
+// ---------- «Contiene»: el buscador de la tabla ----------
+// Texto preparado una vez: normalizado, con espacios a los lados y una versión sin espacios (así «betaciflutrina»
+// encuentra «Beta-ciflutrina» y «lambdacihalotrina», «Lambda-cihalotrina»).
+export function preparar(texto) {
+  const n = normalizar(texto);
+  return { conEspacios: ` ${n} `, junto: n.replace(/ /g, '') };
+}
+
+// Cada palabra de la consulta tiene que estar en el texto. Las de 3 letras o más, en cualquier parte («cipermetrina»
+// encuentra «Alfacipermetrina»); las de 1 o 2 («SC», «WP», «2»), solo al inicio de una palabra, para que no calcen con
+// todo. Se prueban también sin plural simple («cerezas» → «cereza»).
+export function contiene(prep, consulta) {
+  for (const q of consulta) {
+    const ok = variantes(q).some((v) => (v.length <= 2
+      ? prep.conEspacios.includes(` ${v}`)
+      : prep.conEspacios.includes(v) || (v.length >= 4 && prep.junto.includes(v))));
+    if (!ok) return false;
+  }
+  return true;
+}

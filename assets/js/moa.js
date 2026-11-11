@@ -1,104 +1,165 @@
-// Qué hacen los productos de cada grupo de modo de acción, en una frase corta (pedido de Cristóbal, 10-11-2026: «es muy
+// Qué hacen los productos de cada grupo de modo de acción, en una frase (pedido de Cristóbal, 10-11-2026: «es muy
 // importante que en las categorías de FRAC 3 o cualquiera que sea pongas esa pequeña descripción de qué hacen los
-// productos»). Va en el título de cada grupo del buscador y en las tablas del inicio.
-// Escrito a mano desde las listas oficiales (FRAC Code List, IRAC MoA Classification, HRAC MoA Classification 2020),
-// no desde la base. Están todos los grupos que hay en el catálogo (10-11-2026). Si llega un código nuevo sin frase, el
-// sitio no muestra descripción (nunca se inventa): agregarlo aquí desde la lista oficial.
+// productos»). Reescritas el 11-11-2026 para que se entiendan solas («Frena la fabricación de aminoácidos en otro
+// punto no me sirve de mucho»): qué bloquean, en qué parte de la plaga y qué le pasa.
+// Va en el título de cada grupo del buscador, en el texto al pasar el mouse por un código y en el inicio.
+// Escrito a mano desde las listas oficiales (FRAC Code List 2024, IRAC MoA Classification 11.5 y su lista de
+// nematicidas 2.2, HRAC MoA Classification 2024), no desde la base. Están todos los grupos del catálogo (11-11-2026).
+// Si llega un código nuevo sin frase, el sitio no muestra descripción (nunca se inventa): agregarlo aquí.
 
-const MULTISITIO = 'Ataca muchos puntos a la vez: casi no genera resistencia';
-const DEFENSAS = 'Activa las defensas de la planta';
+const MULTISITIO = 'casi no genera resistencia';
+const DEFENSAS = 'No ataca al hongo: activa las defensas propias de la planta';
 
 export const QUE_HACE = {
-  // Fungicidas (y bactericidas)
-  'FRAC 1': 'Frena la división de sus células',
-  'FRAC 2': 'Le altera las señales internas',
-  'FRAC 3': 'Frena la fabricación de su membrana',
-  'FRAC 4': 'Frena la fabricación de su material genético; contra mildiú y Phytophthora',
-  'FRAC 5': 'Frena la fabricación de su membrana en otro punto',
-  'FRAC 7': 'Le corta la respiración',
-  'FRAC 8': 'Frena la fabricación de su material genético; contra oídio',
-  'FRAC 9': 'Frena la fabricación de un aminoácido',
-  'FRAC 11': 'Le corta la respiración en otro punto',
-  'FRAC 12': 'Le altera las señales internas',
-  'FRAC 13': 'Le altera las señales internas; contra oídio',
-  'FRAC 17': 'Frena la fabricación de su membrana en otro punto',
-  'FRAC 20': 'Frena la división de sus células; contra Rhizoctonia',
-  'FRAC 21': 'Le corta la respiración en otro punto (sitio Qi)',
-  'FRAC 22': 'Frena la división de sus células; contra mildiú',
-  'FRAC 24': 'Frena la fabricación de sus proteínas (antibiótico)',
-  'FRAC 25': 'Frena la fabricación de las proteínas de la bacteria (antibiótico)',
-  'FRAC 27': 'Ataca al mildiú; modo de acción no del todo conocido',
-  'FRAC 28': 'Le daña la membrana; contra mildiú y Pythium',
-  'FRAC 29': 'Le quita la energía (desacopla su respiración)',
-  'FRAC 40': 'Frena la fabricación de su pared; contra mildiú',
-  'FRAC 41': 'Frena la fabricación de las proteínas de la bacteria (antibiótico)',
-  'FRAC 43': 'Desarma el esqueleto de sus células; contra mildiú',
-  'FRAC 45': 'Le corta la respiración en otro punto; contra mildiú',
-  'FRAC 49': 'Frena el transporte de grasas dentro de sus células; contra mildiú',
-  'FRAC 50': 'Desordena el esqueleto de sus células; contra oídio',
-  'FRAC M01': MULTISITIO,
-  'FRAC M02': MULTISITIO,
-  'FRAC M03': MULTISITIO,
-  'FRAC M04': MULTISITIO,
-  'FRAC M05': MULTISITIO,
-  'FRAC M07': MULTISITIO,
-  'FRAC BM01': 'Extracto de planta: daña al hongo de varias formas',
+  // ---------- Fungicidas y bactericidas ----------
+  'FRAC 1': 'Impide que las células del hongo se dividan: deja de crecer',
+  'FRAC 2': 'Descontrola el manejo del agua en las células del hongo: las hifas se hinchan y revientan',
+  'FRAC 3': 'Impide que el hongo fabrique ergosterol, pieza clave de su membrana: la célula se deforma y muere',
+  'FRAC 4': 'Frena la fabricación del ARN del mildiú, Phytophthora y Pythium: dejan de crecer',
+  'FRAC 5': 'Impide que el hongo fabrique ergosterol para su membrana, en pasos distintos a los del FRAC 3',
+  'FRAC 7': 'Corta la respiración del hongo en la mitocondria (complejo II): se queda sin energía',
+  'FRAC 8': 'Frena la fabricación del ADN y ARN del oídio',
+  'FRAC 9': 'Frena la fabricación de metionina (un aminoácido) y de las enzimas con que el hongo pudre el tejido',
+  'FRAC 11': 'Corta la respiración del hongo en la mitocondria (complejo III, sitio Qo): se queda sin energía',
+  'FRAC 12': 'Descontrola el manejo del agua en las células del hongo (otro punto que el FRAC 2): las hifas revientan',
+  'FRAC 13': 'Bloquea las señales con que el oídio germina y entra a la hoja',
+  'FRAC 14': 'Daña las grasas de la membrana del hongo (Botrytis, Rhizoctonia, Sclerotinia)',
+  'FRAC 17': 'Frena la fabricación de ergosterol de la membrana en otro paso; contra Botrytis y Monilinia',
+  'FRAC 20': 'Impide que las células del hongo se dividan; contra Rhizoctonia',
+  'FRAC 21': 'Corta la respiración del hongo en la mitocondria (complejo III, sitio Qi, distinto del FRAC 11)',
+  'FRAC 22': 'Desarma el esqueleto interno de las células del mildiú: no pueden dividirse',
+  'FRAC 24': 'Antibiótico: frena la fabricación de proteínas del hongo o la bacteria',
+  'FRAC 25': 'Antibiótico: frena la fabricación de proteínas de la bacteria',
+  'FRAC 27': 'Detiene al mildiú y al tizón en los primeros días de la infección; FRAC no sabe del todo cómo',
+  'FRAC 28': 'Daña la membrana del mildiú, Phytophthora y Pythium: sus células pierden su contenido',
+  'FRAC 29': 'Desconecta la respiración del hongo: produce energía pero no la puede usar',
+  'FRAC 32': 'Frena la fabricación del ADN y ARN de hongos del suelo (Pythium, Fusarium)',
+  'FRAC 38': 'Corta la producción de energía del hongo del pie negro del trigo',
+  'FRAC 39': 'Corta la respiración del hongo en la mitocondria (complejo I): se queda sin energía',
+  'FRAC 40': 'Impide que el mildiú fabrique su pared celular: la célula revienta',
+  'FRAC 41': 'Antibiótico: frena la fabricación de proteínas de la bacteria',
+  'FRAC 43': 'Desarma el esqueleto interno de las células del mildiú y Phytophthora',
+  'FRAC 45': 'Corta la respiración del mildiú en la mitocondria (complejo III, otro sitio): se queda sin energía',
+  'FRAC 49': 'Bloquea la proteína que mueve las grasas dentro de las células del mildiú y Phytophthora',
+  'FRAC 50': 'Desordena el esqueleto interno del oídio: no logra entrar a la hoja',
+  'FRAC M01': `Cobre: daña muchas proteínas del hongo y la bacteria a la vez; ${MULTISITIO}`,
+  'FRAC M02': `Azufre: daña la respiración del hongo en muchos puntos a la vez; ${MULTISITIO}`,
+  'FRAC M03': `Ataca muchas enzimas del hongo a la vez; ${MULTISITIO}`,
+  'FRAC M04': `Ataca muchas enzimas del hongo a la vez; ${MULTISITIO}`,
+  'FRAC M05': `Ataca muchas enzimas del hongo a la vez; ${MULTISITIO}`,
+  'FRAC M07': `Rompe las membranas del hongo en muchos puntos; ${MULTISITIO}`,
+  'FRAC BM01': 'Extracto de planta: daña las membranas del hongo y activa las defensas de la planta',
+  'FRAC BM02': 'Microorganismo benéfico: le quita espacio y alimento al hongo, lo ataca o produce antibióticos',
   'FRAC P01': DEFENSAS,
+  'FRAC P04': DEFENSAS,
   'FRAC P05': DEFENSAS,
-  'FRAC P07': DEFENSAS,
-  'FRAC U13': 'Ataca al oídio; modo de acción no conocido',
-  'FRAC NC': 'Sin clasificar por FRAC',
-  // Insecticidas y acaricidas
-  'IRAC 1': 'Bloquea una enzima de sus nervios',
-  'IRAC 2': 'Le quita un freno a sus nervios: quedan sobreexcitados',
-  'IRAC 3': 'Deja sus nervios disparando sin parar',
-  'IRAC 4': 'Imita la señal de los nervios y los satura',
-  'IRAC 5': 'Sobreexcita sus nervios',
-  'IRAC 6': 'Lo paraliza',
-  'IRAC 7': 'Imita una hormona juvenil: no llega a adulto',
-  'IRAC 9': 'Deja de alimentarse: le afecta los órganos de los sentidos',
-  'IRAC 10': 'Frena el desarrollo de huevos y ninfas de ácaros',
-  'IRAC 13': 'Le quita la energía (desacopla su respiración)',
-  'IRAC 15': 'No deja que forme su nueva cubierta al mudar',
-  'IRAC 18': 'Lo obliga a mudar antes de tiempo; contra larvas de polillas',
-  'IRAC 20': 'Le corta la respiración; contra ácaros',
-  'IRAC 21': 'Le corta la respiración en otro punto; contra ácaros',
-  'IRAC 22': 'Bloquea sus nervios: queda paralizado',
-  'IRAC 23': 'Frena la fabricación de sus grasas',
-  'IRAC 25': 'Le corta la respiración en un tercer punto; contra ácaros',
-  'IRAC 28': 'Contrae sus músculos sin control y deja de comer',
-  'IRAC 29': 'Deja de alimentarse',
-  'IRAC 30': 'Le quita un freno a sus nervios en otro punto',
-  'IRAC 31': 'Virus que enferma a la larva de la polilla',
-  'IRAC UN': 'Modo de acción no conocido o no confirmado',
-  'IRAC N-UN': 'Nematicida de modo de acción no conocido',
-  // Herbicidas
-  'HRAC 1': 'Frena la fabricación de sus grasas; solo afecta a gramíneas',
-  'HRAC 2': 'Frena la fabricación de aminoácidos',
-  'HRAC 3': 'Frena la división de sus células: la raíz no crece',
-  'HRAC 4': 'Imita una hormona de crecimiento: la maleza crece deformada',
-  'HRAC 5': 'Frena la fotosíntesis',
-  'HRAC 6': 'Frena la fotosíntesis en otro punto',
-  'HRAC 9': 'Frena la fabricación de aminoácidos en otro punto',
-  'HRAC 10': 'Frena una enzima clave para usar el nitrógeno',
-  'HRAC 12': 'Blanquea la maleza: frena sus pigmentos protectores',
-  'HRAC 13': 'Blanquea la maleza: frena sus pigmentos en otro punto',
-  'HRAC 14': 'Rompe sus membranas con la luz del sol',
-  'HRAC 15': 'Frena el crecimiento de la plántula recién nacida',
-  'HRAC 18': 'Frena la fabricación de una vitamina (ácido fólico)',
-  'HRAC 22': 'Quema el tejido verde en horas',
-  'HRAC 27': 'Blanquea la maleza: frena sus pigmentos en un tercer punto',
-  'HRAC 29': 'Frena la fabricación de su pared celular',
-  'HRAC 32': 'Blanquea la maleza: frena sus pigmentos en un cuarto punto',
+  'FRAC P06': DEFENSAS,
+  'FRAC P07': 'Activa las defensas de la planta y frena directamente al mildiú y Phytophthora; sube por la savia',
+  'FRAC U06': 'Contra oídio; FRAC aún no sabe cómo actúa',
+  'FRAC U13': 'Contra oídio; FRAC aún no sabe cómo actúa',
+  'FRAC NC': 'FRAC no lo clasifica (aceites, bicarbonato, ácidos y extractos naturales): actúa por contacto',
+  // ---------- Insecticidas, acaricidas y nematicidas ----------
+  'IRAC 1': 'Bloquea la enzima que apaga la señal de los nervios: el insecto tiembla, se paraliza y muere',
+  'IRAC 2': 'Bloquea el freno de los nervios (canal de cloro): el insecto queda sobreexcitado y muere',
+  'IRAC 3': 'Deja abiertos los canales de sodio de los nervios: el insecto cae al tiro (efecto de volteo)',
+  'IRAC 4': 'Imita a la acetilcolina en los nervios y los satura: el insecto se paraliza; sobre todo contra chupadores',
+  'IRAC 5': 'Sobreexcita los nervios por un sitio distinto al del IRAC 4: el insecto se paraliza',
+  'IRAC 6': 'Abre los canales de cloro de nervios y músculos: el insecto o ácaro se paraliza y deja de comer',
+  'IRAC 7': 'Imita la hormona juvenil: el insecto no llega a adulto ni se reproduce',
+  'IRAC 8': 'Fumigante: ataca muchos puntos a la vez',
+  'IRAC 9': 'Daña el órgano del equilibrio: el pulgón o la mosquita blanca deja de comer al tiro',
+  'IRAC 10': 'Frena el desarrollo de huevos y ácaros jóvenes; no mata adultos',
+  'IRAC 11': 'Toxina de Bacillus thuringiensis: perfora el intestino de la larva, que deja de comer y muere',
+  'IRAC 12': 'Frena la fabricación de energía del ácaro: muere en unos días',
+  'IRAC 13': 'Desconecta la respiración: el insecto produce energía pero no la puede usar',
+  'IRAC 14': 'Bloquea la transmisión entre nervios: el insecto se paraliza y deja de comer',
+  'IRAC 15': 'Impide que la larva fabrique quitina: muere al mudar',
+  'IRAC 16': 'Impide que las ninfas de chanchitos y mosquitas blancas fabriquen quitina: mueren al mudar',
+  'IRAC 17': 'Altera la muda de larvas de moscas y minadores: no llegan a adulto',
+  'IRAC 18': 'Imita la hormona de la muda: la larva muda antes de tiempo y muere; contra polillas',
+  'IRAC 20': 'Corta la respiración del ácaro en la mitocondria (complejo III)',
+  'IRAC 21': 'Corta la respiración del ácaro o insecto en la mitocondria (complejo I)',
+  'IRAC 22': 'Bloquea los canales de sodio de los nervios: el insecto se paraliza y deja de comer',
+  'IRAC 23': 'Frena la fabricación de grasas: mata huevos y estados jóvenes y baja la postura de las hembras',
+  'IRAC 24': 'Fosfina: gas que corta la respiración; para fumigar granos y bodegas',
+  'IRAC 25': 'Corta la respiración del ácaro en la mitocondria (complejo II)',
+  'IRAC 28': 'Descontrola los músculos: el insecto se contrae, deja de comer al tiro y muere',
+  'IRAC 29': 'Daña el órgano del equilibrio por un sitio distinto al del IRAC 9: el insecto deja de comer',
+  'IRAC 30': 'Bloquea el freno de los nervios en un sitio distinto al del IRAC 2: el insecto queda sobreexcitado',
+  'IRAC 31': 'Virus que enferma solo a las larvas de ciertas polillas (ej. polilla de la manzana)',
+  'IRAC UN': 'IRAC aún no sabe cómo actúa',
+  'IRAC UNB': 'Bacteria (no Bt) que enferma al insecto; IRAC no sabe del todo cómo actúa',
+  'IRAC UNE': 'Aceite o extracto de planta: actúa por contacto, asfixia o repele',
+  'IRAC UNF': 'Hongo que infecta al insecto: germina sobre él, lo penetra y lo mata en días',
+  'IRAC UNM': 'Aceite mineral: tapa los poros por donde respira el insecto o ácaro y lo asfixia',
+  'IRAC N-UN': 'Nematicida; IRAC aún no sabe cómo actúa',
+  'IRAC N-UNX': 'Fumigante del suelo: ataca muchos puntos a la vez (nematodos, hongos e insectos)',
+  'IRAC N-UNB': 'Bacteria que enferma a los nematodos',
+  'IRAC N-UNF': 'Hongo que parasita los huevos y las hembras de los nematodos',
+  'IRAC N-UNE': 'Extracto de planta que daña a los nematodos',
+  // ---------- Herbicidas ----------
+  'HRAC 0': 'HRAC aún no sabe cómo actúa',
+  'HRAC 1': 'Impide que la maleza fabrique sus grasas: solo mata gramíneas (ballica, avenilla, pasto)',
+  'HRAC 2': 'Impide que la maleza fabrique 3 aminoácidos (enzima ALS): deja de crecer y muere en 1 a 3 semanas',
+  'HRAC 3': 'Impide que las células de la raíz se dividan: la semilla germina pero la plántula no prospera',
+  'HRAC 4': 'Imita la hormona de crecimiento: la maleza de hoja ancha se tuerce, se deforma y muere',
+  'HRAC 5': 'Corta la fotosíntesis (fotosistema II): la hoja se pone amarilla y se seca',
+  'HRAC 6': 'Corta la fotosíntesis (fotosistema II, otro sitio): quema la hoja en pocos días',
+  'HRAC 9': 'Impide que la maleza fabrique 3 aminoácidos (enzima EPSPS): baja hasta la raíz y la mata entera',
+  'HRAC 10': 'Impide que la maleza use el nitrógeno: se acumula amonio y la hoja se quema',
+  'HRAC 12': 'Impide que la maleza fabrique carotenos: el sol destruye su clorofila y queda blanca',
+  'HRAC 13': 'Impide que la maleza fabrique carotenos (otro paso): queda blanca y muere',
+  'HRAC 14': 'Bloquea la enzima PPO: con el sol se rompen las membranas y la hoja se quema en horas',
+  'HRAC 15': 'Impide que la plántula fabrique sus ceras y grasas: la semilla germina pero no logra emerger',
+  'HRAC 18': 'Impide que la maleza fabrique ácido fólico: deja de crecer',
+  'HRAC 22': 'Desvía la energía de la fotosíntesis (fotosistema I): quema todo el tejido verde en horas',
+  'HRAC 23': 'Desordena la división de las células: la planta deja de crecer; también frena la brotación de papas',
+  'HRAC 27': 'Bloquea la enzima HPPD: la maleza no fabrica carotenos, queda blanca y muere',
+  'HRAC 29': 'Impide que la plántula fabrique celulosa para sus paredes: no logra emerger',
+  'HRAC 32': 'Impide que la maleza fabrique carotenos (otro paso): queda blanca y muere',
+  'HRAC 34': 'Impide que la maleza fabrique carotenos (otro paso): queda blanca y muere',
 };
 
-// Códigos que algunas etiquetas escriben raro y que son el mismo grupo («FRAC F-49» = 49, «HRAC I18» = 18…).
+// Productos sin código de FRAC, IRAC ni HRAC: qué son (moa_clasificacion.tipo). corto: lo que dice el chip; el orden
+// es el de los grupos al final de la tabla.
+export const TIPOS = {
+  regulador: { corto: 'Regulador', nombre: 'Reguladores de crecimiento', texto: 'Actúan sobre la planta (cuaja, calibre, raleo, brotación o madurez); no tienen código de rotación' },
+  feromona: { corto: 'Feromona', nombre: 'Feromonas y atrayentes', texto: 'Confunden a los machos para que no encuentren a las hembras (confusión sexual) o atraen a la plaga' },
+  biologico: { corto: 'Biológico', nombre: 'Control biológico', texto: 'Organismo benéfico que parasita y mata a la plaga' },
+  molusquicida: { corto: 'Molusquicida', nombre: 'Molusquicidas', texto: 'Daña las glándulas de mucus de caracoles y babosas: se deshidratan' },
+  rodenticida: { corto: 'Anticoagulante', nombre: 'Rodenticidas anticoagulantes', texto: 'Impiden que la sangre coagule: el roedor muere a los pocos días' },
+  desinfectante: { corto: 'Desinfectante', nombre: 'Desinfectantes', texto: 'Oxidan y destruyen hongos y bacterias por contacto' },
+  postcosecha: { corto: 'Postcosecha', nombre: 'Antioxidantes de postcosecha', texto: 'Evitan el escaldado de manzanas y peras en guarda' },
+  bioestimulante: { corto: 'Bioestimulante', nombre: 'Nutrientes y bioestimulantes', texto: 'Ayudan a la planta a crecer o a defenderse; no controlan plagas' },
+  coadyuvante: { corto: 'Coadyuvante', nombre: 'Coadyuvantes', texto: 'Mejoran el mojado, la adherencia o la penetración del producto que acompañan' },
+  protector: { corto: 'Protector', nombre: 'Protectores del cultivo', texto: 'Evitan que el herbicida dañe al cultivo; no controlan malezas' },
+  aditivo: { corto: 'Aditivo', nombre: 'Aditivos', texto: 'Parte de la fórmula (amargante o sinergista); no controlan plagas' },
+  preservante: { corto: 'Preservante', nombre: 'Preservantes de madera', texto: 'Impiden que hongos e insectos dañen la madera' },
+  biocida: { corto: 'Biocida', nombre: 'Biocidas industriales', texto: 'Evitan hongos y bacterias en aguas y productos industriales' },
+  no_clasificado: { corto: 'Sin código', nombre: 'Sin código oficial', texto: 'Ningún comité (FRAC, IRAC, HRAC) lo clasifica' },
+};
+export const ORDEN_TIPOS = Object.keys(TIPOS);
+
+// Clave de grupo para un producto sin código: «tipo:regulador».
+export const claveTipo = (t) => `tipo:${t}`;
+export const tipoDeClave = (k) => (String(k).startsWith('tipo:') ? String(k).slice(5) : null);
+
+// Códigos que algunas etiquetas escriben raro y que son el mismo grupo. Desde el 11-11-2026 la base los une
+// (moa_equivalencias); queda por si llega otro antes de agregarlo allí.
 const ALIAS = { 'FRAC F-49': 'FRAC 49', 'HRAC 29 L': 'HRAC 29', 'HRAC I18': 'HRAC 18' };
 
 // Familia: en IRAC manda el número («IRAC 4A» es el grupo 4).
 const familia = (k) => String(k || '').replace(/^(IRAC \d+)[A-Z]$/, '$1');
 
 export function queHace(clave) {
+  const t = tipoDeClave(clave);
+  if (t) return TIPOS[t] ? TIPOS[t].texto : null;
   const f = familia(clave);
   return QUE_HACE[f] || QUE_HACE[ALIAS[f]] || null;
+}
+
+// Texto del chip y nombre del grupo, para códigos y tipos.
+export function nombreClave(clave) {
+  const t = tipoDeClave(clave);
+  return t ? (TIPOS[t] ? TIPOS[t].corto : t) : clave;
 }

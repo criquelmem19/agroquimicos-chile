@@ -8,12 +8,12 @@ import {
   usosPorCultivo, usosPorObjetivos, compararMoa, nombreCorto, familiaMoa, claveMoa, tipoFormulacion as tipoDe,
   cultivosVisibles,
 } from '../db.js';
-import { filtrar, palabras, puntaje, normalizar } from '../buscador.js';
+import { filtrar, palabras, puntaje, normalizar, preparar, contiene } from '../buscador.js';
 import {
   h, icono, ruta, plural, recortar, limpio, vaciar, cargando, retrasar, combo, globo,
   chipsMoa, chipMoa, ingredientesTexto, linkPdf, dosisRango, resumenDosis, rangosDosis,
 } from '../ui.js';
-import { queHace } from '../moa.js';
+import { queHace, TIPOS, ORDEN_TIPOS, claveTipo, tipoDeClave } from '../moa.js';
 
 // La vista usa todo el ancho de la pantalla (app.js).
 export const ANCHA = true;
@@ -41,7 +41,7 @@ const COLUMNAS = [
   ['Ingrediente activo', 'ing', 'ing'], ['Etiqueta', null, 'etiqueta'], ['Reg. SAG', 'registro', 'reg'], ['Cultivos', 'cultivos', 'cultivos'],
   ['Dosis', null, 'dosis'], ['', null, 'plan'],
 ];
-const SIN_GRUPO = 'Sin grupo de modo de acción informado';
+const SIN_GRUPO = 'Sin ingrediente activo en los datos';
 
 function ir(params) { location.hash = ruta('buscar', params); }
 
@@ -65,23 +65,36 @@ function valorOrden(clave, p, info) {
 const comparaTexto = (a, b) => String(a).localeCompare(String(b), 'es', { numeric: true, ignorePunctuation: true });
 
 // Grupos de modo de acción de un producto como una sola clave («FRAC 7 + FRAC 11»): los que tienen la misma son lo mismo.
-// Se usan las familias (en IRAC, el número sin la letra del subgrupo) y los códigos actuales.
-const claveGrupo = (p) => p.familias.join(' + ');
+// Se usan las familias (en IRAC, el número sin la letra del subgrupo) y los códigos actuales. Sin código: lo que son
+// sus ingredientes («tipo:regulador»), para que también queden agrupados y explicados.
+const gruposDe = (p) => (p.familias.length ? p.familias : p.tipos.map(claveTipo));
+const claveGrupo = (p) => gruposDe(p).join(' + ');
 
+// Códigos primero (FRAC, IRAC, HRAC), después los tipos sin código y al final los sin ingrediente.
+const rangoGrupo = (k) => {
+  const t = tipoDeClave(k);
+  return t ? 1 + ORDEN_TIPOS.indexOf(t) / 100 : 0;
+};
 function compararGrupos(a, b) {
   if (!a.length || !b.length) return !a.length - !b.length;
   for (let i = 0; i < Math.min(a.length, b.length); i += 1) {
-    const d = compararMoa(a[i], b[i]);
+    const d = rangoGrupo(a[i]) - rangoGrupo(b[i]) || compararMoa(a[i], b[i]);
     if (d) return d;
   }
   return a.length - b.length;
 }
 
 // ---------- Buscador principal: todas las columnas de la tabla ----------
+// Pedido de Cristóbal (11-11-2026): «tiene que filtrar todos y cada uno de los elementos que aparezcan en las columnas».
+// Cada fila junta en un texto lo que se ve en sus columnas (y lo que aparece al pasar el mouse): producto y tipo de
+// producto, empresa (nombre corto y completo), códigos (actual y el de la etiqueta) o lo que es si no tiene código,
+// grupo químico, formulación, ingredientes con su concentración, registro, cultivos (con sus sinónimos) y dosis.
+// Cada palabra escrita tiene que estar en alguna columna, en cualquier parte de una palabra («cipermetrina» encuentra
+// «Alfacipermetrina»; ver buscador.js → contiene).
 
-// «FRAC 3», «IRAC 4A», «HRAC A», «FRAC G1» se buscan como grupo de modo de acción: si no, el «3» calzaría con
-// cualquier número de la fila (registro, dosis…). «IRAC 4» incluye 4A, 4C…
-const RE_MOA = /\b(frac|irac|hrac)\s*([a-z]{0,2}\d{1,2}[a-z]?|[a-z]\d?)\b/gi;
+// «FRAC 3», «IRAC 4A», «HRAC A», «FRAC G1», «IRAC UNE», «FRAC NC» se buscan como grupo de modo de acción: si no, el
+// «3» calzaría con cualquier número de la fila (registro, dosis…). «IRAC 4» incluye 4A, 4C…
+const RE_MOA = /\b(frac|irac|hrac)\s*(n-un[a-z]?|un[a-z]?|nc|bm\d{1,2}|[a-z]{0,2}\d{1,2}[a-z]?|[a-z]\d?)\b/gi;
 
 function separarBusqueda(texto) {
   const grupos = [];
@@ -89,28 +102,42 @@ function separarBusqueda(texto) {
   return { grupos, palabras: palabras(resto) };
 }
 
-// Palabras de lo que se ve en cada columna (y en el texto que aparece al pasar el mouse). Cultivos y dosis
-// dependen del cultivo u objetivo elegido; lo demás se calcula una vez por producto.
+// Texto de las columnas fijas de cada producto (no cambian con el cultivo u objetivo elegido).
 const fijas = new WeakMap();
-function palabrasFila(p, info) {
+function textoFijo(p) {
   if (!fijas.has(p)) {
     const principal = p.empresas[0];
-    fijas.set(p, palabras([
-      p.nombre, p.categorias.map((c) => c.nombre).join(' '), p.marca, principal && principal.empresa.nombre,
+    fijas.set(p, [
+      p.nombre, p.categorias.map((c) => c.nombre).join(' '),
+      p.marca, principal && principal.empresa.nombre,
       p.moa.join(' '), [...p.moaEtiqueta.values()].flat().join(' '),
-      p.ings.map((x) => `${x.ing.nombre} ${x.ing.grupoQuimico || ''}`).join(' '), tipoDe(p), p.formulacion, p.registro,
-    ].join(' ')));
+      p.tipos.map((t) => `${TIPOS[t] ? `${TIPOS[t].corto} ${TIPOS[t].nombre}` : t}`).join(' '),
+      p.ings.map((x) => `${x.ing.nombre} ${limpio(x.conc)} ${x.ing.grupoQuimico || ''}`).join(' '),
+      tipoDe(p), p.formulacion, p.registro,
+    ].filter(Boolean).join(' '));
   }
-  const cultivos = info.cultivos.map((c) => `${c.nombre} ${c.alias.join(' ')}`).join(' ');
-  return fijas.get(p).concat(palabras(`${cultivos} ${rangosDosis(info.resumen.grupos).join(' ')}`));
+  return fijas.get(p);
 }
 
-// Cada palabra escrita tiene que estar en alguna columna (no importa cuál).
+// Texto completo de una fila: lo fijo, los cultivos y la dosis que se ven (dependen del cultivo u objetivo elegido).
+// Se guarda por `info`, que es uno por producto mientras no cambien los filtros de arriba.
+const textos = new WeakMap();
+function textoFila(p, info) {
+  if (!textos.has(info)) {
+    const cultivos = info.cultivos.map((c) => `${c.nombre} ${c.alias.join(' ')}`).join(' ');
+    const rangos = rangosDosis(info.resumen.grupos);
+    const dosis = rangos.length ? rangos.join(' ') : limpio(info.resumen.texto);
+    textos.set(info, preparar(`${textoFijo(p)} ${cultivos} ${dosis}`));
+  }
+  return textos.get(info);
+}
+
+// Los códigos escritos tienen que estar en el producto; las demás palabras, en alguna columna.
 function calzaBusqueda(b, p, info) {
   for (const k of b.grupos) {
     if (!p.moa.includes(k) && !p.familias.includes(k) && ![...p.moaEtiqueta.values()].some((xs) => xs.includes(k))) return false;
   }
-  return !b.palabras.length || puntaje(b.palabras, palabrasFila(p, info)) > 0;
+  return !b.palabras.length || contiene(textoFila(p, info), b.palabras);
 }
 
 // ---------- Celdas ----------
@@ -139,14 +166,16 @@ function fila(p, info, op) {
   const tipo = tipoDe(p);
   // La franja de color va siempre (no solo agrupados): el sistema del primer código.
   const sistema = p.moa.length ? String(p.moa[0]).split(' ')[0].toLowerCase() : null;
+  // Sin código: lo que es («Regulador», «Feromona»…), también como botón a todos los de su tipo.
+  const codigos = p.moa.length ? chipsMoa(p.moa, p.moaEtiqueta) : chipsMoa(p.tipos.map(claveTipo));
   const categorias = p.categorias.map((c) => c.nombre).join(' · ');
   return h('tr', { class: `fila-producto ${sistema ? `grupo-${sistema}` : 'grupo-sin'}` },
     h('td', { class: 'c-producto' },
       h('a', { href: ruta(`producto/${p.id}`, { cultivo: op.cultivoId }), title: p.nombre }, p.nombre),
       categorias ? h('span', { class: 'c-cat', title: categorias }, categorias) : null),
     h('td', { class: vacia('c-empresa', p.marca), 'data-etiqueta': 'Empresa', title: principal ? principal.empresa.nombre : null }, p.marca || '—'),
-    h('td', { class: vacia('c-moa', p.moa.length), 'data-etiqueta': 'Modo de acción' },
-      chipsMoa(p.moa, p.moaEtiqueta) || h('span', { class: 'tenue', title: 'Sin grupo de modo de acción informado' }, '—')),
+    h('td', { class: vacia('c-moa', codigos), 'data-etiqueta': 'Modo de acción' },
+      codigos || h('span', { class: 'tenue', title: SIN_GRUPO }, '—')),
     h('td', { class: vacia('c-tipo', tipo), 'data-etiqueta': 'Tipo', title: p.formulacion || null }, tipo || '—'),
     h('td', { class: 'c-ing', 'data-etiqueta': 'Ingrediente activo', title: ingredientesTexto(p) },
       h('span', { class: 'recorte-2' }, p.ings.length ? p.ings.map((x) => x.ing.nombre).join(' + ') : h('span', { class: 'tenue' }, 'Sin ingrediente registrado'))),
@@ -165,8 +194,11 @@ function fila(p, info, op) {
 // el grupo químico y cuántos son.
 function filaGrupo(clave, productos) {
   const moa = clave ? clave.split(' + ') : [];
-  const sistema = moa.length ? moa[0].split(' ')[0].toLowerCase() : 'sin';
-  const quimicos = [...new Set(productos.flatMap((p) => p.ings.filter((x) => x.ing.moa).map((x) => x.ing.grupoQuimico)).filter(Boolean))];
+  const sinCodigo = moa.length && tipoDeClave(moa[0]);
+  const sistema = moa.length && !sinCodigo ? moa[0].split(' ')[0].toLowerCase() : 'sin';
+  // Grupo químico de los ingredientes que dan el código del grupo (o, sin código, de los que dan el tipo).
+  const delGrupo = (x) => (sinCodigo ? moa.includes(claveTipo(x.ing.tipo)) : x.ing.moa && moa.includes(familiaMoa(x.ing.moa)));
+  const quimicos = [...new Set(productos.flatMap((p) => p.ings.filter(delGrupo).map((x) => x.ing.grupoQuimico)).filter(Boolean))];
   const codigos = moa.map((k, i) => {
     const que = queHace(k);
     return h('span', { class: 'grupo-codigo' }, i ? h('span', { class: 'grupo-mas', 'aria-hidden': 'true' }, '+') : null,
@@ -301,16 +333,23 @@ export async function render(main, ctx) {
     h('option', { value: '' }, 'Todas'),
     [...cat.marcas.values()].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
       .map((m) => h('option', { value: m.nombre, selected: m.nombre === estado.empresa }, `${m.nombre} (${m.productos.length})`)));
-  const sinGrupo = [...cat.productos.values()].filter((p) => !p.moa.length).length;
+  // Cuántos productos de la tabla (los que se usan en Chile) hay en cada código y en cada tipo sin código.
+  const enTabla = [...cat.productos.values()].filter((p) => !p.noDisponible);
+  const sinGrupo = enTabla.filter((p) => !gruposDe(p).length).length;
   const porFamilia = new Map();
-  for (const p of cat.productos.values()) for (const k of p.familias) porFamilia.set(k, (porFamilia.get(k) || 0) + 1);
+  for (const p of enTabla) for (const k of gruposDe(p)) porFamilia.set(k, (porFamilia.get(k) || 0) + 1);
+  const familiasMoa = [...porFamilia.keys()].filter((k) => !tipoDeClave(k)).sort(compararMoa);
+  const tiposMoa = ORDEN_TIPOS.map(claveTipo).filter((k) => porFamilia.has(k));
   // Un código antiguo de la etiqueta («HRAC A», desde un link del inicio) también filtra: queda como opción.
   const moaRaro = estado.moa && estado.moa !== 'sin' && !porFamilia.has(estado.moa);
+  const opcion = (k, texto) => h('option', { value: k, selected: k === estado.moa }, `${texto} (${porFamilia.get(k)})`);
   const selMoa = h('select', { class: 'selector', id: 'f-moa' },
     h('option', { value: '' }, 'Todos'),
     moaRaro ? h('option', { value: estado.moa, selected: true }, `${estado.moa} (en la etiqueta)`) : null,
-    [...porFamilia.keys()].sort(compararMoa).map((k) => h('option', { value: k, selected: k === estado.moa }, `${k} (${porFamilia.get(k)})`)),
-    sinGrupo ? h('option', { value: 'sin', selected: estado.moa === 'sin' }, `Sin grupo informado (${sinGrupo})`) : null);
+    familiasMoa.map((k) => opcion(k, k)),
+    tiposMoa.length ? h('optgroup', { label: 'Sin código FRAC, IRAC ni HRAC' },
+      tiposMoa.map((k) => opcion(k, TIPOS[tipoDeClave(k)].nombre))) : null,
+    sinGrupo ? h('option', { value: 'sin', selected: estado.moa === 'sin' }, `${SIN_GRUPO} (${sinGrupo})`) : null);
   const verExtra = h('button', {
     type: 'button', class: 'ver-extra', 'aria-expanded': String(panel.classList.contains('con-extra')),
     onclick: () => { verExtra.setAttribute('aria-expanded', String(panel.classList.toggle('con-extra'))); },
@@ -384,8 +423,8 @@ export async function render(main, ctx) {
       if (p.noDisponible) return false;
       if (estado.cat && !p.categorias.some((c) => String(c.id) === estado.cat)) return false;
       if (estado.empresa && p.marca !== estado.empresa) return false;
-      if (estado.moa === 'sin' && p.moa.length) return false;
-      if (estado.moa && estado.moa !== 'sin' && !p.familias.includes(estado.moa)
+      if (estado.moa === 'sin' && gruposDe(p).length) return false;
+      if (estado.moa && estado.moa !== 'sin' && !gruposDe(p).includes(estado.moa)
         && ![...p.moaEtiqueta.values()].some((xs) => xs.includes(estado.moa))) return false;
       if (ing && !p.ings.some((x) => x.ing === ing)) return false;
       return calzaBusqueda(busqueda, p, infoDe(p));
@@ -395,9 +434,11 @@ export async function render(main, ctx) {
     const signo = descendente ? -1 : 1;
     visibles.sort((a, b) => {
       if (estado.orden === 'moa') {
-        // Los sin grupo siempre al final; dentro de cada grupo, por nombre.
-        const d = compararGrupos(a.familias, b.familias);
-        return (a.moa.length && b.moa.length ? d * signo : d) || nombre(a, b);
+        // Los sin ingrediente siempre al final; dentro de cada grupo, por nombre.
+        const ga = gruposDe(a);
+        const gb = gruposDe(b);
+        const d = compararGrupos(ga, gb);
+        return (ga.length && gb.length ? d * signo : d) || nombre(a, b);
       }
       const va = valorOrden(estado.orden, a, infos.get(a));
       const vb = valorOrden(estado.orden, b, infos.get(b));

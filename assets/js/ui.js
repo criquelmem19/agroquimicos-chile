@@ -1,6 +1,6 @@
 // Piezas de interfaz compartidas: creación de elementos, íconos, formatos y
 // la forma de mostrar dosis, carencia, reingreso, etc. (reglas del sitio).
-import { queHace } from './moa.js';
+import { queHace, nombreClave, tipoDeClave, TIPOS } from './moa.js';
 
 // Crea elementos sin usar innerHTML con datos: el texto de las etiquetas nunca se interpreta como HTML.
 export function h(tag, props, ...hijos) {
@@ -132,14 +132,24 @@ export function dosis(u) {
 // mezclan unidades ni se convierten. Las dosis sin unidad clara («g» sin decir por qué) no entran al rango.
 
 const BASES_DOSIS = { por_ha: '/ha', por_100_l: '/100 L', por_l: '/L', por_100_kg_semilla: '/100 kg semilla' };
-const UNIDADES = { k: 'kg', kg: 'kg', g: 'g', mg: 'mg', l: 'L', ml: 'mL', cc: 'cc' };
+const UNIDADES = { k: 'kg', kg: 'kg', g: 'g', gr: 'g', gramos: 'g', mg: 'mg', l: 'L', lt: 'L', ml: 'mL', cc: 'cc', cm3: 'cc' };
+// Unidades que se cuentan (feromonas, tabletas de fumigación…): «300 difusores/ha».
+const CONTABLES = /^(dispositivos?|difusores?|unidades?|tabletas?|pastillas?|latas?( puffer)?|bolsitas?|placas?|sobres?|trampas?)$/i;
 
 function unidadDosis(unidad, base) {
-  const u = limpio(unidad);
+  const u = limpio(unidad).replace(/\s+de producto comercial$/i, '');
+  // Concentraciones (reguladores, postcosecha): la base no cambia nada.
+  const conc = u.toLowerCase().replace(/\s+/g, ' ');
+  if (/^ppm( i\.? ?a\.?)?$/.test(conc)) return conc === 'ppm' ? 'ppm' : 'ppm i.a.';
+  if (conc === 'ppb') return 'ppb';
   if (base === 'porcentaje') return !u || u === '%' ? '%' : null;
   if (!u) return null;
   const conocida = UNIDADES[u.toLowerCase()];
   if (conocida) return BASES_DOSIS[base] ? `${conocida}${BASES_DOSIS[base]}` : null;
+  // Ingrediente activo: «g i.a./ha».
+  const ia = u.match(/^(g|kg|l|cc|ml)\s*i\.?\s*a\.?$/i);
+  if (ia) return BASES_DOSIS[base] ? `${UNIDADES[ia[1].toLowerCase()]} i.a.${BASES_DOSIS[base]}` : null;
+  if (CONTABLES.test(u)) return BASES_DOSIS[base] ? `${u.toLowerCase()}${BASES_DOSIS[base]}` : null;
   // Unidades que ya traen la base: «cc/hL», «g/m2».
   if (u.includes('/')) return base === 'por_100_l' ? u.replace(/\/hl$/i, '/100 L') : u;
   return null;
@@ -163,9 +173,16 @@ export function rangosDosis(grupos) {
     .map((r) => `${r.min === r.max ? num(r.min) : `${num(r.min)}${NBSP}–${UNION}${NBSP}${num(r.max)}`} ${r.unidad.replace(/ (L|kg)\b/, `${NBSP}$1`)}`);
 }
 
-// Resumen de un grupo de líneas de uso: dosis por unidad y su estado de revisión.
+// Resumen de un grupo de líneas de uso: dosis por unidad y su estado de revisión. texto: la dosis de la etiqueta más
+// repetida entre las líneas que no entran a un rango (sin número o sin unidad clara), como v_sitio_dosis_texto.
 export function resumenDosis(lineas) {
   const m = new Map();
+  const textos = new Map();
+  for (const u of lineas) {
+    const t = limpio(u.dose_raw).slice(0, 120);
+    if (t && ((u.dose_min ?? u.dose_max) == null || u.dose_basis === 'otro' || !limpio(u.dose_unit))) textos.set(t, (textos.get(t) || 0) + 1);
+  }
+  const texto = [...textos].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
   let aprobadas = 0;
   for (const u of lineas) {
     if (u.review_status === 'aprobado') aprobadas += 1;
@@ -176,7 +193,7 @@ export function resumenDosis(lineas) {
     const x = m.get(clave);
     if (x) { x.min = Math.min(x.min, a); x.max = Math.max(x.max, b); x.n += 1; } else m.set(clave, { u: u.dose_unit, b: u.dose_basis, min: Number(a), max: Number(b), n: 1 });
   }
-  return { grupos: [...m.values()], n: lineas.length, aprobadas };
+  return { grupos: [...m.values()], n: lineas.length, aprobadas, texto: texto ? texto[0] : null };
 }
 
 // Regla 1 en una dosis resumida: «Revisado» solo si todas sus líneas fueron revisadas por una persona.
@@ -189,10 +206,13 @@ export function dosisRango(r, max = 2) {
   if (!r || !r.n) return h('span', { class: 'tenue' }, 'Sin usos registrados');
   const rangos = rangosDosis(r.grupos);
   const textos = rangos.slice(0, max).map((t) => h('span', { class: 'rango' }, t));
-  return h('div', { class: 'valor', title: rangos.length ? rangos.join(' · ') : null },
+  // Sin rango: el texto de la dosis tal como lo dice la etiqueta («1 tableta por cada 15 m3»).
+  const etiqueta = !textos.length && r.texto ? limpio(r.texto) : null;
+  return h('div', { class: 'valor', title: rangos.length ? rangos.join(' · ') : etiqueta },
     textos.length
       ? h('span', { class: 'rangos' }, textos, rangos.length > max ? h('span', { class: 'rango-mas' }, `+${rangos.length - max}`) : null)
-      : h('span', { class: 'sin-dato' }, 'Ver en la etiqueta'),
+      : etiqueta ? h('span', { class: 'rango recorte-2' }, etiqueta)
+        : h('span', { class: 'sin-dato' }, 'Sin dosis en los datos'),
     estadoResumen(r));
 }
 
@@ -303,12 +323,16 @@ export function rutaMoa(clave) {
 
 // Un código de modo de acción. Es un botón que lleva a todos los productos de ese código, en cualquier parte del sitio
 // (Cristóbal, 10-11-2026). enlace: false solo cuando va dentro de otro botón o link.
+// Los productos sin código llevan un chip gris con lo que son («Regulador», «Feromona»: clave «tipo:regulador»).
 export function chipMoa(k, { enlace = true, antes = null } = {}) {
   const que = queHace(k);
-  const titulo = [enlace ? `Ver todos los ${k}` : k, que,
+  const t = tipoDeClave(k);
+  const nombre = nombreClave(k);
+  const todos = t ? `Ver todos: ${(TIPOS[t] || {}).nombre || nombre}, sin código FRAC, IRAC ni HRAC` : `Ver todos los ${k}`;
+  const titulo = [enlace ? todos : nombre, que,
     antes ? `En la etiqueta: ${antes.join(', ')} (código antiguo; equivalencia de la tabla oficial)` : null].filter(Boolean).join('. ');
   return h(enlace ? 'a' : 'span', { class: claseMoa(k), href: enlace ? rutaMoa(k) : null, title: titulo },
-    k, antes ? h('small', { class: 'moa-antes' }, `(${antes.map((x) => x.split(' ')[1]).join('/')})`) : null);
+    nombre, antes ? h('small', { class: 'moa-antes' }, `(${antes.map((x) => x.split(' ')[1]).join('/')})`) : null);
 }
 
 // etiquetas (opcional): Map código actual → cómo viene escrito en la etiqueta (código antiguo, ej. «HRAC A»).

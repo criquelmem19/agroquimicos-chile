@@ -2,6 +2,7 @@
 // perfil de seguridad y documentos (etiqueta PDF).
 import { usosPorProducto, detalleProducto, nombreCorto } from '../db.js';
 import { palabras, puntaje } from '../buscador.js';
+import { claveTipo } from '../moa.js';
 import {
   h, agregar, icono, ruta, plural, fecha, limpio, recortar, vaciar, cargando, retrasar, mensajeError,
   dosis, carencia, mojamiento, intervalo, metodo, maxAplicaciones, textoOSinDato, linkPdf, urlDeLinea,
@@ -151,6 +152,28 @@ function seccionSeguridad(p, detalle, contenedor) {
     h('div', { class: 'tarjeta seguridad' }, h('dl', null, items))]);
 }
 
+// Modo de acción de un ingrediente en la ficha, con de dónde sale: la etiqueta (y su código antiguo, si lo trae), la
+// lista oficial cuando la etiqueta no lo trae (moa_clasificacion, 11-11-2026) o qué es si no tiene código.
+function celdaMoa(ing) {
+  const cita = (texto) => h('span', { class: 'cita' }, texto);
+  if (ing.moa && ing.moaEtiqueta) {
+    return [chipsMoa([ing.moa]), cita(`En la etiqueta: ${ing.moaEtiqueta}. ${ing.moaNota || ''} (tabla oficial ${ing.sistema}).`)];
+  }
+  if (ing.moaOpciones.length) {
+    const fuentes = [...new Set(ing.moaOpciones.map((o) => o.fuente))].join('; ');
+    const notas = ing.moaOpciones.map((o) => o.nota).filter(Boolean).join('. ');
+    return [chipsMoa(ing.moaOpciones.map((o) => o.clave)),
+      cita(`La etiqueta no trae el código: es el de la lista oficial (${fuentes}).${notas ? ` ${notas}.` : ''}`)];
+  }
+  if (ing.moa) return chipsMoa([ing.moa]);
+  if (ing.tipo) {
+    return [chipsMoa([claveTipo(ing.tipo)]),
+      cita(`No tiene código FRAC, IRAC ni HRAC.${ing.tipoNota ? ` ${ing.tipoNota}.` : ''}`)];
+  }
+  if (ing.moaEtiqueta) return [h('div', { class: 'tenue chico' }, 'Sin grupo'), cita(`En la etiqueta: ${ing.moaEtiqueta}. ${ing.moaNota || ''}`)];
+  return h('span', { class: 'tenue chico' }, 'Sin grupo: no es un ingrediente activo reconocible');
+}
+
 export async function render(main, ctx) {
   const { cat, partes } = ctx;
   const p = cat.productos.get(partes[1]);
@@ -181,7 +204,7 @@ export async function render(main, ctx) {
           p.formulacion ? `${p.formulacion}${p.formulacionCodigo ? ` (${p.formulacionCodigo})` : ''}` : p.formulacionCodigo].filter(Boolean).join(' · ')),
       h('div', { class: 'chips' },
         p.clasificacion ? h('span', { class: 'etiqueta etq-neutra', title: 'Palabra de advertencia en la etiqueta' }, p.clasificacion) : null,
-        chipsMoa(p.moa, p.moaEtiqueta)),
+        p.moa.length ? chipsMoa(p.moa, p.moaEtiqueta) : chipsMoa(p.tipos.map(claveTipo))),
       h('div', { class: 'acciones' },
         p.etiqueta
           ? h('a', { class: 'boton boton-primario', href: p.etiqueta.url, target: '_blank', rel: 'noopener' }, icono('pdf'), 'Abrir etiqueta oficial (PDF)')
@@ -196,14 +219,7 @@ export async function render(main, ctx) {
           h('td', { 'data-etiqueta': 'Ingrediente' }, h('a', { href: ruta('buscar', { ing: x.ing.id }), title: 'Ver otros productos con este ingrediente' }, x.ing.nombre)),
           h('td', { 'data-etiqueta': 'Concentración' }, textoOSinDato(x.conc)),
           h('td', { 'data-etiqueta': 'Grupo químico' }, textoOSinDato(x.ing.grupoQuimico)),
-          h('td', { 'data-etiqueta': 'Modo de acción' }, x.ing.moa
-            ? [chipsMoa([x.ing.moa]), x.ing.moaEtiqueta
-              ? h('span', { class: 'cita' }, `En la etiqueta: ${x.ing.moaEtiqueta}. ${x.ing.moaNota || ''} (tabla oficial ${x.ing.sistema}).`)
-              : null]
-            : x.ing.moaEtiqueta
-              ? [h('div', { class: 'tenue chico' }, 'Sin grupo'),
-                h('span', { class: 'cita' }, `En la etiqueta: ${x.ing.moaEtiqueta}. ${x.ing.moaNota || ''}`)]
-              : h('span', { class: 'tenue chico' }, 'Sin grupo informado')))))))
+          h('td', { 'data-etiqueta': 'Modo de acción' }, celdaMoa(x.ing)))))))
       : h('p', { class: 'nota nota-info' }, 'Sin ingrediente activo registrado en los datos.'),
 
     h('h2', { class: 'titulo-seccion' }, 'Empresas'),
