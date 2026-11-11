@@ -23,8 +23,9 @@ export function cliente() {
   if (!promesaCliente) {
     promesaCliente = esperarLibreria().then((lib) =>
       lib.createClient(SUPABASE_URL, SUPABASE_KEY, {
-        // Fase 1: sin cuentas de usuario. En la Fase 3 (Supabase Auth) se activa la sesión.
-        auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+        // Cuentas (11-11-2026): la sesión de Supabase Auth se guarda en el equipo y se renueva sola.
+        // detectSessionInUrl queda apagado: el sitio usa # para las rutas y no hay links de correo.
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
       })
     );
   }

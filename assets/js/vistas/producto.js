@@ -3,6 +3,8 @@
 import { usosPorProducto, detalleProducto, nombreCorto } from '../db.js';
 import { palabras, puntaje } from '../buscador.js';
 import { claveTipo } from '../moa.js';
+import { botonGuardar } from '../guardar.js';
+import { registrarEvento } from '../cuenta.js';
 import {
   h, agregar, icono, ruta, plural, fecha, limpio, recortar, vaciar, cargando, retrasar, mensajeError,
   dosis, carencia, mojamiento, intervalo, metodo, maxAplicaciones, textoOSinDato, linkPdf, urlDeLinea,
@@ -183,6 +185,7 @@ export async function render(main, ctx) {
     return;
   }
   ctx.titulo(p.nombre);
+  registrarEvento('producto', { producto: p.id });
 
   const documentos = p.documentos.map((d) => h('li', null,
     d.url ? h('a', { class: 'pdf', href: d.url, target: '_blank', rel: 'noopener' }, icono('pdf'), TIPOS_DOC[d.tipo] || 'Documento')
@@ -208,8 +211,12 @@ export async function render(main, ctx) {
         p.moa.length ? chipsMoa(p.moa, p.moaEtiqueta) : chipsMoa(p.tipos.map(claveTipo))),
       h('div', { class: 'acciones' },
         p.etiqueta
-          ? h('a', { class: 'boton boton-primario', href: p.etiqueta.url, target: '_blank', rel: 'noopener' }, icono('pdf'), 'Abrir etiqueta oficial (PDF)')
-          : h('span', { class: 'nota nota-peligro' }, 'La etiqueta PDF de este producto no está disponible en el sistema.'))),
+          ? h('a', {
+            class: 'boton boton-primario', href: p.etiqueta.url, target: '_blank', rel: 'noopener',
+            onclick: () => registrarEvento('etiqueta', { producto: p.id }),
+          }, icono('pdf'), 'Abrir etiqueta oficial (PDF)')
+          : h('span', { class: 'nota nota-peligro' }, 'La etiqueta PDF de este producto no está disponible en el sistema.'),
+        botonGuardar(p, { conTexto: true }))),
     zonaDescripcion,
 
     h('h2', { class: 'titulo-seccion' }, 'Ingredientes activos'),

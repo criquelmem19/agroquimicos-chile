@@ -29,7 +29,9 @@ productores, muchas veces **desde el celular en el campo**.
 - **Recopilador del SAG (desde el 22-10-2026, a pedido de Cristóbal):** cargar todas las etiquetas que publica
   el SAG (~1.500), con cada dato citado. Claude quedó como **recopilador** del proyecto: el mismo flujo sirve para
   las etiquetas nuevas del SAG y para cualquier producto que pida. Ver «Recopilador del SAG».
-- **Fase 3 (no empezar sin que Cristóbal lo pida):** cuentas, planes guardados en la nube y compartidos, foro.
+- **Cuentas, guardados y panel de actividad (11-11-2026, pedido de Cristóbal, fase de prueba):** ver «Cuentas,
+  productos guardados y actividad». Es el comienzo de la Fase 3.
+- **Fase 3 (lo que queda; no empezar sin que Cristóbal lo pida):** planes guardados en la nube y compartidos, foro.
 
 ## Reglas del sitio (obligatorias)
 
@@ -569,6 +571,46 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
 - Diseño: ver «Reglas de estética». La página «Estado de los datos» se eliminó (la vista
   `v_estado_datos` sigue en la base, pero el sitio ya no la usa: pasa los 3 s de la llave pública).
 
+## Cuentas, productos guardados y actividad (11-11-2026)
+
+Pedido de Cristóbal: «crear usuarios… correo y contraseña y listo… un botón guardar antes del de agregar al plan… en
+otro lugar una tabla con los guardados categorizados… y un sitio para mi usuario de administrador que me permita ver la
+actividad». Pidió que **Fable 5.2 dirigiera y usara a los otros modelos**: el diseño quedó en **`docs/cuentas.md`** (el
+contrato: léelo antes de tocar esto) y lo escribieron cuatro subagentes Sonnet en paralelo, cada uno con sus archivos
+(base; cuentas; botón y página de guardados; panel), más una revisión de seguridad con Opus. Así se trabaja de nuevo si
+pide algo grande: contrato escrito, archivos repartidos sin cruce, CSS en parciales que el director une, y el director
+revisa, aplica la base y prueba.
+
+- **Cuentas:** Supabase Auth, correo y contraseña (8 o más). `supabase/config.toml` guarda la configuración (sin
+  secretos): `enable_confirmations = false` (la cuenta queda activa al crearla: el correo gratis de Supabase solo manda 2
+  mensajes por hora), `site_url` y `minimum_password_length = 8`. Se aplica con `supabase config push --project-ref
+  cejkhfugaobfqnjpkgpl` (solo cambia lo que el archivo declara; `supabase config diff` lo muestra antes). **Sin
+  recuperación de contraseña todavía** (pendiente). Antes de abrir el sitio al público: confirmación por correo con un
+  correo propio (SMTP).
+- **Base** (migración `cuentas_guardados_actividad`): `productos_guardados` (RLS: cada persona solo lo suyo),
+  `administradores` (por `user_id`, privada), `actividad` (privada) y las funciones `es_admin()`, `registrar_evento(…)`
+  (topes: 5.000 eventos en 24 h y 60 por minuto por equipo o por usuario; sin equipo ni sesión no anota; nunca lanza error; migración `actividad_topes_y_panel_rapido`) y `admin_panel()` (solo administrador,
+  devuelve todo el panel en un JSON). Con la llave pública y sin sesión, el panel, los guardados y la actividad
+  responden «permission denied» (comprobado).
+- **Administrador:** se marca a mano en la base por `user_id`, nunca por correo ni en el código (el repo es público):
+  `insert into public.administradores (user_id) select id from auth.users where email = '<su correo>';` después de que
+  Cristóbal cree su cuenta en el sitio.
+- **Sitio:** `assets/js/cuenta.js` (sesión, guardados, eventos; `db.js → cliente()` ahora guarda la sesión),
+  `assets/js/guardar.js` (`botonGuardar`: el marcador), `vistas/cuenta.js` (`#/cuenta`: entrar, crear cuenta, cerrar
+  sesión), `vistas/guardados.js` (`#/guardados`, en el menú después de «Buscador»: la misma tabla del buscador agrupada
+  por categoría del producto) y `vistas/admin.js` (`#/admin`, se llega desde «Mi cuenta» si es administrador: números,
+  gráfico de 30 días, usuarios, lo más guardado, visto y buscado, y la actividad reciente). La cabecera lleva el botón
+  de cuenta (persona) antes del de modo claro/oscuro; la barra inferior del celular tiene 6 secciones. En la tabla, la
+  columna **Guardar va antes de Plan**; sin sesión, el botón lleva a `#/cuenta` y, al entrar o crear la cuenta, el
+  producto queda guardado y vuelve a donde estaba.
+- **Actividad:** eventos `visita`, `busqueda`, `producto`, `etiqueta`, `plan`, `guardar`, `quitar`, `registro`,
+  `ingreso`, con un identificador al azar del equipo (`localStorage` `dispositivo`), sin datos personales. **En localhost
+  no se anota nada** (`cuenta.js → EN_DESARROLLO`). La tabla `actividad` crece: mirar su tamaño de vez en cuando (límite
+  de la base: 400 MB); no se borra sola.
+- **Pruebas:** Claude no puede crear cuentas ni escribir contraseñas en el sitio (reglas de seguridad): la base se probó
+  con usuarios simulados dentro de una transacción que se deshace, y las pantallas sin sesión en el navegador. Crear
+  cuenta, entrar, guardar y el panel con sesión los prueba Cristóbal.
+
 ## Planes guardados (link personal, sin cuentas)
 
 - Tabla privada `planes_guardados` (clave secreta ≥ 32 caracteres, descripción, `datos` = `{version, planes}`
@@ -587,8 +629,7 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
   es claro). Cargar: INSERT a `planes_guardados` con el JSON (en partes si es largo) y comprobar con una
   suma md5 por plan (id, ddt, producto, dosis, objetivo…) calculada igual en Python y en SQL.
 - Fase 3 sin rehacer: agregar secciones en `SECCIONES` de `app.js` (menú + ruta) y vistas nuevas en
-  `assets/js/vistas/`. El cliente de Supabase está en `db.js → cliente()`; para Auth, activar
-  `persistSession` allí.
+  `assets/js/vistas/`. El cliente de Supabase está en `db.js → cliente()` (desde el 11-11-2026 con `persistSession`).
 - GitHub Pages cachea ~10 minutos: después de publicar, los cambios pueden tardar en verse.
 
 ## Mantener Supabase despierto
@@ -772,7 +813,8 @@ Carencia de 2 % a 89,5 % de las líneas de la carga original, con cita y página
 
 ## Fase 3 (más adelante; no empezar sin pedido)
 
-Cuentas con Supabase Auth, planes de manejo, planificación de aplicaciones, foro con experiencias.
+Las cuentas con Supabase Auth ya están (11-11-2026, ver «Cuentas, productos guardados y actividad»). Queda: planes de
+manejo y planes de aplicación en la nube, foro con experiencias.
 Tablas nuevas con RLS por `auth.uid()`; el foro necesita moderación. Decidir si el catálogo sigue con
 lectura pública completa (hoy cualquiera con la llave pública puede descargarlo entero).
 

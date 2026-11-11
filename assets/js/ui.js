@@ -57,6 +57,11 @@ const ICONOS = {
   calendario: '<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17.2h.01M12 17.2h.01"/>',
   mas: '<path d="M12 5v14M5 12h14"/>',
   chevron: '<path d="m6 9 6 6 6-6"/>',
+  // Cuentas y guardados (11-11-2026): marcador (guardar), su versión rellena (guardado), persona y salir.
+  marcador: '<path d="M7 3.5h10a1.5 1.5 0 0 1 1.5 1.5v15.5L12 16.5l-6.5 4V5A1.5 1.5 0 0 1 7 3.5z"/>',
+  marcadorLleno: '<path d="M7 3.5h10a1.5 1.5 0 0 1 1.5 1.5v15.5L12 16.5l-6.5 4V5A1.5 1.5 0 0 1 7 3.5z" fill="currentColor"/>',
+  usuario: '<circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c.9-3.6 3.9-5.5 7.5-5.5s6.6 1.9 7.5 5.5"/>',
+  salir: '<path d="M14 4.5H7A1.5 1.5 0 0 0 5.5 6v12A1.5 1.5 0 0 0 7 19.5h7"/><path d="M10.5 12h9"/><path d="m16.5 8.5 3.5 3.5-3.5 3.5"/>',
   info: '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5"/><path d="M12 7.8v.01"/>',
   basura: '<path d="M4 7h16M10 11v6M14 11v6"/><path d="m6 7 1 12.4A2 2 0 0 0 9 21h6a2 2 0 0 0 2-1.6L18 7"/><path d="M9 7V4.5h6V7"/>',
   lapiz: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',

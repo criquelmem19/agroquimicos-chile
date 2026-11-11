@@ -8,6 +8,10 @@ import * as vistaTrivia from './vistas/trivia.js';
 import * as vistaModos from './vistas/modos.js';
 import * as vistaMezclas from './vistas/mezclas.js';
 import * as vistaGrupo from './vistas/grupo.js';
+import * as vistaCuenta from './vistas/cuenta.js';
+import * as vistaGuardados from './vistas/guardados.js';
+import * as vistaAdmin from './vistas/admin.js';
+import { iniciarCuenta, usuario, alCambiarCuenta, registrarEvento } from './cuenta.js';
 
 const NOMBRE_SITIO = 'Agroquímicos CRM';
 
@@ -17,13 +21,15 @@ const NOMBRE_SITIO = 'Agroquímicos CRM';
 const SECCIONES = [
   { camino: '', titulo: '', menu: 'Inicio', corto: 'Inicio', icono: 'casa', vista: vistaModos },
   { camino: 'buscar', titulo: 'Buscador', menu: 'Buscador', corto: 'Buscar', icono: 'buscar', vista: vistaInicio },
+  { camino: 'guardados', titulo: 'Guardados', menu: 'Guardados', corto: 'Guardados', icono: 'marcador', vista: vistaGuardados },
   { camino: 'mezclas', titulo: 'Mezclas', menu: 'Mezclas', corto: 'Mezclas', icono: 'frasco', vista: vistaMezclas },
   { camino: 'plan', titulo: 'Plan de aplicaciones', menu: 'Plan', corto: 'Plan', icono: 'calendario', vista: vistaPlan },
   { camino: 'trivia', titulo: 'Trivia', menu: 'Trivia', corto: 'Trivia', icono: 'trofeo', vista: vistaTrivia },
 ];
 // Rutas que no van en el menú.
 // grupo: cómo actúa un código, sus productos y qué controlan (desde el título de cada grupo del buscador, 11-11-2026).
-const OTRAS = { producto: vistaProducto, grupo: vistaGrupo };
+// cuenta y admin: cuentas y panel de actividad (11-11-2026); se llega desde el botón de la cabecera.
+const OTRAS = { producto: vistaProducto, grupo: vistaGrupo, cuenta: vistaCuenta, admin: vistaAdmin };
 // Links antiguos (guardados o compartidos). Estas secciones ahora son el buscador y se abren ahí con sus filtros.
 // «mapa»: quitado por un tiempo a pedido de Cristóbal (31-10-2026); su código sigue en vistas/mapa.js.
 const AL_BUSCADOR = ['aplicar', 'productos', 'mapa'];
@@ -131,6 +137,7 @@ async function mostrar(evento) {
   contexto.titulo(seccion ? (seccion.camino ? seccion.titulo : '') : '');
 
   if (cambioDePagina) {
+    registrarEvento('visita', { ruta: clave || 'inicio' });
     window.scrollTo(0, 0);
     if (document.activeElement && document.activeElement !== document.body) principal.focus({ preventScroll: true });
   }
@@ -176,8 +183,42 @@ function iniciarTema() {
   }
 }
 
+// Botón de cuenta de la cabecera: persona; con sesión, resaltado y con el correo en su nombre.
+function pintarCuenta() {
+  const boton = document.querySelector('[data-cuenta-boton]');
+  if (!boton) return;
+  const u = usuario();
+  vaciar(boton).append(icono('usuario'));
+  boton.classList.toggle('con-sesion', Boolean(u));
+  const texto = u ? `Mi cuenta: ${u.correo}` : 'Entrar o crear cuenta';
+  boton.title = texto;
+  boton.setAttribute('aria-label', texto);
+  boton.hidden = false;
+}
+
+// Cuentas: no frena la carga del catálogo y un error ahí no bota el sitio.
+let usuarioVisto = null;
+function iniciarCuentas() {
+  pintarCuenta();
+  try {
+    alCambiarCuenta(() => {
+      pintarCuenta();
+      const u = usuario();
+      const id = u ? u.id : null;
+      if (id === usuarioVisto) return;
+      usuarioVisto = id;
+      // Entró o salió: las páginas que dependen de la sesión se dibujan de nuevo.
+      if (catalogo && ['guardados', 'cuenta', 'admin'].includes(leerRuta().partes[0])) mostrar();
+    });
+    iniciarCuenta().then(pintarCuenta, (err) => console.error(err));
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 async function iniciar() {
   iniciarTema();
+  iniciarCuentas();
   pintarMenus(leerRuta().partes[0] || '');
   let carga;
   try {

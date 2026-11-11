@@ -1416,3 +1416,141 @@ a.md-envase:hover { border-color: var(--tinta); }
   .gr-productos td:first-child { padding-left: 0; }
   .gr-productos td:last-child { grid-row: 1 / span 4; grid-column: 2; align-self: center; }
 }
+
+/* ---------- Cuentas: botón de la cabecera, vista #/cuenta y barra inferior con 6 secciones (11-11-2026) ---------- */
+/* Cuentas y guardados (11-11-2026). Parcial: se une a app.css después. Solo variables del sitio. */
+
+/* Botón de cuenta de la cabecera (index.html, app.js → pintarCuenta). */
+.boton-cuenta {
+  flex: none; margin-left: auto; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+  border: 1px solid var(--linea-campo); background: var(--superficie); color: var(--tinta); text-decoration: none; cursor: pointer;
+}
+.boton-cuenta[hidden] { display: none; }
+.boton-cuenta svg { width: 18px; height: 18px; }
+.boton-cuenta:hover { border-color: var(--acento); color: var(--acento-texto); }
+.boton-cuenta.con-sesion { background: var(--acento-suave); border-color: var(--acento-linea); color: var(--acento-texto); }
+.boton-cuenta + .boton-tema { margin-left: 8px; }
+@media (min-width: 900px) {
+  .boton-cuenta { margin-left: 8px; }
+}
+
+/* Barra inferior del celular con 6 secciones: caben en 360 px sin desplazarse hacia los lados. */
+@media (max-width: 899px) {
+  .nav-inf a { min-width: 0; padding: 0 2px; font-size: 11px; gap: 4px; }
+  .nav-inf .nav-ico { width: 44px; }
+  .nav-inf a > :not(.nav-ico) { max-width: 100%; }
+}
+@media (max-width: 380px) {
+  .nav-inf a { font-size: 10.5px; letter-spacing: -.1px; }
+  .nav-inf .nav-ico { width: 40px; }
+}
+
+/* Página de cuenta */
+.cu-pagina { display: flex; justify-content: center; padding: 16px 0 24px; }
+.cu-tarjeta { width: 100%; max-width: 420px; padding: 24px; }
+.cu-titulo { font-size: 24px; margin-bottom: 16px; }
+.cu-guardar {
+  display: flex; align-items: center; gap: 8px; margin: 0 0 16px; padding: 8px 12px;
+  border-radius: var(--radio-medio); background: var(--acento-suave); border: 1px solid var(--acento-linea);
+  color: var(--tinta); font-size: 15px;
+}
+.cu-guardar svg { width: 18px; height: 18px; flex: none; color: var(--acento-texto); }
+.cu-pestanas { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin-bottom: 16px; border-radius: 999px; background: var(--superficie-2); border: 1px solid var(--linea); }
+.cu-pestana {
+  min-height: 40px; border: 0; border-radius: 999px; background: transparent; color: var(--tinta-2);
+  font: inherit; font-size: 15px; font-weight: 500; cursor: pointer;
+}
+.cu-pestana:hover { color: var(--tinta); }
+.cu-pestana[aria-selected="true"] { background: var(--marca); color: var(--marca-tinta); }
+.cu-form { display: flex; flex-direction: column; gap: 16px; }
+.cu-campo { display: flex; flex-direction: column; gap: 4px; }
+.cu-campo label { font-size: 14px; font-weight: 500; color: var(--tinta-2); }
+.cu-clave { display: flex; align-items: center; gap: 8px; }
+.cu-clave .entrada { flex: 1; min-width: 0; }
+.cu-ver { flex: none; min-width: 72px; }
+.cu-ayuda { margin: 0; font-size: 14px; color: var(--tinta-3); }
+.cu-error { min-height: 0; margin: 0; font-size: 15px; font-weight: 500; color: var(--peligro-tinta); overflow-wrap: anywhere; }
+.cu-error:not(:empty) {
+  padding: 8px 12px; border-radius: var(--radio-medio); background: var(--peligro-fondo); border: 1px solid var(--peligro-linea);
+}
+.cu-enviar { width: 100%; }
+.cu-correo { display: flex; flex-direction: column; gap: 4px; margin: 0 0 24px; overflow-wrap: anywhere; }
+.cu-correo strong { font-weight: 500; font-size: 17px; }
+.cu-etiqueta { font-size: 14px; color: var(--tinta-3); }
+.cu-acciones { display: flex; flex-direction: column; gap: 8px; }
+.cu-acciones .boton { width: 100%; white-space: normal; text-align: center; }
+
+/* ---------- Guardados: botón Guardar, columna nueva y tarjetas del celular (11-11-2026) ---------- */
+/* Botón «Guardar» y su columna en la tabla (11-11-2026). Parcial: se une al final de app.css. */
+.boton-guardar svg { width: 18px; height: 18px; }
+.boton-redondo.boton-guardar { width: 36px; height: 36px; }
+.boton-guardar.guardado {
+  color: var(--acento-texto); border-color: var(--acento-linea); background: var(--acento-suave);
+}
+.boton-guardar:disabled { opacity: .5; cursor: default; }
+.c-guardar .boton-guardar { margin: 0 auto; }
+
+/* Nueve columnas: suman 100 %. */
+.col-producto { width: 19%; }
+.col-moa { width: 18%; }
+.col-empresa { width: 11%; }
+.col-ing { width: 17%; }
+.col-tipo { width: 5%; }
+.col-cultivos { width: 16.5%; }
+.col-etiqueta { width: 4.5%; }
+.col-guardar { width: 4.5%; }
+.col-plan { width: 4.5%; }
+
+@media (max-width: 1099px) {
+  /* De izquierda a derecha, arriba a la derecha de la tarjeta: PDF, Guardar, Plan. */
+  .c-plan { right: 12px; }
+  .c-guardar { position: absolute; top: 12px; right: 56px; width: auto; }
+  .c-etiqueta { right: 100px; }
+  .c-producto { padding-right: 140px !important; }
+}
+
+/* ---------- Panel del administrador (#/admin, 11-11-2026) ---------- */
+/* Actividad del sitio (#/admin). Parcial: se une a app.css. Solo variables de color de app.css. */
+.ad-cabeza { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px; margin-bottom: 16px; }
+.ad-cabeza h1 { margin: 0; }
+.ad-cabeza-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.ad-hora { font-size: 14px; color: var(--tinta-3); }
+
+.ad-numeros { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.ad-numero { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ad-numero p { margin: 0; }
+.ad-numero-titulo { font-size: 14px; font-weight: 500; color: var(--tinta-3); }
+.ad-numero-grande { font-size: 32px; font-weight: 600; line-height: 1.2; color: var(--tinta); }
+.ad-numero-detalle { font-size: 14px; color: var(--tinta-2); }
+
+.ad-grafico { display: flex; gap: 8px; align-items: flex-start; padding-bottom: 28px; }
+.ad-eje { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; height: 160px; font-size: 12px; color: var(--tinta-3); }
+.ad-barras { flex: 1; min-width: 0; display: flex; align-items: flex-end; gap: 2px; border-bottom: 1px solid var(--linea-fuerte); }
+.ad-col { flex: 1 1 0; min-width: 0; position: relative; }
+.ad-barra-zona { height: 160px; display: flex; align-items: flex-end; }
+.ad-barra { display: block; width: 100%; background: var(--acento); border-radius: 2px 2px 0 0; transition: background var(--rapido) var(--curva); }
+.ad-barra-cero { height: 1px; background: var(--linea-fuerte); border-radius: 0; }
+.ad-col:hover .ad-barra:not(.ad-barra-cero) { background: var(--marca-hover); }
+.ad-dia { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 4px; font-size: 12px; line-height: 16px; color: var(--tinta-3); white-space: nowrap; }
+
+.ad-detalle { margin-top: 12px; border-top: 1px solid var(--linea); padding-top: 12px; }
+.ad-detalle summary { cursor: pointer; font-weight: 500; color: var(--tinta-2); }
+
+.ad-tarjeta-tabla { padding: 8px 12px; }
+.ad-tabla { overflow-x: auto; max-width: 100%; }
+.ad-tabla .tabla-simple { min-width: 360px; }
+.ad-num { text-align: right; white-space: nowrap; }
+.ad-vacio { margin: 0; padding: 12px 8px; color: var(--tinta-3); }
+.ad-etiqueta {
+  display: inline-block; margin-left: 8px; padding: 0 8px; border-radius: var(--radio-tag);
+  background: var(--acento-suave); color: var(--acento-texto); border: 1px solid var(--acento-linea);
+  font-size: 12px; font-weight: 500; line-height: 20px; vertical-align: 2px;
+}
+
+@media (max-width: 900px) { .ad-numeros { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) {
+  .ad-numeros { grid-template-columns: minmax(0, 1fr); }
+  .ad-numero-grande { font-size: 28px; }
+  .ad-tarjeta-tabla { padding: 4px 8px; }
+  .ad-tabla .tabla-simple { min-width: 480px; }
+}

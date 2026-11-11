@@ -1,0 +1,15 @@
+# Configuración del proyecto de Supabase que se guarda en el repo (sin secretos). Solo lo que aparece aquí se aplica
+# con `supabase config push --project-ref cejkhfugaobfqnjpkgpl`; lo demás queda como está en el proyecto.
+# 11-11-2026 (cuentas de usuario, fase de prueba): correo y contraseña, sin correo de confirmación.
+project_id = "cejkhfugaobfqnjpkgpl"
+
+[auth]
+site_url = "https://criquelmem19.github.io/agroquimicos-chile/"
+additional_redirect_urls = ["https://criquelmem19.github.io/agroquimicos-chile/"]
+minimum_password_length = 8
+
+[auth.email]
+enable_signup = true
+# Fase de prueba: la cuenta queda activa al crearla (sin correo de confirmación; el correo gratis de Supabase solo
+# permite 2 mensajes por hora). Antes de abrir el sitio al público: activar la confirmación con un correo propio.
+enable_confirmations = false

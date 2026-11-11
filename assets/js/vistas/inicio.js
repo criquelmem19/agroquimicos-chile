@@ -14,6 +14,8 @@ import {
   h, icono, ruta, plural, recortar, limpio, vaciar, cargando, retrasar, globo, selectorMultiple, dibujoComite,
   chipsMoa, chipMoa, ingredientesTexto, resumenDosis,
 } from '../ui.js';
+import { botonGuardar } from '../guardar.js';
+import { registrarEvento } from '../cuenta.js';
 import { queHace, breve, nombreClave, TIPOS, ORDEN_TIPOS, claveTipo, tipoDeClave } from '../moa.js';
 
 // La vista usa todo el ancho de la pantalla (app.js).
@@ -38,10 +40,10 @@ const MAYOR_PRIMERO = new Set(['cultivos']);
 // 10-11-2026). Lo que no cabe se ve al pasar el mouse, en la burbuja de cultivos o en la ficha.
 // 11-11-2026 (Cristóbal: «reducir tanta info»): sin registro SAG ni dosis; este orden; todo centrado y una línea por
 // celda, salvo los ingredientes (uno por línea, completos); la etiqueta y el plan como íconos al final.
-const COLUMNAS = [
+export const COLUMNAS = [
   ['Producto', 'nombre', 'producto'], ['Modo de acción', 'moa', 'moa'], ['Empresa', 'empresa', 'empresa'],
   ['Ingrediente activo', 'ing', 'ing'], ['Tipo', 'tipo', 'tipo'], ['Cultivos', 'cultivos', 'cultivos'],
-  ['Etiqueta', null, 'etiqueta'], ['Plan', null, 'plan'],
+  ['Etiqueta', null, 'etiqueta'], ['Guardar', null, 'guardar'], ['Plan', null, 'plan'],
 ];
 // Secciones de la tabla agrupada: una por comité (y los sin código al final), sobre los grupos de cada código.
 const SECCIONES = {
@@ -179,7 +181,7 @@ function listaCultivos(cultivos) {
 // En el celular las celdas sin dato no se muestran (en la tabla quedan con «—»).
 const vacia = (clase, valor) => (valor ? clase : `${clase} vacia`);
 
-function fila(p, info, op) {
+export function fila(p, info, op) {
   const url = p.etiqueta && p.etiqueta.url;
   const principal = p.empresas[0];
   const tipo = tipoDe(p);
@@ -212,9 +214,13 @@ function fila(p, info, op) {
       url ? h('a', {
         class: 'boton-etiqueta', href: url, target: '_blank', rel: 'noopener',
         title: 'Abrir la etiqueta (PDF)', 'aria-label': `Abrir la etiqueta de ${p.nombre} (PDF)`,
+        onclick: () => registrarEvento('etiqueta', { producto: p.id }),
       }, icono('pdfLleno')) : h('span', { class: 'tenue', title: 'Sin PDF de la etiqueta en el sistema' }, '—')),
+    // El marcador va justo antes del botón del plan (pedido de Cristóbal, 11-11-2026).
+    h('td', { class: 'c-guardar' }, botonGuardar(p)),
     h('td', { class: 'c-plan' }, h('a', {
       class: 'boton-redondo', href: ruta('plan', { producto: p.id }),
+      onclick: () => registrarEvento('plan', { producto: p.id }),
       title: 'Agregar al plan de aplicaciones', 'aria-label': `Agregar ${p.nombre} al plan de aplicaciones`,
     }, icono('calendario'))));
 }
@@ -260,12 +266,12 @@ function filaGrupo(clave, productos) {
       masInfo)));
 }
 
-// alOrdenar(clave): tocar el título de una columna.
-function tabla(orden, alOrdenar) {
+// alOrdenar(clave): tocar el título de una columna (sin él, los títulos no se ordenan: página de guardados).
+export function tabla(orden, alOrdenar) {
   return h('table', { class: 'tabla-productos' },
     h('colgroup', null, COLUMNAS.map(([, , ancho]) => h('col', { class: `col-${ancho}` }))),
     h('thead', null, h('tr', null, COLUMNAS.map(([titulo, clave]) => {
-      if (!clave) return h('th', { scope: 'col', 'aria-label': titulo || 'Agregar al plan', class: titulo ? null : 'c-plan' }, titulo);
+      if (!clave || !alOrdenar) return h('th', { scope: 'col', 'aria-label': titulo || 'Agregar al plan', class: titulo ? null : 'c-plan' }, titulo);
       const activa = orden.clave === clave;
       const flecha = activa ? (orden.descendente ? 'abajo' : 'arriba') : 'orden';
       // La última palabra va pegada a la flecha: si el título se parte, la flecha no queda sola en una línea.
@@ -624,6 +630,12 @@ export async function render(main, ctx) {
   };
 
   texto.addEventListener('input', retrasar(() => { estado.q = limpio(texto.value); pintar(); }, 150));
+  // Evento «busqueda»: 2 segundos después de dejar de escribir, con 3 letras o más y sin repetir el mismo texto seguido.
+  let ultimaBusqueda = '';
+  texto.addEventListener('input', retrasar(() => {
+    const t = limpio(texto.value);
+    if (t.length >= 3 && t !== ultimaBusqueda) { ultimaBusqueda = t; registrarEvento('busqueda', { detalle: t }); }
+  }, 2000));
   texto.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); texto.blur(); } });
   pintar();
 }
