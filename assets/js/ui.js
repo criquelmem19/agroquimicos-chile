@@ -56,6 +56,8 @@ const ICONOS = {
   rotar: '<path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v5h-5"/>',
   calendario: '<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 17.2h.01M12 17.2h.01"/>',
   mas: '<path d="M12 5v14M5 12h14"/>',
+  chevron: '<path d="m6 9 6 6 6-6"/>',
+  info: '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5"/><path d="M12 7.8v.01"/>',
   basura: '<path d="M4 7h16M10 11v6M14 11v6"/><path d="m6 7 1 12.4A2 2 0 0 0 9 21h6a2 2 0 0 0 2-1.6L18 7"/><path d="M9 7V4.5h6V7"/>',
   lapiz: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
   imprimir: '<path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/>',
@@ -472,4 +474,113 @@ export function combo({ id, titulo, placeholder, elegido, opciones, quitar }) {
     else if (e.key === 'ArrowUp') { e.preventDefault(); if (i > 0) botones[i - 1].focus(); else entrada.focus(); }
   });
   return h('div', { class: 'filtro filtro-ancho' }, h('label', { class: 'filtro-titulo', for: id }, titulo), caja);
+}
+
+// ---------- Dibujos de los comités ----------
+// Hongo (FRAC), insecto (IRAC) y maleza (HRAC), solo líneas. Los usa el inicio (en su cuadrito de color) y, chicos y del
+// color de su comité, la tabla del buscador antes del nombre de cada producto y la página de cada grupo (11-11-2026).
+const DIBUJOS_COMITE = {
+  frac: '<path d="M8 31c0-13 11-22 24-22s24 9 24 22c0 2-2 3-4 3H12c-2 0-4-1-4-3z"/><path d="M24 34v14c0 4 4 7 8 7s8-3 8-7V34"/><circle cx="22" cy="21" r="3"/><circle cx="36" cy="16" r="2.5"/><circle cx="44" cy="25" r="3"/><path d="M10 58h44"/>',
+  irac: '<ellipse cx="32" cy="38" rx="13" ry="16"/><circle cx="32" cy="17" r="6"/><path d="M32 23v31"/><path d="M19 31l-9-5M19 39H8M20 47l-8 6M45 31l9-5M45 39h11M44 47l8 6"/><path d="M29 12l-5-7M35 12l5-7"/>',
+  hrac: '<path d="M8 57h48"/><path d="M32 57V28"/><path d="M32 42c-10 0-16-6-17-14 9 0 16 5 17 14z"/><path d="M32 35c9 0 15-6 16-13-9 0-15 5-16 13z"/><path d="M14 57c0-8 2-14 6-18M50 57c0-8-2-13-6-17M21 57c0-5 1-9 3-11"/>',
+};
+
+export function dibujoComite(clase, claseCss = 'md-dibujo', grosor = '2.5') {
+  const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  for (const [k, v] of Object.entries({
+    viewBox: '0 0 64 64', fill: 'none', stroke: 'currentColor', 'stroke-width': grosor,
+    'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true', focusable: 'false', class: claseCss,
+  })) s.setAttribute(k, v);
+  s.innerHTML = DIBUJOS_COMITE[clase] || '';
+  return s;
+}
+
+// ---------- Lista desplegable con varias opciones (filtros del buscador) ----------
+// Pedido de Cristóbal (11-11-2026): «las listas desplegables de los filtros son horribles, hazlas todas iguales, modernas,
+// pudiendo seleccionar varias cosas». Un botón con lo elegido; al tocarlo se abre un panel con un buscador arriba y la
+// lista con casillas (en el celular, una hoja desde abajo). Lo elegido se aplica al cerrar: «Listo», Esc o tocar afuera.
+// opciones(texto) → [{ valor, etiqueta, detalle, clase }]; elegidos: [{ valor, etiqueta }]; alAplicar(elegidos).
+let selectorAbierto = null;
+
+export function selectorMultiple({ id, titulo, vacio = 'Todos', buscar = 'Buscar…', opciones, elegidos = [], alAplicar }) {
+  const inicial = elegidos.map((e) => e.valor).sort().join('|');
+  const seleccion = new Map(elegidos.map((e) => [e.valor, e]));
+  const valor = h('span', { class: 'sm-valor' });
+  const boton = h('button', {
+    type: 'button', class: 'sm-boton', id, 'aria-haspopup': 'listbox', 'aria-expanded': 'false',
+  }, valor, icono('chevron'));
+  const entrada = h('input', {
+    class: 'sm-buscar', type: 'search', placeholder: buscar, autocomplete: 'off', spellcheck: 'false',
+    'aria-label': `Buscar en ${titulo.toLowerCase()}`, enterkeyhint: 'search',
+  });
+  const lista = h('div', { class: 'sm-lista', role: 'listbox', 'aria-multiselectable': 'true', 'aria-label': titulo });
+  const cuenta = h('span', { class: 'sm-cuenta' });
+  const panel = h('div', { class: 'sm-panel', hidden: true, role: 'dialog', 'aria-label': titulo },
+    h('div', { class: 'sm-cabeza' }, h('strong', null, titulo), cuenta),
+    h('div', { class: 'busqueda sm-busqueda' }, icono('buscar'), entrada),
+    lista,
+    h('div', { class: 'sm-pie' },
+      h('button', { type: 'button', class: 'boton-texto', onclick: () => { seleccion.clear(); pintar(); } }, 'Quitar todo'),
+      h('button', { type: 'button', class: 'boton boton-primario boton-chico', onclick: () => cerrar() }, 'Listo')));
+  const caja = h('div', { class: 'filtro sm' },
+    h('label', { class: 'filtro-titulo', for: id }, titulo),
+    h('div', { class: 'sm-ancla' }, boton, panel));
+
+  function pintarBoton() {
+    const xs = [...seleccion.values()];
+    valor.textContent = !xs.length ? vacio : xs.length === 1 ? xs[0].etiqueta : `${xs[0].etiqueta} +${xs.length - 1}`;
+    valor.title = xs.map((x) => x.etiqueta).join(', ');
+    boton.classList.toggle('sm-con', xs.length > 0);
+  }
+  function pintar() {
+    vaciar(lista);
+    const ops = opciones(entrada.value) || [];
+    // Lo elegido va siempre arriba (para poder quitarlo aunque no calce con lo escrito).
+    const vistos = new Set(ops.map((o) => o.valor));
+    const todas = [...[...seleccion.values()].filter((e) => !vistos.has(e.valor)), ...ops];
+    if (!todas.length) lista.append(h('p', { class: 'sm-nada' }, 'Nada calza con lo escrito'));
+    for (const o of todas) {
+      const marcado = seleccion.has(o.valor);
+      lista.append(h('button', {
+        type: 'button', role: 'option', 'aria-selected': String(marcado), class: `sm-opcion${o.clase ? ` ${o.clase}` : ''}`,
+        onclick: () => {
+          if (seleccion.has(o.valor)) seleccion.delete(o.valor); else seleccion.set(o.valor, { valor: o.valor, etiqueta: o.etiqueta });
+          pintar();
+        },
+      }, h('span', { class: 'sm-casilla', 'aria-hidden': 'true' }, marcado ? icono('check') : null),
+      h('span', { class: 'sm-etiqueta' }, o.etiqueta), o.detalle ? h('span', { class: 'sm-detalle' }, o.detalle) : null));
+    }
+    cuenta.textContent = seleccion.size ? `${seleccion.size} elegido${seleccion.size === 1 ? '' : 's'}` : '';
+    pintarBoton();
+  }
+  const fuera = (e) => { if (!caja.contains(e.target)) cerrar(); };
+  const teclas = (e) => { if (e.key === 'Escape') { e.preventDefault(); cerrar(); boton.focus(); } };
+  function abrir() {
+    if (selectorAbierto && selectorAbierto !== cerrar) selectorAbierto();
+    selectorAbierto = cerrar;
+    entrada.value = '';
+    panel.hidden = false;
+    caja.classList.add('sm-abierto');
+    boton.setAttribute('aria-expanded', 'true');
+    pintar();
+    // En el celular el teclado taparía la lista: allí no se enfoca el buscador solo.
+    if (!matchMedia('(max-width: 699px)').matches) entrada.focus();
+    document.addEventListener('pointerdown', fuera, true);
+    document.addEventListener('keydown', teclas, true);
+  }
+  function cerrar() {
+    if (panel.hidden) return;
+    panel.hidden = true;
+    caja.classList.remove('sm-abierto');
+    boton.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('pointerdown', fuera, true);
+    document.removeEventListener('keydown', teclas, true);
+    if (selectorAbierto === cerrar) selectorAbierto = null;
+    const ahora = [...seleccion.keys()].sort().join('|');
+    if (ahora !== inicial) alAplicar([...seleccion.values()]);
+  }
+  boton.addEventListener('click', () => (panel.hidden ? abrir() : cerrar()));
+  entrada.addEventListener('input', retrasar(pintar, 100));
+  pintarBoton();
+  return caja;
 }

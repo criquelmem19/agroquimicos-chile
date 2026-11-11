@@ -200,6 +200,8 @@ recibe «permission denied» (verificado el 20-10-2026).
   Integral, productos sin ningún dato). No se borró nada. El sitio no los pone en ninguna lista (`db.js → enListas`,
   tabla, filtros, Mezclas, Plan, inicio, trivia); su ficha abre por link con una nota. Mostrar uno de nuevo: dejar su
   `oculto_motivo` en null (migración `productos_ocultos`).
+- `objetivos_de_productos(uuid[])` (11-11-2026, SECURITY INVOKER): plagas, enfermedades y malezas de las etiquetas de
+  unos productos, por nombre común sin tildes ni punto final, con cuántos productos las nombran (página de cada grupo).
 - `mv_sitio_objetivo_producto` (11-11-2026, ~17.800 filas, 4 MB) y la función `productos_por_objetivo(texto)`
   (SECURITY INVOKER, solo texto ya normalizado de 3–60 letras y números): buscador principal por plaga, enfermedad o
   maleza. Se renueva con las demás copias (`renovar_copias_sitio()`).
@@ -339,8 +341,8 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     nombre, cómo es, paso, cuidado), por qué una mezcla sale mal (física, química, fitotoxicidad, antagonismo) y la prueba
     de la jarra. Cada paso tiene su fondo suave (agua azul claro, sólidos gris, suspensiones verde, emulsiones amarillo, solubles azul).
     Es explicación general: siempre dice que manda la etiqueta. Fertilizantes y bioestimulantes: «según su etiqueta».
-  - `#/buscar?cultivo=<id>&objetivo=<id>&oq=<texto>&cat=<id>&q=<texto>&empresa=<nombre corto>&moa=<clave>|sin&ing=<id>&orden=moa|nombre|empresa|tipo|ing|registro|cultivos&inv=1`
-    **Buscador** (fue el inicio hasta el 02-11-2026; los links antiguos al inicio con alguno de esos filtros, y
+  - `#/buscar?cultivo=<id>,<id>…&objetivo=<id>,…&oq=<texto>&cat=<id>,…&q=<texto>&empresa=<nombre corto>,…&moa=<clave>|sin&ing=<id>&orden=moa|nombre|empresa|tipo|ing|cultivos&inv=1`
+    **Buscador** (título «Buscador de productos» desde el 11-11-2026; antes «¿Qué aplico?») (fue el inicio hasta el 02-11-2026; los links antiguos al inicio con alguno de esos filtros, y
     `#/aplicar`, `#/productos` y `#/mapa`, se abren aquí: `AL_BUSCADOR` y `FILTROS_TABLA` en `app.js`). «¿Qué aplico?»
     (rehecho el 27-10-2026 a pedido de Cristóbal; vista `assets/js/vistas/inicio.js`):
     arriba el **buscador principal** («Buscar en la tabla», `q`; pedido del 31-10-2026): filtra mientras se escribe y
@@ -377,6 +379,16 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     `v_sitio_resumen_productos` la llevaba a 3 s). Ya no aparece «Ver en la etiqueta» (solo «Sin dosis en los datos»).
     **Sin carencia ni reingreso en esta tabla** (pidió sacarlos; siguen en la ficha y en el plan). Con cultivo u
     objetivo, los cultivos salen solo de las líneas que calzan (Enter en el objetivo = «Todos los que dicen…»).
+    **Filtros (11-11-2026, tercera pasada de Cristóbal):** arriba el buscador de todo («Buscar en todo») con una **X** a
+    la derecha que borra todos los filtros; debajo, **cuatro listas iguales** (Cultivo, Plaga/enfermedad/maleza, Tipo,
+    Empresa; dos por fila en el celular) hechas con `ui.js → selectorMultiple`: un botón con lo elegido que abre un panel
+    con buscador y casillas (en el celular, una hoja desde abajo); se pueden elegir **varias** opciones (vale cualquiera)
+    y se aplica al cerrar («Listo», Esc o tocar afuera). Varios cultivos: se juntan sus líneas; plaga «Todos los que dicen
+    «x»» sigue como opción (`oq`). **Sin la lista de modo de acción** («nadie lo va a usar»): `moa=` llega desde los chips
+    y se ve como chip «Modo de acción: … ×» sobre la tabla. **Antes del nombre de cada producto, el dibujo de su comité**
+    (hongo, insecto, maleza: `ui.js → dibujoComite`, el mismo del inicio, solo líneas y del color del comité), en una
+    columna fija a la izquierda de la celda. **El título de cada grupo** lleva el botón «Cómo actúa y qué controla» a la
+    página del grupo (`#/grupo/…`, ver abajo).
     **Agrupada (11-11-2026, «menos tedioso»):** una **sección por comité** («FRAC · Fungicidas y bactericidas», «IRAC ·
     Insecticidas, acaricidas y nematicidas», «HRAC · Herbicidas», «Sin código de rotación», con cuántos son) y, dentro,
     el título de cada grupo en una línea: el chip, una **frase breve** (`moa.js → BREVE`/`breve()`, unas pocas palabras;
@@ -395,6 +407,14 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     combinación de grupos («FRAC 7 + FRAC 11») van juntos, bajo un título con el grupo, el grupo químico y cuántos son,
     y con una franja del color del sistema; los sin grupo al final. Se agrupa por **código actual y familia**: ver
     «Códigos de modo de acción» más abajo.
+  - `#/grupo/<clave>` **Página de un grupo** (11-11-2026, Cristóbal: «un lugar donde te explique los IRAC que tocaste,
+    cómo actúa y qué productos son, qué busca controlar»; `assets/js/vistas/grupo.js`). Clave: un código («FRAC 3»), una
+    combinación («FRAC 7 + FRAC 11») o un tipo sin código («tipo:regulador»). Cabecera con el dibujo del comité y la frase
+    breve; «Cómo actúa» (frase completa de `QUE_HACE`, y para el técnico el sitio de acción, `moa.js → SITIO`, y los grupos
+    químicos del catálogo) con un consejo corto de rotación; «Qué controla»: las plagas, enfermedades y malezas que más
+    nombran las etiquetas de esos productos (función `objetivos_de_productos(uuid[])` sobre `mv_sitio_objetivo_producto`,
+    junta variantes del mismo nombre; cada una lleva al buscador con ese código y esa plaga); «Ingredientes activos» y
+    «Productos» (nombre, empresa, ingrediente, tipo y PDF). En el menú queda marcado «Buscador».
   - **Mapa quitado por un tiempo (31-10-2026, Cristóbal: «quita un rato el mapa»).** No está en el menú ni en la barra
     del celular, la ficha ya no tiene «Ver en el mapa», `mapa.js` no se importa ni se precarga, y `#/mapa` abre el
     buscador (`AL_BUSCADOR` en `app.js`). El código (`vistas/mapa.js`) y sus estilos siguen. Para volver a ponerlo: la

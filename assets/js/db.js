@@ -180,6 +180,10 @@ function codigosDelProducto(ing, categorias) {
   return (calzan.length ? calzan : ing.moaOpciones).map((o) => o.clave);
 }
 
+// Grupos de un producto para agrupar, filtrar y explicar: sus códigos (familias) o, sin código, lo que son
+// («tipo:regulador»). Lo usan el buscador y la página de cada grupo.
+export const gruposDe = (p) => (p.familias.length ? p.familias : p.tipos.map((t) => `tipo:${t}`));
+
 // Productos que se ofrecen en las listas del sitio: no ocultos (carga original sin datos) ni sin uso en Chile.
 export const enListas = (p) => !p.oculto && !p.noDisponible;
 

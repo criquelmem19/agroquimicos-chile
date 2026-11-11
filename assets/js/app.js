@@ -7,6 +7,7 @@ import * as vistaPlan from './vistas/plan.js';
 import * as vistaTrivia from './vistas/trivia.js';
 import * as vistaModos from './vistas/modos.js';
 import * as vistaMezclas from './vistas/mezclas.js';
+import * as vistaGrupo from './vistas/grupo.js';
 
 const NOMBRE_SITIO = 'Agroquímicos CRM';
 
@@ -21,7 +22,8 @@ const SECCIONES = [
   { camino: 'trivia', titulo: 'Trivia', menu: 'Trivia', corto: 'Trivia', icono: 'trofeo', vista: vistaTrivia },
 ];
 // Rutas que no van en el menú.
-const OTRAS = { producto: vistaProducto };
+// grupo: cómo actúa un código, sus productos y qué controlan (desde el título de cada grupo del buscador, 11-11-2026).
+const OTRAS = { producto: vistaProducto, grupo: vistaGrupo };
 // Links antiguos (guardados o compartidos). Estas secciones ahora son el buscador y se abren ahí con sus filtros.
 // «mapa»: quitado por un tiempo a pedido de Cristóbal (31-10-2026); su código sigue en vistas/mapa.js.
 const AL_BUSCADOR = ['aplicar', 'productos', 'mapa'];
@@ -98,7 +100,7 @@ async function mostrar(evento) {
   const cambioDePagina = caminoNuevo !== caminoAnterior;
   caminoAnterior = caminoNuevo;
 
-  pintarMenus(seccion ? seccion.camino : clave === 'producto' ? 'buscar' : null);
+  pintarMenus(seccion ? seccion.camino : clave === 'producto' || clave === 'grupo' ? 'buscar' : null);
   vaciar(principal);
   principal.classList.toggle('vista-ancha', Boolean(vista && vista.ANCHA));
 

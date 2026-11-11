@@ -1,19 +1,20 @@
 // Buscador (#/buscar; fue el inicio hasta el 02-11-2026): tabla de productos (una fila por producto) con un buscador
-// principal (busca mientras se escribe en todas las columnas) y filtros por cultivo, plaga/enfermedad/maleza, tipo de
-// producto, empresa y modo de acción. Es también «¿Qué aplico?»: con cultivo u objetivo, los cultivos y la dosis de cada
-// fila salen solo de las líneas de uso que calzan. Los productos que no se usan en Chile no aparecen.
-// Parámetros: cultivo=<id>, objetivo=<id>, oq=<texto de objetivo>, cat=<id>, q=<texto>, empresa=<nombre corto>,
-// moa=<clave>|sin, ing=<id>, orden=moa|nombre|empresa|tipo|ing|cultivos, inv=1 (orden al revés)
+// principal arriba (busca mientras se escribe en todas las columnas y en las plagas de las etiquetas) y, debajo, cuatro
+// filtros con varias opciones: cultivo, plaga/enfermedad/maleza, tipo de producto y empresa (11-11-2026). Con cultivo u
+// objetivo, los cultivos de cada fila salen solo de las líneas de uso que calzan. Los que no se usan en Chile no aparecen.
+// Parámetros: cultivo=<id>,<id>…, objetivo=<id>,…, oq=<texto de objetivo>, cat=<id>,…, q=<texto>, empresa=<nombre corto>,…,
+// moa=<clave>|sin (desde los chips de código: ya no hay lista), ing=<id>, orden=moa|nombre|empresa|tipo|ing|cultivos,
+// inv=1 (orden al revés)
 import {
   usosPorCultivo, usosPorObjetivos, compararMoa, nombreCorto, familiaMoa, claveMoa, tipoFormulacion as tipoDe,
-  cultivosVisibles, enListas, productosPorObjetivo,
+  cultivosVisibles, enListas, productosPorObjetivo, gruposDe,
 } from '../db.js';
 import { filtrar, palabras, puntaje, normalizar, preparar, contiene, raiz } from '../buscador.js';
 import {
-  h, icono, ruta, plural, recortar, limpio, vaciar, cargando, retrasar, combo, globo,
+  h, icono, ruta, plural, recortar, limpio, vaciar, cargando, retrasar, globo, selectorMultiple, dibujoComite,
   chipsMoa, chipMoa, ingredientesTexto, resumenDosis,
 } from '../ui.js';
-import { queHace, breve, TIPOS, ORDEN_TIPOS, claveTipo, tipoDeClave } from '../moa.js';
+import { queHace, breve, nombreClave, TIPOS, ORDEN_TIPOS, claveTipo, tipoDeClave } from '../moa.js';
 
 // La vista usa todo el ancho de la pantalla (app.js).
 export const ANCHA = true;
@@ -54,6 +55,7 @@ const seccionDe = (clave) => {
   return !k || tipoDeClave(k) ? 'sin' : k.split(' ')[0].toLowerCase();
 };
 const SIN_GRUPO = 'Sin ingrediente activo en los datos';
+const DE_COMITE = { frac: 'FRAC: fungicida o bactericida', irac: 'IRAC: insecticida, acaricida o nematicida', hrac: 'HRAC: herbicida' };
 
 function ir(params) { location.hash = ruta('buscar', params); }
 
@@ -78,7 +80,6 @@ const comparaTexto = (a, b) => String(a).localeCompare(String(b), 'es', { numeri
 // Grupos de modo de acción de un producto como una sola clave («FRAC 7 + FRAC 11»): los que tienen la misma son lo mismo.
 // Se usan las familias (en IRAC, el número sin la letra del subgrupo) y los códigos actuales. Sin código: lo que son
 // sus ingredientes («tipo:regulador»), para que también queden agrupados y explicados.
-const gruposDe = (p) => (p.familias.length ? p.familias : p.tipos.map(claveTipo));
 const claveGrupo = (p) => gruposDe(p).join(' + ');
 
 // Códigos primero (FRAC, IRAC, HRAC), después los tipos sin código y al final los sin ingrediente.
@@ -187,10 +188,15 @@ function fila(p, info, op) {
   // Sin código: lo que es («Regulador», «Feromona»…), también como botón a todos los de su tipo.
   const codigos = p.moa.length ? chipsMoa(p.moa, p.moaEtiqueta) : chipsMoa(p.tipos.map(claveTipo));
   const categorias = p.categorias.map((c) => c.nombre).join(' · ');
+  // Antes del nombre, el dibujo de su comité (hongo, insecto, maleza), solo líneas y del color del comité (11-11-2026).
+  const comites = [...new Set(p.moa.map((k) => k.split(' ')[0].toLowerCase()))].filter((c) => DE_COMITE[c]);
   return h('tr', { class: `fila-producto ${sistema ? `grupo-${sistema}` : 'grupo-sin'}` },
     // Solo el nombre, en negrita; la categoría va al pasar el mouse (y en la tarjeta del celular).
     h('td', { class: 'c-producto' },
-      h('a', { href: ruta(`producto/${p.id}`, { cultivo: op.cultivoId }), title: categorias ? `${p.nombre} · ${categorias}` : p.nombre }, p.nombre),
+      h('span', { class: 'c-nombre' },
+        comites.length ? h('span', { class: 'c-comites' }, comites.map((c) => h('span', { class: `c-comite comite-${c}`, title: DE_COMITE[c] },
+          dibujoComite(c, 'c-dibujo', '4.5')))) : null,
+        h('a', { href: ruta(`producto/${p.id}`, { cultivo: op.cultivoId }), title: categorias ? `${p.nombre} · ${categorias}` : p.nombre }, p.nombre)),
       categorias ? h('span', { class: 'c-cat', title: categorias }, categorias) : null),
     h('td', { class: vacia('c-moa', codigos), 'data-etiqueta': 'Modo de acción' },
       codigos || h('span', { class: 'tenue', title: SIN_GRUPO }, '—')),
@@ -241,11 +247,17 @@ function filaGrupo(clave, productos) {
   const familiasQ = quimicos.length ? h('span', { class: 'grupo-quimicos', title: quimicos.join(' · ') },
     quimicos.slice(0, 2).map((q) => h('span', { class: 'grupo-quimico' }, q)),
     quimicos.length > 2 ? h('span', { class: 'grupo-quimico-mas' }, `+${quimicos.length - 2}`) : null) : null;
+  // Botón a la página del grupo: cómo actúa, qué productos son y qué controlan (11-11-2026).
+  const masInfo = moa.length ? h('a', {
+    class: 'grupo-ver', href: `#/grupo/${encodeURIComponent(clave)}`,
+    title: `Cómo actúa ${moa.map(nombreClave).join(' + ')}, sus productos y qué controlan`,
+  }, 'Cómo actúa y qué controla', icono('flecha')) : null;
   return h('tr', { class: `fila-grupo grupo-${sistema}` }, h('td', { colspan: String(COLUMNAS.length) },
     h('div', { class: 'grupo-titulo' },
       moa.length ? h('span', { class: 'grupo-codigos' }, codigos) : h('strong', { class: 'grupo-que' }, SIN_GRUPO),
       familiasQ,
-      h('span', { class: 'grupo-cuenta' }, plural(productos.length, 'producto', 'productos')))));
+      h('span', { class: 'grupo-cuenta' }, plural(productos.length, 'producto', 'productos')),
+      masInfo)));
 }
 
 // alOrdenar(clave): tocar el título de una columna.
@@ -272,29 +284,37 @@ function tabla(orden, alOrdenar) {
 
 export async function render(main, ctx) {
   const { cat, params } = ctx;
+  const lista = (k) => (params.get(k) || '').split(',').map((x) => x.trim()).filter(Boolean);
   const estado = {
-    cultivo: params.get('cultivo') || '',
-    objetivo: params.get('objetivo') || '',
+    cultivos: lista('cultivo'),
+    objetivos: lista('objetivo'),
     oq: limpio(params.get('oq')),
-    cat: params.get('cat') || '',
+    cats: lista('cat'),
     q: limpio(params.get('q')),
-    empresa: params.get('empresa') || '',
+    empresas: lista('empresa'),
     moa: params.get('moa') && params.get('moa') !== 'sin' ? familiaMoa(params.get('moa')) : params.get('moa') || '',
     ing: params.get('ing') || '',
     orden: ORDENES[params.get('orden')] ? params.get('orden') : 'moa',
     inv: params.get('inv') === '1',
   };
   // Links antiguos: empresa por id (#/productos?empresa=<id>).
-  if (cat.empresas.has(estado.empresa)) estado.empresa = nombreCorto(cat.empresas.get(estado.empresa).nombre);
+  estado.empresas = estado.empresas.map((e) => (cat.empresas.has(e) ? nombreCorto(cat.empresas.get(e).nombre) : e));
 
-  const cultivo = estado.cultivo ? cat.cultivos.get(estado.cultivo) : null;
-  const objetivo = estado.objetivo ? cat.objetivos.get(estado.objetivo) : null;
+  const cultivos = estado.cultivos.map((id) => cat.cultivos.get(id)).filter(Boolean);
+  const objetivos = estado.objetivos.map((id) => cat.objetivos.get(id)).filter(Boolean);
   const ing = estado.ing ? cat.ingredientes.get(estado.ing) : null;
-  const conLineas = Boolean(cultivo || objetivo || estado.oq);
-  const base = () => ({ cultivo: estado.cultivo, objetivo: estado.objetivo, oq: estado.oq, cat: estado.cat, q: estado.q, empresa: estado.empresa, moa: estado.moa, ing: estado.ing, orden: estado.orden === 'moa' ? '' : estado.orden, inv: estado.inv ? '1' : '' });
+  const conLineas = Boolean(cultivos.length || objetivos.length || estado.oq);
+  const base = () => ({
+    cultivo: estado.cultivos.join(','), objetivo: estado.objetivos.join(','), oq: estado.oq, cat: estado.cats.join(','),
+    q: estado.q, empresa: estado.empresas.join(','), moa: estado.moa, ing: estado.ing,
+    orden: estado.orden === 'moa' ? '' : estado.orden, inv: estado.inv ? '1' : '',
+  });
+  const hayFiltros = () => Boolean(estado.q || estado.cultivos.length || estado.objetivos.length || estado.oq
+    || estado.cats.length || estado.empresas.length || estado.moa || estado.ing);
 
-  main.append(h('h1', { class: 'titulo-inicio' }, '¿Qué aplico?'));
-  if ((estado.cultivo && !cultivo) || (estado.objetivo && !objetivo)) {
+  // El título dice lo que es (11-11-2026: «borra el "¿Qué aplico?", ponle un nombre como de lo que es»).
+  main.append(h('h1', { class: 'titulo-inicio' }, 'Buscador de productos'));
+  if (cultivos.length < estado.cultivos.length || objetivos.length < estado.objetivos.length) {
     main.append(h('div', { class: 'nota nota-alerta' }, 'No encontramos ese cultivo u objetivo. ', h('a', { href: '#/buscar' }, 'Empezar de nuevo')));
     return;
   }
@@ -302,40 +322,44 @@ export async function render(main, ctx) {
   // Líneas de uso (solo si hay cultivo u objetivo): se piden antes de armar los filtros para que las
   // sugerencias muestren solo lo que existe con lo ya elegido.
   const zona = h('div', null, conLineas ? cargando('Buscando los productos registrados…', 'inicio') : null);
-  // Empresa y modo de acción: en pantallas anchas van en la misma fila que el resto; en el celular, tras «Más filtros».
-  const panel = h('div', { class: `panel-filtros${estado.empresa || estado.moa ? ' con-extra' : ''}`, role: 'search', hidden: true });
+  const panel = h('div', { class: 'panel-filtros', role: 'search', hidden: true });
   main.append(panel, zona);
 
+  // Líneas que calzan con los cultivos y las plagas elegidas (varias de cada una: vale cualquiera).
   let lineas = null;
+  let lineasCultivo = null; // solo por cultivo: para ofrecer las plagas de esos cultivos
   let resaltados = null;
-  let textoObjetivo = objetivo ? nombreObjetivo(objetivo) : '';
   if (conLineas) {
-    if (cultivo) {
-      lineas = await usosPorCultivo(cultivo.id, cultivo.variantes);
-      if (objetivo) resaltados = new Set([objetivo.id]);
-      else if (estado.oq) {
-        const q = palabras(estado.oq);
-        resaltados = new Set();
-        for (const u of lineas) for (const t of u.objetivos) { const o = cat.objetivos.get(t); if (o && puntaje(q, o.palabras)) resaltados.add(t); }
+    if (cultivos.length) {
+      const grupos = await Promise.all(cultivos.map((c) => usosPorCultivo(c.id, c.variantes)));
+      lineasCultivo = [...new Map(grupos.flat().map((u) => [u.id, u])).values()];
+      lineas = lineasCultivo;
+      if (objetivos.length || estado.oq) {
+        resaltados = new Set(objetivos.map((o) => o.id));
+        if (estado.oq) {
+          const q = palabras(estado.oq);
+          for (const u of lineasCultivo) for (const t of u.objetivos) { const o = cat.objetivos.get(t); if (o && puntaje(q, o.palabras)) resaltados.add(t); }
+        }
       }
     } else {
-      let ids = [objetivo && objetivo.id].filter(Boolean);
-      if (!objetivo) {
-        ids = filtrar([...cat.objetivos.values()].filter((o) => o.nLineas), estado.oq, (o) => o.palabras, (o) => o.nLineas).map((o) => o.id).slice(0, MAX_OBJETIVOS_TEXTO);
+      const ids = new Set(objetivos.map((o) => o.id));
+      if (estado.oq) {
+        for (const o of filtrar([...cat.objetivos.values()].filter((x) => x.nLineas), estado.oq, (x) => x.palabras, (x) => x.nLineas).slice(0, MAX_OBJETIVOS_TEXTO)) ids.add(o.id);
       }
-      resaltados = new Set(ids);
-      lineas = ids.length ? await usosPorObjetivos(ids) : [];
+      resaltados = ids;
+      lineas = ids.size ? await usosPorObjetivos([...ids]) : [];
     }
     if (!ctx.vigente()) return;
     if (resaltados) lineas = lineas.filter((u) => u.objetivos.some((t) => resaltados.has(t)));
-    if (estado.oq) textoObjetivo = `Todos los que dicen «${estado.oq}» (${plural(resaltados.size, 'objetivo', 'objetivos')})`;
   }
 
   // ---- Filtros ----
+  // Arriba el buscador de todo y una X que borra todos los filtros; debajo, cuatro listas con varias opciones
+  // (11-11-2026). El filtro de modo de acción se quitó («nadie lo va a usar»): se llega a un código tocando su chip.
   const objetivosDisponibles = () => {
-    if (!cultivo) return [...cat.objetivos.values()].filter((o) => o.nLineas).map((o) => ({ o, n: o.nProductos }));
+    if (!lineasCultivo) return [...cat.objetivos.values()].filter((o) => o.nLineas).map((o) => ({ o, n: o.nProductos }));
     const m = new Map();
-    for (const u of lineas) for (const t of u.objetivos) {
+    for (const u of lineasCultivo) for (const t of u.objetivos) {
       const o = cat.objetivos.get(t);
       if (!o) continue;
       if (!m.has(t)) m.set(t, { o, productos: new Set() });
@@ -344,7 +368,7 @@ export async function render(main, ctx) {
     return [...m.values()].map((x) => ({ o: x.o, n: x.productos.size }));
   };
   const cultivosDisponibles = () => {
-    if (!lineas || cultivo) return [...cat.cultivos.values()].filter((c) => c.nLineas && !c.esFrase).map((c) => ({ c, n: c.nProductos }));
+    if (!lineas || cultivos.length) return [...cat.cultivos.values()].filter((c) => c.nLineas && !c.esFrase).map((c) => ({ c, n: c.nProductos }));
     const m = new Map();
     for (const u of lineas) {
       for (const c of cultivosVisibles(cat, [u.crop_id])) {
@@ -354,78 +378,88 @@ export async function render(main, ctx) {
     }
     return [...m.values()].map((x) => ({ c: x.c, n: x.productos.size }));
   };
-  const quitarObjetivo = ruta('buscar', { ...base(), objetivo: '', oq: '' });
+  const enTabla = [...cat.productos.values()].filter(enListas);
+  const calzaTexto = (texto, q) => !limpio(q) || normalizar(texto).includes(normalizar(q));
+  const porCategoria = new Map();
+  for (const p of enTabla) for (const c of p.categorias) porCategoria.set(c.id, (porCategoria.get(c.id) || 0) + 1);
+  const porMarca = new Map();
+  for (const p of enTabla) if (p.marca) porMarca.set(p.marca, (porMarca.get(p.marca) || 0) + 1);
+  const valores = (xs) => xs.map((x) => x.valor);
 
-  const selCat = h('select', { class: 'selector', id: 'f-cat' },
-    h('option', { value: '' }, 'Todos'),
-    [...cat.categorias.values()].map((c) => {
-      const n = [...cat.productos.values()].filter((p) => enListas(p) && p.categorias.includes(c)).length;
-      return n ? h('option', { value: c.id, selected: String(c.id) === estado.cat }, `${c.nombre} (${n})`) : null;
-    }));
   const texto = h('input', {
-    class: 'entrada entrada-busqueda', id: 'f-q', type: 'search', value: estado.q, placeholder: 'Ej: Tecto, cobre, FRAC 3',
+    class: 'entrada entrada-busqueda', id: 'f-q', type: 'search', value: estado.q,
+    placeholder: 'Producto, ingrediente, empresa, cultivo, plaga o código (ej: FRAC 3)',
     autocomplete: 'off', spellcheck: 'false', enterkeyhint: 'search',
   });
-  const selEmpresa = h('select', { class: 'selector', id: 'f-empresa' },
-    h('option', { value: '' }, 'Todas'),
-    [...cat.marcas.values()].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
-      .map((m) => h('option', { value: m.nombre, selected: m.nombre === estado.empresa }, `${m.nombre} (${m.productos.length})`)));
-  // Cuántos productos de la tabla (los que se usan en Chile) hay en cada código y en cada tipo sin código.
-  const enTabla = [...cat.productos.values()].filter(enListas);
-  const sinGrupo = enTabla.filter((p) => !gruposDe(p).length).length;
-  const porFamilia = new Map();
-  for (const p of enTabla) for (const k of gruposDe(p)) porFamilia.set(k, (porFamilia.get(k) || 0) + 1);
-  const familiasMoa = [...porFamilia.keys()].filter((k) => !tipoDeClave(k)).sort(compararMoa);
-  const tiposMoa = ORDEN_TIPOS.map(claveTipo).filter((k) => porFamilia.has(k));
-  // Un código antiguo de la etiqueta («HRAC A», desde un link del inicio) también filtra: queda como opción.
-  const moaRaro = estado.moa && estado.moa !== 'sin' && !porFamilia.has(estado.moa);
-  const opcion = (k, texto) => h('option', { value: k, selected: k === estado.moa }, `${texto} (${porFamilia.get(k)})`);
-  const selMoa = h('select', { class: 'selector', id: 'f-moa' },
-    h('option', { value: '' }, 'Todos'),
-    moaRaro ? h('option', { value: estado.moa, selected: true }, `${estado.moa} (en la etiqueta)`) : null,
-    familiasMoa.map((k) => opcion(k, k)),
-    tiposMoa.length ? h('optgroup', { label: 'Sin código FRAC, IRAC ni HRAC' },
-      tiposMoa.map((k) => opcion(k, TIPOS[tipoDeClave(k)].nombre))) : null,
-    sinGrupo ? h('option', { value: 'sin', selected: estado.moa === 'sin' }, `${SIN_GRUPO} (${sinGrupo})`) : null);
-  const verExtra = h('button', {
-    type: 'button', class: 'ver-extra', 'aria-expanded': String(panel.classList.contains('con-extra')),
-    onclick: () => { verExtra.setAttribute('aria-expanded', String(panel.classList.toggle('con-extra'))); },
-  }, 'Más filtros: empresa y modo de acción');
+  const limpiar = h('button', {
+    type: 'button', class: 'boton-redondo limpiar-filtros', title: 'Borrar todos los filtros', 'aria-label': 'Borrar todos los filtros',
+    onclick: () => {
+      if (location.hash.replace(/^#\/?/, '').split('?')[0] === 'buscar' && !conLineas && !estado.moa && !estado.ing) {
+        // Sin filtros que pidan datos: se limpia aquí mismo (más rápido que volver a abrir la página).
+        estado.q = ''; estado.cats = []; estado.empresas = []; texto.value = '';
+        vaciar(filtrosLista); filtrosLista.append(...armarSelectores());
+        pintar();
+      } else ir({ orden: estado.orden === 'moa' ? '' : estado.orden, inv: estado.inv ? '1' : '' });
+    },
+  }, icono('cerrar'));
+
+  function armarSelectores() {
+    return [
+      selectorMultiple({
+        id: 'f-cultivo', titulo: 'Cultivo', vacio: 'Todos', buscar: 'Buscar cultivo (ej: cerezo, uva)',
+        elegidos: cultivos.map((c) => ({ valor: c.id, etiqueta: recortar(c.nombre, 40) })),
+        opciones: (t) => {
+          const xs = cultivosDisponibles();
+          const el = limpio(t) ? filtrar(xs, t, (x) => x.c.palabras, (x) => x.n, 60) : xs.sort((a, b) => b.n - a.n).slice(0, 60);
+          return el.map((x) => ({ valor: x.c.id, etiqueta: recortar(x.c.nombre, 60), detalle: plural(x.n, 'producto', 'productos') }));
+        },
+        alAplicar: (xs) => ir({ ...base(), cultivo: valores(xs).join(',') }),
+      }),
+      selectorMultiple({
+        id: 'f-objetivo', titulo: 'Plaga, enfermedad o maleza', vacio: 'Todas', buscar: 'Buscar (ej: avenilla, oídio, pulgón)',
+        elegidos: [
+          ...objetivos.map((o) => ({ valor: o.id, etiqueta: nombreObjetivo(o) })),
+          ...(estado.oq ? [{ valor: `oq:${estado.oq}`, etiqueta: `Todos los que dicen «${estado.oq}»` }] : []),
+        ],
+        opciones: (t) => {
+          const xs = objetivosDisponibles();
+          const q = limpio(t);
+          if (!q) return xs.sort((a, b) => b.n - a.n).slice(0, 60).map((x) => ({ valor: x.o.id, etiqueta: nombreObjetivo(x.o), detalle: plural(x.n, 'producto', 'productos') }));
+          const calzan = filtrar(xs, q, (x) => x.o.palabras, (x) => x.n);
+          // Los objetivos vienen con muchas variantes («Avenilla», «Avenilla (Avena fatua)»…): primero, todos juntos.
+          const ops = calzan.length >= 2 ? [{ valor: `oq:${q}`, etiqueta: `Todos los que dicen «${q}»`, detalle: plural(calzan.length, 'variante', 'variantes'), clase: 'opcion-todos' }] : [];
+          return ops.concat(calzan.slice(0, 60).map((x) => ({ valor: x.o.id, etiqueta: nombreObjetivo(x.o), detalle: plural(x.n, 'producto', 'productos') })));
+        },
+        alAplicar: (xs) => {
+          const textos = valores(xs).filter((v) => v.startsWith('oq:')).map((v) => v.slice(3));
+          ir({ ...base(), objetivo: valores(xs).filter((v) => !v.startsWith('oq:')).join(','), oq: textos[textos.length - 1] || '' });
+        },
+      }),
+      selectorMultiple({
+        id: 'f-cat', titulo: 'Tipo', vacio: 'Todos', buscar: 'Buscar tipo (ej: fungicida)',
+        elegidos: estado.cats.map((id) => cat.categorias.get(Number(id)) || cat.categorias.get(id)).filter(Boolean)
+          .map((c) => ({ valor: String(c.id), etiqueta: c.nombre })),
+        opciones: (t) => [...cat.categorias.values()].filter((c) => porCategoria.get(c.id) && calzaTexto(c.nombre, t))
+          .sort((a, b) => porCategoria.get(b.id) - porCategoria.get(a.id))
+          .map((c) => ({ valor: String(c.id), etiqueta: c.nombre, detalle: plural(porCategoria.get(c.id), 'producto', 'productos') })),
+        alAplicar: (xs) => { estado.cats = valores(xs); pintar(); },
+      }),
+      selectorMultiple({
+        id: 'f-empresa', titulo: 'Empresa', vacio: 'Todas', buscar: 'Buscar empresa',
+        elegidos: estado.empresas.map((e) => ({ valor: e, etiqueta: e })),
+        opciones: (t) => [...porMarca.keys()].filter((m) => calzaTexto(m, t)).sort((a, b) => a.localeCompare(b, 'es'))
+          .map((m) => ({ valor: m, etiqueta: m, detalle: plural(porMarca.get(m), 'producto', 'productos') })),
+        alAplicar: (xs) => { estado.empresas = valores(xs); pintar(); },
+      }),
+    ];
+  }
+  const filtrosLista = h('div', { class: 'filtros-lista' }, armarSelectores());
 
   panel.append(
-    h('div', { class: 'filtros' },
-      h('div', { class: 'filtro filtro-busqueda' },
-        h('label', { class: 'filtro-titulo', for: 'f-q' }, 'Buscar en la tabla'),
-        h('div', { class: 'busqueda' }, icono('buscar'), texto)),
-      combo({
-        id: 'f-cultivo', titulo: 'Cultivo', placeholder: 'Ej: cerezo, uva, trigo',
-        elegido: cultivo ? recortar(cultivo.nombre, 50) : null,
-        quitar: ruta('buscar', { ...base(), cultivo: '' }),
-        opciones: (t) => {
-          const lista = cultivosDisponibles();
-          const elegidos = limpio(t) ? filtrar(lista, t, (x) => x.c.palabras, (x) => x.n, 40) : lista.sort((a, b) => b.n - a.n).slice(0, 15);
-          return elegidos.map((x) => ({ etiqueta: recortar(x.c.nombre, 60), detalle: plural(x.n, 'producto', 'productos'), accion: () => ir({ ...base(), cultivo: x.c.id }) }));
-        },
-      }),
-      combo({
-        id: 'f-objetivo', titulo: 'Plaga, enfermedad o maleza', placeholder: 'Ej: avenilla, oídio, pulgón',
-        elegido: textoObjetivo || null, quitar: quitarObjetivo,
-        opciones: (t) => {
-          const lista = objetivosDisponibles();
-          const q = limpio(t);
-          if (!q) return lista.sort((a, b) => b.n - a.n).slice(0, 15).map((x) => ({ etiqueta: nombreObjetivo(x.o), detalle: plural(x.n, 'producto', 'productos'), accion: () => ir({ ...base(), objetivo: x.o.id, oq: '' }) }));
-          const calzan = filtrar(lista, q, (x) => x.o.palabras, (x) => x.n);
-          const ops = [];
-          // Los objetivos vienen con muchas variantes («Avenilla», «Avenilla (Avena fatua)»…): primero, todos juntos.
-          if (calzan.length >= 2) ops.push({ etiqueta: `Todos los que dicen «${q}»`, detalle: plural(calzan.length, 'objetivo', 'objetivos'), clase: 'opcion-todos', accion: () => ir({ ...base(), objetivo: '', oq: q }) });
-          for (const x of calzan.slice(0, 50)) ops.push({ etiqueta: nombreObjetivo(x.o), detalle: plural(x.n, 'producto', 'productos'), accion: () => ir({ ...base(), objetivo: x.o.id, oq: '' }) });
-          return ops;
-        },
-      }),
-      h('div', { class: 'filtro filtro-ancho' }, h('label', { class: 'filtro-titulo', for: 'f-cat' }, 'Tipo'), selCat),
-      h('div', { class: 'filtro filtro-extra' }, h('label', { class: 'filtro-titulo', for: 'f-empresa' }, 'Empresa'), selEmpresa),
-      h('div', { class: 'filtro filtro-extra' }, h('label', { class: 'filtro-titulo', for: 'f-moa' }, 'Modo de acción'), selMoa)),
-    verExtra);
+    h('div', { class: 'filtro filtro-busqueda' },
+      h('label', { class: 'filtro-titulo', for: 'f-q' }, 'Buscar en todo'),
+      h('div', { class: 'fila-busqueda' }, h('div', { class: 'busqueda' }, icono('buscar'), texto), limpiar)),
+    filtrosLista);
 
   panel.hidden = false;
 
@@ -439,7 +473,7 @@ export async function render(main, ctx) {
     }
   }
   const ordenCultivos = (ids) => cultivosVisibles(cat, ids)
-    .sort((a, b) => (b.id === estado.cultivo) - (a.id === estado.cultivo) || b.nProductos - a.nProductos || a.nombre.localeCompare(b.nombre, 'es'));
+    .sort((a, b) => estado.cultivos.includes(b.id) - estado.cultivos.includes(a.id) || b.nProductos - a.nProductos || a.nombre.localeCompare(b.nombre, 'es'));
   // Las líneas no cambian mientras se escribe: el resumen de cada producto se calcula una vez.
   const infos = new Map();
   const infoDe = (p) => {
@@ -455,6 +489,7 @@ export async function render(main, ctx) {
   const objetivosResueltos = new Map();
   const pintar = () => {
     ctx.cambiarParams(base());
+    limpiar.disabled = !hayFiltros();
     vaciar(zona);
     const busqueda = separarBusqueda(estado.q);
     busqueda.porObjetivo = new Map();
@@ -473,8 +508,8 @@ export async function render(main, ctx) {
     const candidatos = lineas ? [...porProducto.keys()].map((id) => cat.productos.get(id)).filter(Boolean) : [...cat.productos.values()];
     const visibles = candidatos.filter((p) => {
       if (!enListas(p)) return false;
-      if (estado.cat && !p.categorias.some((c) => String(c.id) === estado.cat)) return false;
-      if (estado.empresa && p.marca !== estado.empresa) return false;
+      if (estado.cats.length && !p.categorias.some((c) => estado.cats.includes(String(c.id)))) return false;
+      if (estado.empresas.length && !estado.empresas.includes(p.marca)) return false;
       if (estado.moa === 'sin' && gruposDe(p).length) return false;
       if (estado.moa && estado.moa !== 'sin' && !gruposDe(p).includes(estado.moa)
         && ![...p.moaEtiqueta.values()].some((xs) => xs.includes(estado.moa))) return false;
@@ -514,6 +549,9 @@ export async function render(main, ctx) {
     zona.append(h('div', { class: 'barra-tabla' },
       h('p', { class: 'cuenta', 'aria-live': 'polite' }, h('strong', null, plural(visibles.length, 'producto', 'productos'))),
       ing ? h('a', { class: 'chip', 'aria-pressed': 'true', href: ruta('buscar', { ...base(), ing: '' }), title: 'Quitar este filtro' }, `Ingrediente: ${ing.nombre}`, icono('cerrar')) : null,
+      // El código elegido desde un chip (ya no hay lista de modo de acción): se ve y se quita aquí.
+      estado.moa ? h('a', { class: 'chip', 'aria-pressed': 'true', href: ruta('buscar', { ...base(), moa: '' }), title: 'Quitar este filtro' },
+        `Modo de acción: ${estado.moa === 'sin' ? SIN_GRUPO : nombreClave(estado.moa)}`, icono('cerrar')) : null,
       h('div', { class: 'orden' }, h('label', null, 'Orden', orden),
         h('button', {
           type: 'button', class: 'boton-redondo', onclick: () => ordenar(estado.orden),
@@ -523,12 +561,12 @@ export async function render(main, ctx) {
     // Si lo escrito es un cultivo o una plaga, ofrecer ese filtro.
     if (estado.q.length >= 3) {
       const sug = [];
-      if (!cultivo) {
+      if (!cultivos.length) {
         for (const c of filtrar([...cat.cultivos.values()].filter((x) => x.nLineas && !x.esFrase), estado.q, (x) => x.palabras, (x) => x.nProductos, 2)) {
           sug.push(h('a', { class: 'chip', href: ruta('buscar', { ...base(), q: '', cultivo: c.id }) }, `Cultivo: ${recortar(c.nombre, 30)}`));
         }
       }
-      if (!objetivo && !estado.oq) {
+      if (!objetivos.length && !estado.oq) {
         const n = filtrar([...cat.objetivos.values()].filter((o) => o.nLineas), estado.q, (o) => o.palabras, (o) => o.nLineas).length;
         if (n) sug.push(h('a', { class: 'chip', href: ruta('buscar', { ...base(), q: '', oq: estado.q }) }, `Plaga, enfermedad o maleza: «${estado.q}»`, h('small', null, plural(n, 'objetivo', 'objetivos'))));
       }
@@ -549,7 +587,7 @@ export async function render(main, ctx) {
     const tbody = cuerpo.querySelector('tbody');
     const masZona = h('div', { class: 'ver-mas-zona' });
     let mostrados = 0;
-    const op = { cultivoId: estado.cultivo || null, agrupar: estado.orden === 'moa' };
+    const op = { cultivoId: estado.cultivos[0] || null, agrupar: estado.orden === 'moa' };
     // Agrupados por modo de acción: un título antes del primer producto de cada grupo.
     const porGrupo = new Map();
     const porSeccion = new Map();
@@ -585,9 +623,6 @@ export async function render(main, ctx) {
     zona.append(cuerpo, masZona);
   };
 
-  selCat.addEventListener('change', () => { estado.cat = selCat.value; pintar(); });
-  selEmpresa.addEventListener('change', () => { estado.empresa = selEmpresa.value; pintar(); });
-  selMoa.addEventListener('change', () => { estado.moa = selMoa.value; pintar(); });
   texto.addEventListener('input', retrasar(() => { estado.q = limpio(texto.value); pintar(); }, 150));
   texto.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); texto.blur(); } });
   pintar();

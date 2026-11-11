@@ -4,25 +4,12 @@
 // «Para el técnico» abierto; sin el juego de la botrytis («no sirve de nada»). Los códigos son botones al buscador.
 // Los textos explican las clasificaciones oficiales (FRAC Code List, IRAC MoA Classification, HRAC MoA Classification);
 // lo que hace cada grupo sale de moa.js; los productos y las cantidades del catálogo salen de la base, nunca inventados.
-import { h, icono, ruta, plural, claseMoa, chipMoa, chipsMoa, vaciar } from '../ui.js';
+import { h, icono, ruta, plural, claseMoa, chipMoa, chipsMoa, vaciar, dibujoComite } from '../ui.js';
 import { queHace } from '../moa.js';
 
 // Dibujos de línea de cada comité (64 × 64): hongo, insecto y maleza.
-const DIBUJOS = {
-  frac: '<path d="M8 31c0-13 11-22 24-22s24 9 24 22c0 2-2 3-4 3H12c-2 0-4-1-4-3z"/><path d="M24 34v14c0 4 4 7 8 7s8-3 8-7V34"/><circle cx="22" cy="21" r="3"/><circle cx="36" cy="16" r="2.5"/><circle cx="44" cy="25" r="3"/><path d="M10 58h44"/>',
-  irac: '<ellipse cx="32" cy="38" rx="13" ry="16"/><circle cx="32" cy="17" r="6"/><path d="M32 23v31"/><path d="M19 31l-9-5M19 39H8M20 47l-8 6M45 31l9-5M45 39h11M44 47l8 6"/><path d="M29 12l-5-7M35 12l5-7"/>',
-  hrac: '<path d="M8 57h48"/><path d="M32 57V28"/><path d="M32 42c-10 0-16-6-17-14 9 0 16 5 17 14z"/><path d="M32 35c9 0 15-6 16-13-9 0-15 5-16 13z"/><path d="M14 57c0-8 2-14 6-18M50 57c0-8-2-13-6-17M21 57c0-5 1-9 3-11"/>',
-};
-
-function dibujo(clase) {
-  const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  for (const [k, v] of Object.entries({
-    viewBox: '0 0 64 64', fill: 'none', stroke: 'currentColor', 'stroke-width': '2.5',
-    'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true', focusable: 'false', class: 'md-dibujo',
-  })) s.setAttribute(k, v);
-  s.innerHTML = DIBUJOS[clase];
-  return s;
-}
+// Hongo, insecto y maleza: ui.js → dibujoComite (desde el 11-11-2026 también los usa el buscador).
+const dibujo = (clase) => dibujoComite(clase);
 
 const SIGLAS = [
   {
