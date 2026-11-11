@@ -62,9 +62,12 @@ const CLAVE_CACHE = 'catalogo-v5';
 
 async function descargarCatalogo() {
   const db = await cliente();
-  // Por etapas: las vistas recalculan todo en cada consulta y, todas a la vez, pasan los 3 s que da la base.
-  const [productos, categorias, ingredientes, equivalencias, clasificacion, empresas, perfiles, estado] = await Promise.all([
-    todas((c) => c.from('v_sitio_productos').select('*').order('id'), 2),
+  // Desde el 11-11-2026 las cuatro listas pesadas se leen de copias ya calculadas (mv_sitio_*, renovadas cada 15 minutos
+  // por pg_cron): con las vistas, v_sitio_productos sola ya tardaba más de los 3 s que da la base a la llave pública, y
+  // había que pedir por etapas. Con las copias cada consulta tarda milisegundos: todo va a la vez (las páginas también).
+  const [productos, categorias, ingredientes, equivalencias, clasificacion, empresas, perfiles, estado, resumen, cultivos,
+    dosisTexto, objetivos] = await Promise.all([
+    todas((c) => c.from('mv_sitio_productos').select('*').order('id'), 2),
     todas((c) => c.from('categories').select('id,name').order('id')),
     todas((c) => c.from('active_ingredients').select('id,common_name,chemical_group,mechanism_group,mechanism_system').order('id')),
     todas((c) => c.from('moa_equivalencias').select('id,sistema,codigo,codigo_actual,ingrediente_id,nota').order('id')),
@@ -74,16 +77,14 @@ async function descargarCatalogo() {
     // Fecha del pie: una consulta barata y que no es indispensable. Hasta el 06-11-2026 salía de v_estado_datos, que
     // recorre toda la base: con 40 mil líneas pasó los 3 s que tiene la llave pública y botaba el sitio entero.
     db.from('products').select('updated_at').order('updated_at', { ascending: false }).limit(1).maybeSingle(),
-  ]);
-  if (estado.error) console.warn('Sin fecha de actualización:', estado.error);
-  const [resumen, cultivos, dosisTexto] = await Promise.all([
-    todas((c) => c.from('v_sitio_resumen_productos').select('id,cultivos,n_lineas,n_aprobadas,n_baja_confianza,dosis').order('id'), 2),
-    todas((c) => c.from('v_sitio_cultivos').select('id,nombre,aliases,n_lineas,n_productos').order('id')),
+    todas((c) => c.from('mv_sitio_resumen_productos').select('id,cultivos,n_lineas,n_aprobadas,n_baja_confianza,dosis').order('id'), 2),
+    todas((c) => c.from('mv_sitio_cultivos').select('id,nombre,aliases,n_lineas,n_productos').order('id'), 2),
     // Texto de la dosis cuando no hay rango (11-11-2026): no es indispensable, si falla la tabla muestra el resto.
     todas((c) => c.from('v_sitio_dosis_texto').select('id,dosis_texto').order('id'))
       .catch((e) => { console.warn('Sin texto de dosis:', e); return []; }),
+    todas((c) => c.from('mv_sitio_objetivos').select('id,nombre,cientifico,n_lineas,n_productos').order('id'), 6, 2),
   ]);
-  const objetivos = await todas((c) => c.from('v_sitio_objetivos').select('id,nombre,cientifico,n_lineas,n_productos').order('id'), 2, 2);
+  if (estado.error) console.warn('Sin fecha de actualización:', estado.error);
   return {
     productos, resumen, dosisTexto, categorias, ingredientes, equivalencias, clasificacion, empresas, cultivos, objetivos, perfiles,
     actualizado: estado.data ? estado.data.updated_at : null,

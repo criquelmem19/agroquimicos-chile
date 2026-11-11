@@ -242,7 +242,8 @@ recibe «permission denied» (verificado el 20-10-2026).
   en `supabase_migrations.schema_migrations.statements`). La migración `20260911000002_invariantes_de_calidad`
   del borrador anterior **nunca se aplicó**; su idea quedó en `aprobado_requiere_carencia`.
 - Advisors (21-10-2026): seguridad solo quedan el INFO «RLS sin políticas» de las 4 tablas del proceso
-  y de `planes_guardados`, y el WARN de `plan_guardado` ejecutable por anon (todo intencional).
+  y de `planes_guardados`, y el WARN de `plan_guardado` ejecutable por anon (todo intencional). Desde el 11-11-2026
+  también el WARN «materialized view in API» de las copias `mv_sitio_*` (intencional, ver «Carga rápida»).
   Rendimiento: solo «unused index» (las estadísticas se reiniciaron al despertar el proyecto).
 
 ### Estado de los datos (medido el 20-10-2026, sobre 2.743 líneas)
@@ -502,8 +503,17 @@ dosis, mojamientos y máximo 1 por temporada, coincide). No se enlazó: falta el
     nunca, y su error botaba todo el catálogo. Arreglo: `descargarCatalogo` pide **por etapas** (productos y listas
     chicas; resumen y cultivos; objetivos de a 2 páginas), `todas()` reintenta hasta 3 veces el 57014, y la fecha sale de
     `products.updated_at` y no es indispensable. Primera visita: ~6 s (5 de 5 sin cortes); con copia guardada, al tiro.
-    **Si vuelve a pasar o se quiere más rapidez:** copias ya calculadas (vistas materializadas `mv_sitio_*` renovadas
-    con pg_cron cada 15 minutos): propuesto, no aplicado; cambiar la base de producción necesita el «sí» de Cristóbal.
+    **Copias ya calculadas (11-11-2026, con el «Sí, arréglalo» de Cristóbal):** `v_sitio_productos` ya tardaba 2,8–4,4 s
+    por página y el sitio cargaba solo por los reintentos. Ahora el sitio lee **`mv_sitio_productos`,
+    `mv_sitio_resumen_productos`, `mv_sitio_cultivos` y `mv_sitio_objetivos`** (vistas materializadas de las `v_sitio_*`,
+    con índice único por `id`), que **pg_cron renueva cada 15 minutos** (tarea `renovar-copias-sitio` →
+    `renovar_copias_sitio()`, `REFRESH … CONCURRENTLY`, sin bloquear lecturas; la llave pública no la puede llamar).
+    Cada consulta tarda milisegundos, así que `descargarCatalogo` pide todo a la vez: primera visita ~2 s (3 de 3, 0
+    errores; antes ~5 s con cortes). Lo nuevo de la base (recopilador, correcciones) aparece en el sitio **hasta 15
+    minutos después**; para verlo al tiro, `select public.renovar_copias_sitio();` como `postgres` (`comun.sql`). Si se
+    cambia una `v_sitio_*`, recrear su copia (la copia guarda las columnas que tenía). Migración
+    `copias_sitio_materializadas`. El advisor de seguridad muestra el WARN «materialized view in API» de las cuatro:
+    intencional (son datos públicos, igual que las vistas).
   - `index.html`: supabase-js con `defer`, `preconnect` a Supabase y `modulepreload` de todos los módulos (al
     agregar un módulo, sumarlo ahí).
 - **Íconos:** `icono.svg` (pestaña; el logo nuevo del 10-11-2026, esmeralda, más claro si el equipo está en modo oscuro) +
