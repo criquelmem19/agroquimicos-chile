@@ -595,7 +595,8 @@ revisa, aplica la base y prueba.
   responden «permission denied» (comprobado).
 - **Administrador:** se marca a mano en la base por `user_id`, nunca por correo ni en el código (el repo es público):
   `insert into public.administradores (user_id) select id from auth.users where email = '<su correo>';` después de que
-  Cristóbal cree su cuenta en el sitio.
+  Cristóbal cree su cuenta en el sitio. **Hecho el 11-11-2026:** su cuenta quedó marcada (comprobado: `es_admin()`
+  verdadero y `admin_panel()` devuelve datos reales; crear cuenta, guardar y la actividad funcionan en el sitio publicado).
 - **Sitio:** `assets/js/cuenta.js` (sesión, guardados, eventos; `db.js → cliente()` ahora guarda la sesión),
   `assets/js/guardar.js` (`botonGuardar`: el marcador), `vistas/cuenta.js` (`#/cuenta`: entrar, crear cuenta, cerrar
   sesión), `vistas/guardados.js` (`#/guardados`, en el menú después de «Buscador»: la misma tabla del buscador agrupada
