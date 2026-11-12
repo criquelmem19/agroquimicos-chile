@@ -12,6 +12,7 @@ import * as vistaCuenta from './vistas/cuenta.js';
 import * as vistaGuardados from './vistas/guardados.js';
 import * as vistaAdmin from './vistas/admin.js';
 import { iniciarCuenta, usuario, alCambiarCuenta, registrarEvento } from './cuenta.js';
+import { iniciarPlanesNube } from './planNube.js';
 
 const NOMBRE_SITIO = 'Agroquímicos CRM';
 
@@ -211,6 +212,8 @@ function iniciarCuentas() {
       if (catalogo && ['guardados', 'cuenta', 'admin'].includes(leerRuta().partes[0])) mostrar();
     });
     iniciarCuenta().then(pintarCuenta, (err) => console.error(err));
+    // Con sesión, los planes también se guardan en la cuenta.
+    iniciarPlanesNube();
   } catch (err) {
     console.error(err);
   }

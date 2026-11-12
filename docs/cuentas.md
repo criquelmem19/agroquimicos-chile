@@ -7,7 +7,7 @@ para el administrador con la actividad del sitio. Este documento es el contrato 
 ## Decisiones
 
 - **Supabase Auth**, correo y contraseña. Sin correo de confirmación mientras dure la prueba (la cuenta queda activa al
-  crearla; `supabase/config.toml`). Contraseña de 8 caracteres o más. Sin recuperación de contraseña por ahora.
+  crearla; `supabase/config.toml`). Contraseña de 8 caracteres o más. Recuperación por correo desde el 12-11-2026.
 - En el navegador sigue yendo solo la llave pública. Todo lo privado se protege con RLS y funciones en la base.
 - El administrador se marca en la base por su `user_id` (tabla `administradores`), nunca por correo ni en el código.
 - La actividad sin sesión lleva solo el identificador al azar del equipo (`localStorage`), sin datos personales. **Con
@@ -92,6 +92,16 @@ export async function panelAdmin()                // el objeto de admin_panel();
 - Eventos: `visita` en cada cambio de página (ruta = sección), `busqueda` (texto del buscador, 2 s después de dejar de
   escribir, 3 letras o más), `producto` (ficha vista), `etiqueta` (PDF abierto), `plan` (botón del plan), `guardar`,
   `quitar`, `registro` e `ingreso`.
+
+## Agregado el 12-11-2026
+
+- **Planes en la cuenta:** `planes_usuario (user_id uuid primary key default auth.uid() → auth.users on delete cascade,
+  datos jsonb, actualizado timestamptz)`; RLS: cada persona lee, crea y cambia solo su fila; sin permisos para `anon`;
+  `datos` es un objeto de menos de 1,5 MB con `{version, activo, planes, borrados}`. Módulo `assets/js/planNube.js`:
+  `iniciarPlanesNube()`, `estadoNube()` ('local', 'cargando', 'guardando', 'guardado', 'error') y `alCambiarNube(fn)`.
+- **Recuperación de contraseña** en `cuenta.js`: `pedirRecuperacion(correo)`, `cambiarClave(clave)`, `recuperacion()`
+  (null, 'pendiente', 'lista' o 'vencido') y `terminarRecuperacion()`. Modos de `#/cuenta`: `entrar`, `crear`, `olvide`
+  y `nueva`.
 
 ## Reglas del código (resumen de CLAUDE.md)
 

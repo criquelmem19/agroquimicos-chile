@@ -13,3 +13,9 @@ enable_signup = true
 # Fase de prueba: la cuenta queda activa al crearla (sin correo de confirmación; el correo gratis de Supabase solo
 # permite 2 mensajes por hora). Antes de abrir el sitio al público: activar la confirmación con un correo propio.
 enable_confirmations = false
+
+# 12-11-2026: correo de «Olvidé mi contraseña» en español. El link va al sitio con `?token_hash=…&type=recovery`
+# (assets/js/cuenta.js lo lee): así los revisores de links de los correos no lo gastan antes que la persona.
+[auth.email.template.recovery]
+subject = "Agroquímicos CRM: pon tu contraseña nueva"
+content_path = "./supabase/plantillas/recuperar.html"

@@ -1,5 +1,5 @@
-// Plan de aplicaciones: calendario por cultivo y temporada, guardado en este equipo (localStorage, sin
-// cuentas). Cada aplicación va por fecha o por días desde el trasplante (con la fecha de trasplante del
+// Plan de aplicaciones: calendario por cultivo y temporada, guardado en este equipo (localStorage) y, con
+// sesión, también en la cuenta (planNube.js). Cada aplicación va por fecha o por días desde el trasplante (con la fecha de trasplante del
 // plan, la fecha sale sola). El producto puede ser del catálogo (con su uso de la etiqueta) o propio
 // (fuera del catálogo, con los datos de la planilla). Las alertas comparan el plan con lo que dice la
 // etiqueta (grupo de modo de acción, máximo por temporada, intervalo, carencia); no agregan recomendaciones.
@@ -68,13 +68,70 @@ function leer() {
   return estado;
 }
 
-function guardar() {
+const alGuardar = new Set();
+
+// `plan`: el que cambió (se le anota la hora, para saber cuál versión es la más nueva al juntar con la cuenta).
+// `avisar` false: cambios que no hizo la persona (datos de la etiqueta al día, planes que llegan de la cuenta).
+function guardar(plan = null, avisar = true) {
+  if (plan) plan.modificado = Date.now();
   try {
     localStorage.setItem(CLAVE, JSON.stringify(estado));
     disponible = true;
   } catch (e) {
     disponible = false;
   }
+  if (avisar) for (const fn of [...alGuardar]) { try { fn(); } catch (e) { console.error(e); } }
+}
+
+// ---------- Planes en la cuenta (planNube.js) ----------
+
+export function alGuardarPlanes(fn) {
+  alGuardar.add(fn);
+  return () => alGuardar.delete(fn);
+}
+
+// Lo que se sube a la cuenta: los planes y los borrados (sin el dueño, que es de este equipo).
+export function estadoPlanes() {
+  const e = leer();
+  return { version: 1, activo: e.activo, planes: e.planes, borrados: e.borrados || {} };
+}
+
+// De quién son los planes de este equipo: id de la cuenta, o null si se hicieron sin sesión.
+export const duenoPlanes = () => leer().dueno || null;
+export function ponerDueno(id) {
+  leer().dueno = id || null;
+  guardar(null, false);
+}
+
+const horaDe = (p) => p.modificado || p.creado || 0;
+
+// Junta los planes de la cuenta con los de este equipo: de cada plan queda la versión más nueva y los borrados
+// siguen borrados. Devuelve true si este equipo quedó distinto de lo que había en la cuenta (hay que subirlo).
+export function fusionarPlanes(remoto) {
+  const e = leer();
+  const r = remoto && Array.isArray(remoto.planes) ? remoto : { planes: [], borrados: {} };
+  const borrados = { ...(r.borrados || {}) };
+  for (const [id, t] of Object.entries(e.borrados || {})) borrados[id] = Math.max(t, borrados[id] || 0);
+  const porId = new Map(r.planes.filter((p) => p && p.id && Array.isArray(p.aplicaciones)).map((p) => [p.id, p]));
+  for (const p of e.planes) {
+    const otro = porId.get(p.id);
+    if (!otro || horaDe(p) >= horaDe(otro)) porId.set(p.id, p);
+  }
+  const planes = [...porId.values()].filter((p) => !(borrados[p.id] && borrados[p.id] >= horaDe(p)))
+    .sort((a, b) => (a.creado || 0) - (b.creado || 0));
+  const antes = JSON.stringify(r.planes);
+  e.planes = planes;
+  e.borrados = borrados;
+  if (!planes.some((p) => p.id === e.activo)) e.activo = planes.some((p) => p.id === r.activo) ? r.activo : (planes[0] ? planes[0].id : null);
+  guardar(null, false);
+  return JSON.stringify(planes) !== antes || Object.keys(borrados).length !== Object.keys(r.borrados || {}).length;
+}
+
+// Deja en este equipo solo lo que viene de la cuenta (o nada): al cerrar sesión o al entrar otra persona.
+export function reemplazarPlanes(remoto) {
+  const r = remoto && Array.isArray(remoto.planes) ? remoto : null;
+  estado = { version: 1, activo: r ? r.activo || null : null, planes: r ? r.planes : [], borrados: r ? r.borrados || {} : {} };
+  guardar(null, false);
 }
 
 export const almacenamientoDisponible = () => { leer(); return disponible; };
@@ -112,7 +169,7 @@ export function crearPlan({ nombre, cultivoId = null, destino = 'consumo' }) {
   };
   e.planes.push(p);
   e.activo = p.id;
-  guardar();
+  guardar(p);
   return p;
 }
 
@@ -120,13 +177,14 @@ export function editarPlan(id, cambios) {
   const p = leer().planes.find((x) => x.id === id);
   if (!p) return null;
   Object.assign(p, cambios);
-  guardar();
+  guardar(p);
   return p;
 }
 
 export function borrarPlan(id) {
   const e = leer();
   e.planes = e.planes.filter((p) => p.id !== id);
+  e.borrados = { ...(e.borrados || {}), [id]: Date.now() };
   if (e.activo === id) e.activo = e.planes[0] ? e.planes[0].id : null;
   guardar();
 }
@@ -140,9 +198,12 @@ export function importarPlanes(lista, { reemplazar = false } = {}) {
     const i = e.planes.findIndex((x) => x.id === p.id);
     if (i === -1) {
       e.planes.push(p);
+      p.modificado = Date.now();
+      if (e.borrados) delete e.borrados[p.id];
       resultado.nuevos.push(p);
     } else if (reemplazar) {
       e.planes[i] = p;
+      p.modificado = Date.now();
       resultado.nuevos.push(p);
     } else {
       resultado.existentes.push(p);
@@ -162,7 +223,7 @@ export function agregarAplicacion(planId, datos) {
     dosisPlan: datos.dosisPlan || '', objetivo: datos.objetivo || '', nota: datos.nota || '', creado: Date.now(),
   };
   p.aplicaciones.push(a);
-  guardar();
+  guardar(p);
   return a;
 }
 
@@ -171,7 +232,7 @@ export function editarAplicacion(planId, apId, cambios) {
   const a = p && p.aplicaciones.find((x) => x.id === apId);
   if (!a) return null;
   Object.assign(a, cambios);
-  guardar();
+  guardar(p);
   return a;
 }
 
@@ -179,7 +240,7 @@ export function quitarAplicacion(planId, apId) {
   const p = leer().planes.find((x) => x.id === planId);
   if (!p) return;
   p.aplicaciones = p.aplicaciones.filter((a) => a.id !== apId);
-  guardar();
+  guardar(p);
 }
 
 // Reemplaza las líneas guardadas por las de la base (por si se corrigió una carencia o una dosis).
@@ -195,7 +256,7 @@ export function refrescarLineas(plan, lineasPorId) {
       cambio = true;
     }
   }
-  if (cambio) guardar();
+  if (cambio) guardar(null, false);
   return cambio;
 }
 
@@ -355,7 +416,7 @@ export function calcularAlertas(plan, cat, { usosCultivo = null } = {}) {
 
     // El producto del catálogo no tiene usos en la etiqueta para los cultivos del plan.
     if (a.productoId && !u && usosCultivo && cultivos.length && !(usosCultivo.get(a.productoId) || []).length) {
-      add('alerta', 'sin-registro', `La etiqueta no tiene usos para ${nombreCultivos.join(', ') || 'el cultivo del plan'}.`);
+      add('info', 'sin-registro', `La etiqueta no tiene usos para ${nombreCultivos.join(', ') || 'el cultivo del plan'}.`);
     }
     // El producto no se puede usar en Chile (solo exportación, autorización cancelada o sustancia prohibida).
     const enCatalogo = a.productoId ? cat.productos.get(a.productoId) : null;
@@ -366,7 +427,7 @@ export function calcularAlertas(plan, cat, { usosCultivo = null } = {}) {
     const cultivoUso = u && u.crop_id ? cat.cultivos.get(u.crop_id) : null;
     if (u && cultivos.length && u.crop_id && ![u.crop_id, ...(cultivoUso ? cultivoUso.bases : [])].some((id) => cultivos.includes(id))) {
       const c = cultivoUso;
-      add('alerta', 'otro-cultivo', `Este uso de la etiqueta es para ${c ? c.nombre : 'otro cultivo'}, no para ${nombreCultivos.join(', ')}.`);
+      add('info', 'otro-cultivo', `Este uso de la etiqueta es para ${c ? c.nombre : 'otro cultivo'}, no para ${nombreCultivos.join(', ')}.`);
     }
 
     // Máximo de aplicaciones por temporada e intervalo, con las aplicaciones del mismo producto.

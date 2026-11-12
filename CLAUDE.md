@@ -1,6 +1,6 @@
 # Agroquímicos CRM — memoria del proyecto
 
-Leer completo antes de tocar algo. Última actualización: 11-11-2026.
+Leer completo antes de tocar algo. Última actualización: 12-11-2026.
 El sitio se llama **Agroquímicos CRM** (antes «Agroquímicos Chile»; el repo y la URL siguen siendo
 `agroquimicos-chile`). «CRM» es la marca de Cristóbal y va arriba, en el logo.
 
@@ -581,12 +581,11 @@ contrato: léelo antes de tocar esto) y lo escribieron cuatro subagentes Sonnet 
 pide algo grande: contrato escrito, archivos repartidos sin cruce, CSS en parciales que el director une, y el director
 revisa, aplica la base y prueba.
 
-- **Cuentas:** Supabase Auth, correo y contraseña (8 o más). `supabase/config.toml` guarda la configuración (sin
+- **Cuentas:** Supabase Auth, correo y contraseña (8 o más; recuperación desde el 12-11-2026, ver la sección siguiente). `supabase/config.toml` guarda la configuración (sin
   secretos): `enable_confirmations = false` (la cuenta queda activa al crearla: el correo gratis de Supabase solo manda 2
   mensajes por hora), `site_url` y `minimum_password_length = 8`. **Aplicada el 11-11-2026 con el «Sí, publícalo» de
   Cristóbal** (el clasificador de seguridad bloqueó hacerlo sin su aprobación). Se aplica con `supabase config push --project-ref
-  cejkhfugaobfqnjpkgpl` (solo cambia lo que el archivo declara; `supabase config diff` lo muestra antes). **Sin
-  recuperación de contraseña todavía** (pendiente). Antes de abrir el sitio al público: confirmación por correo con un
+  cejkhfugaobfqnjpkgpl` (solo cambia lo que el archivo declara; `supabase config diff` lo muestra antes). Antes de abrir el sitio al público: confirmación por correo con un
   correo propio (SMTP).
 - **Base** (migración `cuentas_guardados_actividad`): `productos_guardados` (RLS: cada persona solo lo suyo),
   `administradores` (por `user_id`, privada), `actividad` (privada) y las funciones `es_admin()`, `registrar_evento(…)`
@@ -612,6 +611,47 @@ revisa, aplica la base y prueba.
 - **Pruebas:** Claude no puede crear cuentas ni escribir contraseñas en el sitio (reglas de seguridad): la base se probó
   con usuarios simulados dentro de una transacción que se deshace, y las pantallas sin sesión en el navegador. Crear
   cuenta, entrar, guardar y el panel con sesión los prueba Cristóbal.
+
+## Plan nuevo, planes en la cuenta y recuperación de contraseña (12-11-2026)
+
+Pedido de Cristóbal: recuperar la contraseña y «una visión mejor para los calendarios de aplicaciones… con la descripción
+de qué es pero algo que no ocupe toda la pantalla… agregar fácilmente un producto… cada persona tiene que poder ver el
+plan que ha guardado en sus perfiles… algo súper simple que te vaya preguntando cosas, que no sea tipo si yo pongo canola
+solo producto de canola… que me vaya mostrando a la derecha al tiro contra qué estoy aplicando, cuántas veces y con qué
+tipo de modo de acción».
+
+- **Vista del plan** (`vistas/plan.js`): una frase que explica qué es (única excepción a «sin textos de presentación» en
+  esta página, pedida por él); los datos del plan plegados en una línea (`details.datos-plan`); **asistente de tres
+  preguntas** (`asistente`): «¿Contra qué vas a aplicar?» (plagas de todo el catálogo juntadas por nombre, primero las de
+  las etiquetas del cultivo; también texto libre o «No es contra una plaga»), «¿Con qué producto?» (primero los que lo
+  controlan en el cultivo, después los que lo controlan en otro cultivo —`productosPorObjetivo`—, y al escribir **cualquier
+  producto del catálogo** o uno de fuera) y «¿Cuándo?» (fecha; el día desde el trasplante solo si el plan lo usa; el uso de
+  la etiqueta se elige solo si calza con la plaga; si el producto no tiene uso en el cultivo se ofrecen los de otros
+  cultivos; dosis y nota en «Más detalle»). Después de agregar vuelve a la pregunta 1 con la misma fecha (para armar la
+  mezcla). **Resumen al lado** (`resumenLado`; a la derecha y fijo desde 960 px, debajo del asistente en el celular):
+  aplicaciones, alertas, «Contra qué» (cada plaga, cuántas veces y con qué códigos) y «Modos de acción» (cada código,
+  cuántas veces y aviso si va en la última aplicación); lo que se está por agregar se ve al tiro como «nuevo» o «+1».
+  Reemplaza a «Qué no repetir» y a la barra de alertas. Las alertas «la etiqueta no tiene usos para el cultivo» y «uso de
+  otro cultivo» bajaron a «Para saber» (ya no cuentan como alerta). Línea de tiempo, lista por día, calendario, CSV: igual.
+- **Planes en la cuenta** (`assets/js/planNube.js`, tabla `planes_usuario`, migración `planes_usuario`): una fila por
+  persona con `{version, activo, planes, borrados}` (RLS: solo la suya; tope 1,5 MB). El plan sigue guardándose en el
+  equipo (`localStorage` `planes-v1`, ahora con `dueno`, `modificado` por plan y `borrados`); con sesión se baja al entrar
+  y se junta por plan (gana la versión más nueva; los borrados no reviven: `plan.js → fusionarPlanes`), y cada cambio se
+  sube 1,2 s después. Si los planes del equipo eran de otra cuenta, se reemplazan por los de quien entra. Al cerrar
+  sesión con todo guardado, el equipo queda sin planes. La página muestra «Guardado en tu cuenta» o «solo en este equipo».
+  «Mi cuenta» tiene «Ver mis planes (n)». Los links personales (`abrir=<clave>`) siguen funcionando.
+- **Recuperación de contraseña**: «Olvidé mi contraseña» en `#/cuenta` (`modo=olvide`) manda el correo
+  (`cuenta.js → pedirRecuperacion`); el link vuelve al sitio y `cuenta.js` lo lee al cargar (acepta
+  `?token_hash=…&type=recovery`, de la plantilla propia `supabase/plantillas/recuperar.html`, y `#access_token=…&type=recovery`,
+  de la plantilla de Supabase), saca el token de la barra y abre `#/cuenta?modo=nueva` para poner la contraseña
+  (`cambiarClave`); si venció, pide otro correo. Con sesión, «Cambiar contraseña» en «Mi cuenta».
+  **Límite:** el correo gratis de Supabase solo les escribe a los correos del equipo del proyecto y manda 2 por hora; para
+  que le llegue a cualquier persona hay que configurar un correo propio (SMTP), igual que para la confirmación de cuentas.
+  La plantilla en español está en `supabase/config.toml` pero **falta aplicarla** (`supabase config push`: el clasificador
+  de seguridad lo bloquea sin el «sí» de Cristóbal); mientras, llega el correo en inglés de Supabase y el link igual sirve.
+- **Pruebas:** asistente, resumen y páginas de recuperación en el navegador (computador y celular); la base, con usuarios
+  simulados en transacciones que se deshacen; `fusionarPlanes`, con datos de prueba. Entrar con una cuenta real, ver el
+  plan en otro equipo y el correo de recuperación los prueba Cristóbal.
 
 ## Planes guardados (link personal, sin cuentas)
 

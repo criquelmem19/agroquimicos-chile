@@ -1,10 +1,13 @@
 // Cuenta (#/cuenta, 11-11-2026): entrar, crear cuenta y, con sesión, «Tu cuenta».
-// Parámetros: modo=crear|entrar, volver=<hash al que ir después> y guardar=<id de producto que se quería guardar>.
+// 12-11-2026: «Olvidé mi contraseña» (modo=olvide, manda un correo con un link) y contraseña nueva (modo=nueva, al
+// llegar desde ese link o desde «Cambiar contraseña»).
+// Parámetros: modo=crear|entrar|olvide|nueva, volver=<hash al que ir después> y guardar=<id de producto que se quería guardar>.
 import { h, icono, vaciar } from '../ui.js';
 import {
   usuario, esAdmin, guardados, estaGuardado, alCambiarCuenta, cuentaLista,
-  crearCuenta, entrar, salir, alternarGuardado,
+  crearCuenta, entrar, salir, alternarGuardado, pedirRecuperacion, cambiarClave, recuperacion, terminarRecuperacion,
 } from '../cuenta.js';
+import { planes } from '../plan.js';
 
 // A dónde ir después de entrar: el hash de `volver` si es de este sitio; si no, los guardados.
 function destino(volver) {
@@ -12,14 +15,104 @@ function destino(volver) {
   return '#/guardados';
 }
 
-function tarjetaSesion() {
+// Campo de contraseña con el botón «Ver».
+function campoClave(id, autocompletar, describe) {
+  const clave = h('input', {
+    class: 'entrada', id, name: 'password', type: 'password', required: true,
+    autocomplete: autocompletar, minlength: autocompletar === 'new-password' ? '8' : null, 'aria-describedby': describe || null,
+  });
+  const ver = h('button', {
+    class: 'boton boton-chico cu-ver', type: 'button', 'aria-pressed': 'false', 'aria-controls': id,
+    onclick: () => {
+      const visible = clave.type === 'password';
+      clave.type = visible ? 'text' : 'password';
+      ver.textContent = visible ? 'Ocultar' : 'Ver';
+      ver.setAttribute('aria-pressed', visible ? 'true' : 'false');
+    },
+  }, 'Ver');
+  return { clave, caja: h('div', { class: 'cu-clave' }, clave, ver) };
+}
+
+// «Olvidé mi contraseña»: pide el correo y manda el link.
+function formularioOlvide(cambiarModo, vencido) {
+  const errorEl = h('div', { class: 'cu-error', role: 'alert' });
+  const correo = h('input', {
+    class: 'entrada', id: 'cu-correo', name: 'email', type: 'email', autocomplete: 'email',
+    inputmode: 'email', autocapitalize: 'none', spellcheck: 'false', required: true,
+  });
+  const enviar = h('button', { class: 'boton boton-primario cu-enviar', type: 'submit' }, 'Mandar el correo');
+  const form = h('form', { class: 'cu-form', method: 'post', action: '#', novalidate: true },
+    h('div', { class: 'cu-campo' }, h('label', { for: 'cu-correo' }, 'Correo de tu cuenta'), correo),
+    errorEl, enviar);
+  const seccion = h('section', { class: 'tarjeta cu-tarjeta', 'aria-labelledby': 'cu-titulo' },
+    h('h1', { id: 'cu-titulo', class: 'cu-titulo' }, 'Recupera tu contraseña'),
+    vencido ? h('p', { class: 'cu-guardar' }, icono('alerta'), 'Ese link ya no sirve. Pide otro correo') : null,
+    h('p', { class: 'cu-texto' }, 'Te mandamos un correo con un link para poner una contraseña nueva'),
+    form,
+    h('button', { class: 'boton-texto cu-volver', type: 'button', onclick: () => cambiarModo('entrar') }, 'Volver a entrar'));
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    if (enviar.disabled) return;
+    errorEl.textContent = '';
+    enviar.disabled = true;
+    enviar.textContent = 'Mandando…';
+    const r = await pedirRecuperacion(correo.value);
+    if (!r.ok) {
+      errorEl.textContent = r.mensaje;
+      enviar.disabled = false;
+      enviar.textContent = 'Mandar el correo';
+      return;
+    }
+    form.replaceWith(h('p', { class: 'cu-listo', role: 'status' }, icono('check'),
+      h('span', null, 'Listo. Si ese correo tiene cuenta, en unos minutos te llega el mensaje. Revisa también el correo no deseado')));
+  });
+  return seccion;
+}
+
+// Contraseña nueva (con la sesión del link del correo, o la de siempre).
+function formularioNueva(alTerminar) {
+  const errorEl = h('div', { class: 'cu-error', role: 'alert' });
+  const { clave, caja } = campoClave('cu-clave', 'new-password', 'cu-ayuda');
+  const enviar = h('button', { class: 'boton boton-primario cu-enviar', type: 'submit' }, 'Guardar contraseña');
+  // El correo va en un campo oculto para que el navegador guarde la contraseña en la cuenta correcta.
+  const form = h('form', { class: 'cu-form', method: 'post', action: '#', novalidate: true },
+    h('input', { type: 'email', name: 'email', autocomplete: 'username', value: usuario().correo, hidden: true, readonly: true }),
+    h('div', { class: 'cu-campo' }, h('label', { for: 'cu-clave' }, 'Contraseña nueva'), caja,
+      h('p', { class: 'cu-ayuda', id: 'cu-ayuda' }, '8 caracteres o más')),
+    errorEl, enviar);
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    if (enviar.disabled) return;
+    errorEl.textContent = '';
+    enviar.disabled = true;
+    enviar.textContent = 'Guardando…';
+    const r = await cambiarClave(clave.value);
+    if (!r.ok) {
+      errorEl.textContent = r.mensaje;
+      enviar.disabled = false;
+      enviar.textContent = 'Guardar contraseña';
+      return;
+    }
+    alTerminar(true);
+  });
+  return h('section', { class: 'tarjeta cu-tarjeta', 'aria-labelledby': 'cu-titulo' },
+    h('h1', { id: 'cu-titulo', class: 'cu-titulo' }, 'Pon tu contraseña nueva'),
+    h('p', { class: 'cu-correo' }, h('span', { class: 'cu-etiqueta' }, 'Correo'), h('strong', null, usuario().correo)),
+    form,
+    h('button', { class: 'boton-texto cu-volver', type: 'button', onclick: () => alTerminar(false) }, 'Dejarla como está'));
+}
+
+function tarjetaSesion(cambiarModo, aviso) {
   const u = usuario();
   const n = guardados().size;
+  const nPlanes = planes().length;
   return h('section', { class: 'tarjeta cu-tarjeta', 'aria-labelledby': 'cu-titulo' },
     h('h1', { id: 'cu-titulo', class: 'cu-titulo' }, 'Tu cuenta'),
+    aviso ? h('p', { class: 'cu-listo', role: 'status' }, icono('check'), h('span', null, aviso)) : null,
     h('p', { class: 'cu-correo' }, h('span', { class: 'cu-etiqueta' }, 'Correo'), h('strong', null, u.correo)),
     h('div', { class: 'cu-acciones' },
       h('a', { class: 'boton boton-primario', href: '#/guardados' }, icono('marcador'), `Ver mis guardados (${n})`),
+      h('a', { class: 'boton', href: '#/plan' }, icono('calendario'), `Ver mis planes (${nPlanes})`),
       esAdmin() ? h('a', { class: 'boton', href: '#/admin' }, icono('grafico'), 'Actividad del sitio') : null,
       h('button', {
         class: 'boton', type: 'button',
@@ -28,7 +121,8 @@ function tarjetaSesion() {
           await salir();
           location.hash = '#/';
         },
-      }, icono('salir'), 'Cerrar sesión')));
+      }, icono('salir'), 'Cerrar sesión')),
+    h('button', { class: 'boton-texto cu-volver', type: 'button', onclick: () => cambiarModo('nueva') }, 'Cambiar contraseña'));
 }
 
 function formulario(ctx, modo, cambiarModo) {
@@ -41,28 +135,16 @@ function formulario(ctx, modo, cambiarModo) {
     class: 'entrada', id: 'cu-correo', name: 'email', type: 'email', autocomplete: 'email',
     inputmode: 'email', autocapitalize: 'none', spellcheck: 'false', required: true,
   });
-  const clave = h('input', {
-    class: 'entrada', id: 'cu-clave', name: 'password', type: 'password', required: true,
-    autocomplete: crear ? 'new-password' : 'current-password', minlength: crear ? '8' : null,
-    'aria-describedby': crear ? 'cu-ayuda' : null,
-  });
-  const ver = h('button', {
-    class: 'boton boton-chico cu-ver', type: 'button', 'aria-pressed': 'false', 'aria-controls': 'cu-clave',
-    onclick: () => {
-      const visible = clave.type === 'password';
-      clave.type = visible ? 'text' : 'password';
-      ver.textContent = visible ? 'Ocultar' : 'Ver';
-      ver.setAttribute('aria-pressed', visible ? 'true' : 'false');
-    },
-  }, 'Ver');
+  const { clave, caja: cajaClave } = campoClave('cu-clave', crear ? 'new-password' : 'current-password', crear ? 'cu-ayuda' : null);
   const enviar = h('button', { class: 'boton boton-primario cu-enviar', type: 'submit' }, crear ? 'Crear cuenta' : 'Entrar');
 
   const form = h('form', { class: 'cu-form', method: 'post', action: '#', novalidate: true },
     h('div', { class: 'cu-campo' }, h('label', { for: 'cu-correo' }, 'Correo'), correo),
     h('div', { class: 'cu-campo' },
       h('label', { for: 'cu-clave' }, 'Contraseña'),
-      h('div', { class: 'cu-clave' }, clave, ver),
-      crear ? h('p', { class: 'cu-ayuda', id: 'cu-ayuda' }, '8 caracteres o más') : null),
+      cajaClave,
+      crear ? h('p', { class: 'cu-ayuda', id: 'cu-ayuda' }, '8 caracteres o más')
+        : h('button', { class: 'boton-texto cu-olvide', type: 'button', onclick: () => cambiarModo('olvide') }, 'Olvidé mi contraseña')),
     errorEl,
     enviar,
     crear ? h('p', { class: 'cu-ayuda' }, 'Tu correo y tu actividad en el sitio quedan visibles para el administrador') : null);
@@ -107,29 +189,52 @@ function formulario(ctx, modo, cambiarModo) {
 export async function render(main, ctx) {
   ctx.titulo('Mi cuenta');
   // Espera (poco) a saber si ya hay sesión guardada, para no mostrar «Entrar» a quien ya entró.
-  await Promise.race([cuentaLista(), new Promise((r) => setTimeout(r, 2500))]);
+  // Si llegó con el link del correo, espera a que se compruebe (sin tope: sin eso no se puede seguir).
+  if (recuperacion() === 'pendiente') await cuentaLista();
+  else await Promise.race([cuentaLista(), new Promise((r) => setTimeout(r, 2500))]);
   if (!ctx.vigente()) return;
 
-  let modo = ctx.params.get('modo') === 'crear' ? 'crear' : 'entrar';
+  const MODOS = ['entrar', 'crear', 'olvide', 'nueva'];
+  let modo = MODOS.includes(ctx.params.get('modo')) ? ctx.params.get('modo') : 'entrar';
+  let aviso = null;
   const caja = h('div', { class: 'cu-pagina' });
   main.append(caja);
 
+  const cambiarModo = (nuevo) => {
+    modo = nuevo;
+    aviso = null;
+    ctx.cambiarParams({
+      modo: nuevo === 'entrar' ? null : nuevo,
+      volver: ctx.params.get('volver'),
+      guardar: ctx.params.get('guardar'),
+    });
+    dibujar();
+    const campo = caja.querySelector('#cu-correo, #cu-clave');
+    if (campo) campo.focus();
+  };
   const dibujar = () => {
     vaciar(caja);
-    if (usuario()) {
-      caja.append(tarjetaSesion());
-    } else {
-      caja.append(formulario(ctx, modo, (nuevo) => {
-        modo = nuevo;
-        ctx.cambiarParams({
-          modo: nuevo === 'crear' ? 'crear' : null,
-          volver: ctx.params.get('volver'),
-          guardar: ctx.params.get('guardar'),
-        });
+    const u = usuario();
+    if (modo === 'nueva' && (recuperacion() === 'vencido' || !u)) {
+      // El link del correo venció (o ya se usó): se pide otro.
+      const vencido = recuperacion() === 'vencido';
+      terminarRecuperacion();
+      modo = 'olvide';
+      caja.append(formularioOlvide(cambiarModo, vencido));
+    } else if (modo === 'nueva') {
+      caja.append(formularioNueva((cambiada) => {
+        terminarRecuperacion();
+        modo = 'entrar';
+        ctx.cambiarParams({});
+        aviso = cambiada ? 'Contraseña cambiada' : null;
         dibujar();
-        const campo = caja.querySelector('#cu-correo');
-        if (campo) campo.focus();
       }));
+    } else if (u) {
+      caja.append(tarjetaSesion(cambiarModo, aviso));
+    } else if (modo === 'olvide') {
+      caja.append(formularioOlvide(cambiarModo, false));
+    } else {
+      caja.append(formulario(ctx, modo, cambiarModo));
     }
   };
   dibujar();
@@ -144,6 +249,8 @@ export async function render(main, ctx) {
     if (id === idDibujado && esAdmin() === adminDibujado && guardados().size === nDibujado) return;
     // Mientras se llena el formulario no se pisa lo escrito: solo se redibuja al entrar o salir.
     if (id === idDibujado && !id) return;
+    // Tampoco mientras escribe la contraseña nueva.
+    if (id === idDibujado && modo === 'nueva') return;
     idDibujado = id; adminDibujado = esAdmin(); nDibujado = guardados().size;
     dibujar();
   });
