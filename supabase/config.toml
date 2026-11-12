@@ -16,6 +16,8 @@ enable_confirmations = false
 
 # 12-11-2026: correo de «Olvidé mi contraseña» en español. El link va al sitio con `?token_hash=…&type=recovery`
 # (assets/js/cuenta.js lo lee): así los revisores de links de los correos no lo gastan antes que la persona.
-[auth.email.template.recovery]
-subject = "Agroquímicos CRM: pon tu contraseña nueva"
-content_path = "./supabase/plantillas/recuperar.html"
+# 12-11-2026: Supabase lo rechazó («Email template modification is not available for free tier projects using the
+# default email provider»). Queda comentado hasta que el proyecto tenga un correo propio (SMTP); entonces quitar los #.
+# [auth.email.template.recovery]
+# subject = "Agroquímicos CRM: pon tu contraseña nueva"
+# content_path = "./supabase/plantillas/recuperar.html"

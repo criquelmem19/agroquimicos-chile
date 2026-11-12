@@ -647,8 +647,9 @@ tipo de modo de acción».
   (`cambiarClave`); si venció, pide otro correo. Con sesión, «Cambiar contraseña» en «Mi cuenta».
   **Límite:** el correo gratis de Supabase solo les escribe a los correos del equipo del proyecto y manda 2 por hora; para
   que le llegue a cualquier persona hay que configurar un correo propio (SMTP), igual que para la confirmación de cuentas.
-  La plantilla en español está en `supabase/config.toml` pero **falta aplicarla** (`supabase config push`: el clasificador
-  de seguridad lo bloquea sin el «sí» de Cristóbal); mientras, llega el correo en inglés de Supabase y el link igual sirve.
+  La plantilla en español **no se pudo aplicar** (12-11-2026, con el «Sí, aplícalo» de Cristóbal): Supabase no deja
+  cambiar los correos en el plan gratis con su correo por defecto. Quedó comentada en `supabase/config.toml`; se activa
+  junto con el correo propio (SMTP). Mientras, llega el correo en inglés de Supabase y el link igual sirve.
 - **Pruebas:** asistente, resumen y páginas de recuperación en el navegador (computador y celular); la base, con usuarios
   simulados en transacciones que se deshacen; `fusionarPlanes`, con datos de prueba. Entrar con una cuenta real, ver el
   plan en otro equipo y el correo de recuperación los prueba Cristóbal.
